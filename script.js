@@ -704,7 +704,15 @@ function renderProducts(products) {
     return;
   }
 
-  const IMAGE_BASE_URL = API_BASE_URL.replace('/api', ''); // http://127.0.0.1:5000
+  // Automatically switch between local and production
+const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+
+const API_BASE_URL = isLocal 
+  ? 'http://127.0.0.1:5000/api' 
+  : 'https://moritech.onrender.com/api';
+
+const IMAGE_BASE_URL = API_BASE_URL.replace('/api', '');
+
 
   products.forEach(product => {
     const card = document.createElement('div');
