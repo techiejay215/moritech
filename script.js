@@ -1,6 +1,5 @@
 // Service Functions with Backend Integration
 const API_BASE_URL = 'https://moritech.onrender.com/api';
-
 // Global cart instance
 let cartInstance = null;
 
