@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Moritech Technologies Limited</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="container top-bar-content">
+      <p>Welcome to Moritech Technologies | www.moritech.co.ke</p>
+      <div class="top-bar-contact">
+        <a href="tel:+254719362202"><i class="fas fa-phone"></i> +254719362202</a>
+        <a href="mailto:moriasiondari@yahoo.com"><i class="fas fa-envelope"></i>moriasiondari@yahoo.com</a>
+        <a href="#"><i class="fas fa-map-marker-alt"></i> Kisii Town CBD, Kenya</a>
+        <div class="top-bar-user">
+          <div class="auth-links">
+            <a href="#" id="login-link">Login</a>
+            <span>|</span>
+            <a href="#" id="register-link">Register</a>
+          </div>
+          <div class="user-profile" style="display:none">
+            <span>Welcome, User</span>
+            <span>|</span>
+            <a href="#" id="logout-btn">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Header -->
+  <header>
+    <div class="container header-container">
+      <div class="logo-container">
+        <div class="logo">MT</div>
+        <div class="company-name">
+          <h1>Moritech Technologies</h1>
+          <p>Your Trusted IT Partner</p>
+        </div>
+        <div class="cart-icon">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="cart-count">0</span>
+        </div>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#products">Products</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  
+  <!-- Categories Bar -->
+  <div class="categories">
+    <div class="container categories-container">
+      <button class="category-btn active" data-category="all">All Categories</button>
+      <button class="category-btn" data-category="laptops">Laptops</button>
+      <button class="category-btn" data-category="monitors">Monitors</button>
+      <button class="category-btn" data-category="desktops">Desktops</button>
+      <button class="category-btn" data-category="accessories">Accessories</button>
+      <button class="category-btn" data-category="storage">Storage</button>
+      <button class="category-btn" data-category="printers">Printers</button>
+      <button class="category-btn" data-category="ram">RAM</button>
+    </div>
+  </div>
+  
+  <!-- Hero Section -->
+  <section id="home" class="hero">
+    <!-- Image Slider -->
+    <div class="slider-container">
+      <div class="slider">
+        <div class="slide slide-1 active"></div>
+        <div class="slide slide-2"></div>
+        <div class="slide slide-3"></div>
+        <div class="slide slide-4"></div>
+      </div>
+    </div>
+    
+    <!-- Slider Navigation -->
+    <div class="slider-nav">
+      <button class="slider-btn prev-btn"><i class="fas fa-chevron-left"></i></button>
+      <button class="slider-btn next-btn"><i class="fas fa-chevron-right"></i></button>
+    </div>
+    
+    <!-- Slider Controls -->
+    <div class="slider-controls">
+      <div class="slider-dot active" data-slide="0"></div>
+      <div class="slider-dot" data-slide="1"></div>
+      <div class="slider-dot" data-slide="2"></div>
+      <div class="slider-dot" data-slide="3"></div>
+    </div>
+    
+    <div class="container hero-content">
+      <h2>Premium IT Solutions and computer shop in Kisii</h2>
+      <p>Your trusted partner for computers, accessories, and professional IT solutions in Kisii and beyond</p>
+      <a href="#products" class="btn">Explore Products</a>
+    </div>
+  </section>
+  
+  <!-- Products Section -->
+  <section id="products" class="section">
+    <div class="container">
+      <div class="section-title">
+        <h2>Our Products</h2>
+      </div>
+      
+      <div class="search-container">
+        <i class="fas fa-search"></i>
+        <input type="text" id="search-input" placeholder="Search products...">
+      </div>
+      
+      <div class="product-grid">
+        <!-- Products will be loaded by JavaScript -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section id="services" class="section">
+    <div class="container">
+      <div class="section-title">
+        <h2>Our Services</h2>
+      </div>
+      <ul class="service-list">
+        <li>
+          <div class="service-icon"><i class="fas fa-tools"></i></div>
+          <div>
+            <h3>Laptop & Desktop Repair</h3>
+            <p>Expert repair services for all computer brands</p>
+          </div>
+        </li>
+        <li>
+          <div class="service-icon"><i class="fas fa-laptop"></i></div>
+          <div>
+            <h3>Computer Sales</h3>
+            <p>New and refurbished computers at best prices</p>
+          </div>
+        </li>
+        <li>
+          <div class="service-icon"><i class="fas fa-download"></i></div>
+          <div>
+            <h3>Software Installation</h3>
+            <p>OS installation, updates and troubleshooting</p>
+          </div>
+        </li>
+        <li>
+          <div class="service-icon"><i class="fas fa-print"></i></div>
+          <div>
+            <h3>Printer Services</h3>
+            <p>Repair, maintenance and supplies</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+  
+  <!-- About Section -->
+  <section id="about" class="section">
+    <div class="container">
+      <div class="section-title">
+        <h2>About Us</h2>
+      </div>
+      <div class="about-content">
+        <p>Moritech Technologies Limited is a premier IT solutions provider based in Kisii Town, Kenya. Since our establishment, we've been committed to delivering top-quality computer products and professional IT services to individuals, businesses, and educational institutions throughout the region.</p>
+        <p>Our team of certified technicians brings years of experience in hardware repair, software solutions, and network management. We pride ourselves on offering affordable, reliable, and timely services that meet the evolving technological needs of our clients.</p>
+        <p>At Moritech Technologies, we believe in building lasting relationships with our customers through exceptional service, technical expertise, and genuine care for your technology challenges.</p>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Contact Section -->
+  <section id="contact" class="section">
+    <div class="container">
+      <div class="section-title">
+        <h2>Contact Us</h2>
+      </div>
+      
+      <div class="contact-container">
+        <div class="contact-info">
+          <h3>Get In Touch</h3>
+          <div class="contact-details">
+            <div class="contact-item">
+              <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+              <div class="contact-text">
+                <strong>Address:</strong> Kisii Town CBD, Kenya
+              </div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon"><i class="fas fa-phone"></i></div>
+              <div class="contact-text">
+                <strong>Phone:</strong> <a href="tel:+254719362202">+254 719 362202</a>
+              </div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon"><i class="fab fa-whatsapp"></i></div>
+              <div class="contact-text">
+                <strong>WhatsApp:</strong> <a href="https://wa.me/254719362202" target="_blank">Chat with us</a>
+              </div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+              <div class="contact-text">
+                <strong>Email:</strong> <a href="mailto:moriasiondari@yahoo.com">moriasiondari@yahoo.com</a>
+              </div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon"><i class="fas fa-clock"></i></div>
+              <div class="contact-text">
+                <strong>Working Hours:</strong><br>
+                Mon-Fri: 8:30 AM - 5:30 PM<br>
+                Sat: 9:00 AM - 4:00 PM<br>
+                Sun: 9:00 AM - 4:00 PM
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="map">
+          <i class="fas fa-map-marked-alt" style="font-size: 50px;"></i>
+          <p></p>
+          <img 
+            src="http://127.0.0.1:5000/uploads/WhatsApp%20Image%202025-06-18%20at%2016.11.54_7274cd11.jpg" 
+            alt="Kisii CBD Map" 
+            style="width: 100%; max-width: 400px; margin-top: 10px; border-radius: 10px;"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-content">
+      <div class="social-links">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+        <a href="#"><i class="fab fa-whatsapp"></i></a>
+      </div>
+      <p>&copy; 2025 Moritech Technologies Limited. All rights reserved.</p>
+      <p>Proudly serving Kisii and beyond since 2015</p>
+    </div>
+  </footer>
+  
+  <!-- Authentication Modal -->
+  <div id="auth-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <div class="auth-tabs">
+        <button class="tab-btn active" data-tab="login">Login</button>
+        <button class="tab-btn" data-tab="register">Register</button>
+      </div>
+      
+      <div class="tab-content active" id="login-tab">
+        <h3>Login to Your Account</h3>
+        <form id="login-form">
+          <input type="email" name="email" placeholder="Email" required>
+          <input type="password" name="password" placeholder="Password" required>
+          <button type="submit">Login</button>
+        </form>
+      </div>
+      
+      <div class="tab-content" id="register-tab">
+        <h3>Create New Account</h3>
+        <form id="register-form">
+          <input type="text" name="name" placeholder="Full Name" required>
+          <input type="email" name="email" placeholder="Email" required>
+          <input type="tel" name="phone" placeholder="Phone">
+          <input type="password" name="password" placeholder="Password" required>
+          <input type="password" name="confirmPassword" placeholder="Confirm Password" required>
+          <button type="submit">Register</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shopping Cart Sidebar -->
+  <div id="cart-sidebar">
+    <div class="cart-header">
+      <h3>Your Shopping Cart</h3>
+      <span class="close-cart">&times;</span>
+    </div>
+    <div class="cart-items">
+      <!-- Cart items will appear here -->
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span>Total:</span>
+        <span class="total-amount">Ksh 0</span>
+      </div>
+      <button class="checkout-btn">Proceed to Checkout</button>
+    </div>
+  </div>
+  
+  <!-- Admin Panel -->
+  <section id="admin" class="section" style="display: none;">
+    <div class="container">
+      <h2>Admin Panel</h2>
+      <div class="admin-form">
+        <h3>Add New Product</h3>
+        <form id="add-product-form" enctype="multipart/form-data">
+          <div class="form-group">
+            <label for="product-name">Product Name</label>
+            <input type="text" id="product-name" name="name" placeholder="Product Name" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="product-description">Description</label>
+            <textarea id="product-description" name="description" placeholder="Description" required></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="product-price">Price</label>
+            <input type="number" id="product-price" name="price" placeholder="Price" step="0.01" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="product-category">Category</label>
+            <select id="product-category" name="category" required>
+              <option value="">Select Category</option>
+              <option value="laptops">Laptops</option>
+              <option value="desktops">Desktops</option>
+              <option value="monitors">Monitors</option>
+              <option value="accessories">Accessories</option>
+              <option value="storage">Storage</option>
+              <option value="printers">Printers</option>
+              <option value="ram">RAM</option>
+              <option value="new">Add New Category...</option>
+            </select>
+            <input type="text" id="new-category-input" name="newCategory" 
+             placeholder="Enter new category name" style="display: none; margin-top: 10px;">
+          </div>
+          
+          <div class="form-group">
+            <label for="product-image">Product Image</label>
+            <input type="file" id="product-image" name="image" accept="image/*" required>
+            <div id="image-preview"></div>
+          </div>
+          
+          <button type="submit">Add Product</button>
+        </form>
+      </div>
+      
+      <!-- Product Management Section -->
+      <div class="admin-products-list">
+        <h3>Manage Products</h3>
+        <div class="products-list-container">
+          <!-- Products will be listed here -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
