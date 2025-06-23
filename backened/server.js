@@ -15,11 +15,12 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: 'http://127.0.0.1:5500', // Frontend origin
+  origin: ['http://127.0.0.1:5500', 'https://moritech-technologies.netlify.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 };
+
 
 // Apply middleware
 app.use(cors(corsOptions));
