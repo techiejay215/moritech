@@ -1,5 +1,5 @@
 // Service Functions with Backend Integration
-const API_BASE_URL = 'https://moritech.onrender.com/api';
+const API_BASE_URL = 'https://moritech.onrender.com/api'
 // Global cart instance
 let cartInstance = null;
 
@@ -74,7 +74,8 @@ const authService = {
   async checkSession() {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/session`, {
-        credentials: 'include'
+        method: 'GET',  // Explicitly set GET method
+        credentials: 'include'  // Ensure credentials are included
       });
       
       if (!response.ok) return null;
