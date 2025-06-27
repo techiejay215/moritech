@@ -13,43 +13,66 @@ const connectDB = require('./config/db');
 // Initialize Express app
 const app = express();
 
+// Connect to MongoDB
+connectDB();
+
+// Define allowed frontend origins
+const allowedOrigins = [
+  'http://127.0.0.1:5500',
+  'https://moritech-technologies.netlify.app',
+  'https://moritech.onrender.com'
+];
+
 // CORS configuration
 const corsOptions = {
-  origin: ['http://127.0.0.1:5500', 'https://moritech-technologies.netlify.app'],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 };
 
-// Apply middleware
+// Trust proxy for secure cookies (Heroku/Render)
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
+// Apply global middleware
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Enable preflight requests
+app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
-// Updated session configuration
+// Session middleware
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your_secret_key',
+  secret: process.env.SESSION_SECRET || 'default_secret_key',
   resave: false,
   saveUninitialized: false,
+  proxy: process.env.NODE_ENV === 'production',
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // only secure in production (HTTPS)
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // allow cross-site cookies
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 24 * 60 * 60 * 1000 // 1 day
   }
 }));
 
-// Connect to MongoDB
-connectDB();
-
-// Serve static files from "public"
+// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve uploaded images from "public/uploads"
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+// Serve uploaded images with correct CORS headers
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static(path.join(__dirname, 'public', 'uploads')));
 
-// Health check route
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
@@ -62,14 +85,14 @@ app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error('🔥 Uncaught Server Error:', err);
+  console.error('🔥 Server Error:', err.stack || err.message);
   res.status(500).json({ message: err.message || 'Internal Server Error' });
 });
 
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`📁 Serving static files from: ${path.join(__dirname, 'public')}`);
-  console.log(`📸 Serving uploaded files from: ${path.join(__dirname, 'public', 'uploads')}`);
+  console.log(`✅ Server started on port ${PORT}`);
+  console.log(`📁 Static path: ${path.join(__dirname, 'public')}`);
+  console.log(`📸 Uploads path: ${path.join(__dirname, 'public', 'uploads')}`);
 });

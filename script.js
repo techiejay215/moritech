@@ -1,7 +1,27 @@
-// Service Functions with Backend Integration
-const API_BASE_URL = 'https://moritech.onrender.com/api'
+// Replace the API_BASE_URL declaration at the top
+const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+const API_BASE_URL = isLocal 
+  ? 'http://127.0.0.1:5000/api' 
+  : 'https://moritech.onrender.com/api';
+
 // Global cart instance
 let cartInstance = null;
+// Helper function to get authorization headers
+function getAuthHeaders(contentType = 'application/json') {
+  const headers = {};
+
+  if (contentType) {
+    headers['Content-Type'] = contentType;
+  }
+
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  return headers;
+}
+
 
 // Connectivity Check Function
 async function checkConnectivity() {
@@ -41,7 +61,7 @@ const authService = {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         credentials: 'include',  // Added for session cookie support
         body: JSON.stringify(userData)
       });
@@ -58,7 +78,7 @@ const authService = {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         credentials: 'include',
         body: JSON.stringify(credentials)
       });
@@ -74,8 +94,9 @@ const authService = {
   async checkSession() {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/session`, {
-        method: 'GET',  // Explicitly set GET method
-        credentials: 'include'  // Ensure credentials are included
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
       });
       
       if (response.status === 401) return null;  // Explicitly handle 401
@@ -91,6 +112,7 @@ const authService = {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
+        headers: getAuthHeaders(),
         credentials: 'include'
       });
       
@@ -108,6 +130,7 @@ const cartService = {
   async getCart() {
     try {
       const response = await fetch(`${API_BASE_URL}/cart`, {
+        headers: getAuthHeaders(),
         credentials: 'include'
       });
       
@@ -124,7 +147,7 @@ const cartService = {
     try {
       const response = await fetch(`${API_BASE_URL}/cart/items`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         credentials: 'include',
         body: JSON.stringify({ productId, quantity })
       });
@@ -141,7 +164,7 @@ const cartService = {
     try {
       const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         credentials: 'include',
         body: JSON.stringify({ quantity })
       });
@@ -158,6 +181,7 @@ const cartService = {
     try {
       const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
         credentials: 'include'
       });
       
@@ -176,8 +200,8 @@ const inquiryService = {
     try {
       const response = await fetch(`${API_BASE_URL}/inquiries`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',  // Added for session cookie support
+        headers: getAuthHeaders(),
+        credentials: 'include',
         body: JSON.stringify(inquiryData)
       });
       
@@ -194,7 +218,9 @@ const inquiryService = {
 const productService = {
   async getProducts() {
     try {
-      const response = await fetch(`${API_BASE_URL}/products`);
+      const response = await fetch(`${API_BASE_URL}/products`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
     } catch (error) {
@@ -205,7 +231,9 @@ const productService = {
 
   async searchProducts(query) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`);
+      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
     } catch (error) {
@@ -216,7 +244,9 @@ const productService = {
 
   async getProductsByCategory(category) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`);
+      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
     } catch (error) {
@@ -229,6 +259,7 @@ const productService = {
     try {
       const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
         credentials: 'include'
       });
       
@@ -463,6 +494,11 @@ function initAuthModal() {
     
     try {
       const response = await authService.login({ email, password });
+      
+      // Store token if present in response
+      if (response.token) {
+        localStorage.setItem('authToken', response.token);
+      }
       
       closeModalHandler();
       const sessionData = await updateAuthUI();
@@ -707,13 +743,7 @@ function renderProducts(products) {
     return;
   }
 
-  // Automatically switch between local and production
-  const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
-  const API_BASE_URL = isLocal 
-    ? 'http://127.0.0.1:5000/api' 
-    : 'https://moritech.onrender.com/api';
-  const IMAGE_BASE_URL = API_BASE_URL.replace('/api', '');
-
+ 
   products.forEach(product => {
     const card = document.createElement('div');
     card.className = 'product-card';
@@ -871,6 +901,7 @@ function initLogout() {
   logoutBtn.addEventListener('click', async () => {
     try {
       await authService.logout();
+      localStorage.removeItem('authToken'); // Remove token on logout
       await updateAuthUI();
       if (cartInstance) {
         await cartInstance.fetchCart();
@@ -986,6 +1017,7 @@ function initProductForm() {
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         credentials: 'include',
+        headers: getAuthHeaders(null), // No content-type for FormData
         body: formData
       });
       
