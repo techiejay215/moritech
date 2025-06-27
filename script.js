@@ -752,12 +752,27 @@ function renderProducts(products) {
     card.dataset.id = product._id;
 
     // Proper image URL handling
-    let imageHTML = '';
-    if (product.image) {
-      imageHTML = `<img src="${IMAGE_BASE_URL}${product.image}" alt="${product.name}">`;
-    } else {
-      imageHTML = `<div class="product-icon"><i class="${getProductIcon(product.category)}"></i></div>`;
-    }
+   let imageHTML = '';
+if (product.image) {
+  // Case 1: Full external URL
+  if (product.image.startsWith('http')) {
+    imageHTML = `<img src="${product.image}" alt="${product.name}">`;
+
+  // Case 2: Absolute path like "/uploads/image.jpg"
+  } else if (product.image.startsWith('/')) {
+    const filename = product.image.split('/').pop();
+    imageHTML = `<img src="${IMAGE_BASE_URL}${filename}" alt="${product.name}">`;
+
+  // Case 3: Just filename
+  } else {
+    imageHTML = `<img src="${IMAGE_BASE_URL}${product.image}" alt="${product.name}">`;
+  }
+
+} else {
+  // Case 4: No image — fallback icon
+  imageHTML = `<div class="product-icon"><i class="${getProductIcon(product.category)}"></i></div>`;
+}
+
 
     card.innerHTML = `
       <div class="product-img">
