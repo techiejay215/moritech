@@ -987,6 +987,7 @@ footer {
   border-bottom: 1px solid #eee;
   transition: background-color 0.2s;
   background: #fff;
+  position: relative;
 }
 
 .admin-product-item:hover {
@@ -1016,11 +1017,11 @@ footer {
 
 .admin-product-actions {
   flex-shrink: 0;
-  margin-left: 20px;
+  margin-left: auto; /* Pushes delete button to the right */
 }
 
 .delete-product-btn {
-  background-color: #ff4d4f;
+  background-color: #e60023; /* Brighter red */
   color: white;
   border: none;
   padding: 10px 20px;
@@ -1034,9 +1035,9 @@ footer {
 }
 
 .delete-product-btn:hover {
-  background-color: #ff3336;
+  background-color: #cc001f;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(255, 77, 79, 0.2);
+  box-shadow: 0 4px 8px rgba(230, 0, 35, 0.2);
 }
 
 .delete-product-btn i {
