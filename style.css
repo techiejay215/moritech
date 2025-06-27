@@ -164,7 +164,7 @@ nav a:hover::after {
   width: 100%;
 }
 
-/* Hero Section */
+/* Hero Section - Slides preserved */
 .hero {
   position: relative;
   height: 70vh;
@@ -205,6 +205,22 @@ nav a:hover::after {
 @keyframes zoomEffect {
   0% { transform: scale(1.05); }
   100% { transform: scale(1); }
+}
+
+.slide-1 {
+  background-image: url('https://plus.unsplash.com/premium_photo-1681702156223-ea59bfbf1065?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+}
+
+.slide-2 {
+  background-image: url('https://images.unsplash.com/photo-1593642632823-8f785ba67e45?ixlib=rb-4.0.3&auto=format&fit=crop&w=1332&q=80');
+}
+
+.slide-3 {
+  background-image: url('https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80');
+}
+
+.slide-4 {
+  background-image: url('https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
 }
 
 .slider-nav {
