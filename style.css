@@ -924,7 +924,11 @@ footer {
   align-items: center;
   gap: 8px;
 }
-
+/* Delete button positioned at right */
+.admin-product-actions {
+  margin-left: auto;
+  flex-shrink: 0;
+}
 .delete-product-btn {
   background-color: #e60023;
   color: white;
@@ -935,11 +939,6 @@ footer {
   font-weight: 500;
   transition: background 0.2s, transform 0.2s;
 }
-.admin-product-actions {
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
 .delete-product-btn:hover {
   background-color: #cc001f;
   transform: translateY(-1px);
