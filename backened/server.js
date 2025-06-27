@@ -17,7 +17,7 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Automatically create uploads directory if missing
+// Ensure uploads directory exists
 const uploadDir = path.join(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -47,7 +47,7 @@ const corsOptions = {
   credentials: true
 };
 
-// Trust proxy for secure cookies (Heroku/Render)
+// Trust proxy (important for secure cookies behind proxies)
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
@@ -58,7 +58,7 @@ app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
-// Session middleware
+// Session configuration
 app.use(session({
   secret: process.env.SESSION_SECRET || 'default_secret_key',
   resave: false,
@@ -75,12 +75,13 @@ app.use(session({
 // Serve static files from /public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve uploaded images with correct CORS headers
-app.use('/uploads', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
-  next();
-}, express.static(uploadDir));
+// Serve /uploads with proper CORS and CORP headers
+app.use('/uploads', express.static(uploadDir, {
+  setHeaders: (res, filePath) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  }
+}));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
