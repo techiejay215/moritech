@@ -78,6 +78,7 @@ const authService = {
         credentials: 'include'  // Ensure credentials are included
       });
       
+      if (response.status === 401) return null;  // Explicitly handle 401
       if (!response.ok) return null;
       return await response.json();
     } catch (error) {
@@ -110,6 +111,7 @@ const cartService = {
         credentials: 'include'
       });
       
+      if (response.status === 401) return { items: [] };  // Handle 401 explicitly
       if (!response.ok) return { items: [] };
       return await response.json();
     } catch (error) {
@@ -706,14 +708,11 @@ function renderProducts(products) {
   }
 
   // Automatically switch between local and production
-const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
-
-const API_BASE_URL = isLocal 
-  ? 'http://127.0.0.1:5000/api' 
-  : 'https://moritech.onrender.com/api';
-
-const IMAGE_BASE_URL = API_BASE_URL.replace('/api', '');
-
+  const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+  const API_BASE_URL = isLocal 
+    ? 'http://127.0.0.1:5000/api' 
+    : 'https://moritech.onrender.com/api';
+  const IMAGE_BASE_URL = API_BASE_URL.replace('/api', '');
 
   products.forEach(product => {
     const card = document.createElement('div');

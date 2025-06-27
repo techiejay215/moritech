@@ -21,19 +21,21 @@ const corsOptions = {
   credentials: true
 };
 
-
 // Apply middleware
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // Enable preflight requests
 app.use(express.json());
 app.use(cookieParser());
+
+// Updated session configuration
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your_secret_key',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // only secure in production (HTTPS)
     httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // allow cross-site cookies
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
