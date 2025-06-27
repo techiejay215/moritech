@@ -1,4 +1,5 @@
 // Replace the API_BASE_URL declaration at the top
+const IMAGE_BASE_URL = "https://moritech.onrender.com/uploads/";
 const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
 const API_BASE_URL = isLocal 
   ? 'http://127.0.0.1:5000/api' 
