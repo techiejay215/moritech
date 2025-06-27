@@ -8,6 +8,7 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const connectDB = require('./config/db');
 
 // Initialize Express app
@@ -15,6 +16,15 @@ const app = express();
 
 // Connect to MongoDB
 connectDB();
+
+// Automatically create uploads directory if missing
+const uploadDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+  console.log(`📂 Created uploads directory at: ${uploadDir}`);
+} else {
+  console.log(`📂 Uploads directory already exists at: ${uploadDir}`);
+}
 
 // Define allowed frontend origins
 const allowedOrigins = [
@@ -27,9 +37,9 @@ const allowedOrigins = [
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
+      callback(null, true);
     } else {
-      return callback(new Error('Not allowed by CORS'));
+      callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -62,7 +72,7 @@ app.use(session({
   }
 }));
 
-// Serve static files
+// Serve static files from /public
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve uploaded images with correct CORS headers
@@ -70,7 +80,7 @@ app.use('/uploads', (req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Cross-Origin-Resource-Policy', 'cross-origin');
   next();
-}, express.static(path.join(__dirname, 'public', 'uploads')));
+}, express.static(uploadDir));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -94,5 +104,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server started on port ${PORT}`);
   console.log(`📁 Static path: ${path.join(__dirname, 'public')}`);
-  console.log(`📸 Uploads path: ${path.join(__dirname, 'public', 'uploads')}`);
+  console.log(`📸 Uploads path: ${uploadDir}`);
 });
