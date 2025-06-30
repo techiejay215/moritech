@@ -858,6 +858,18 @@ function inquire(productName) {
   
   document.body.appendChild(modal);
   
+  // Add styles to position modal in center of viewport
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100%';
+  modal.style.height = '100%';
+  modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+  modal.style.display = 'flex';
+  modal.style.justifyContent = 'center';
+  modal.style.alignItems = 'center';
+  modal.style.zIndex = '1000';
+
   modal.querySelector('.close-modal').addEventListener('click', () => {
     document.body.removeChild(modal);
   });
