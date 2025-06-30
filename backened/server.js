@@ -88,6 +88,15 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+// Custom forgot password route (temporary placeholder logic)
+app.post('/api/auth/forgot-password', (req, res) => {
+  const { email } = req.body;
+  // 1. Check if email exists in your database
+  // 2. Generate a password reset token
+  // 3. Send reset email to the user
+  res.status(200).json({ message: "Reset link sent!" });
+});
+
 // API Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
