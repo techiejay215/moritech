@@ -992,7 +992,6 @@ footer {
   border-bottom: 1px solid var(--light-gray);
 }
 
-/* Admin Panel Styles */
 #admin {
   background-color: #f9f9f9;
   padding: 40px 0;
@@ -1256,6 +1255,44 @@ footer {
 
 .products-list-container::-webkit-scrollbar-thumb:hover {
   background-color: #999;
+}
+
+/* Form Validation */
+.form-group input:invalid,
+.form-group select:invalid,
+.form-group textarea:invalid {
+  border-color: #ff4d4f;
+}
+
+.form-group input:invalid:focus,
+.form-group select:invalid:focus,
+.form-group textarea:invalid:focus {
+  box-shadow: 0 0 0 3px rgba(255, 77, 79, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-form,
+  .admin-products-list {
+    padding: 16px;
+  }
+
+  .admin-product-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-product-actions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  .delete-product-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* Utility Classes */
