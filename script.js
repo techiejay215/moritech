@@ -74,6 +74,23 @@ const authService = {
       throw error;
     }
   },
+  // Inside authService
+async requestPasswordReset(email) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ email })
+    });
+    
+    if (!response.ok) throw await handleResponseError(response);
+    return await response.json();
+  } catch (error) {
+    console.error('Password reset error:', error);
+    throw error;
+  }
+},
 
   async login(credentials) {
     try {
@@ -446,6 +463,43 @@ function initAuthModal() {
   const tabContents = document.querySelectorAll('.tab-content');
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
+  const forgotPasswordLink = document.getElementById('forgot-password-link');
+  const resetPasswordForm = document.getElementById('reset-password-form');
+  const resetMessage = document.getElementById('reset-message');
+
+  // Event listener for forgot password link
+  forgotPasswordLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal('reset');
+  });
+
+  // Password reset form submission
+  resetPasswordForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = resetPasswordForm.querySelector('input[type="email"]').value;
+    
+    try {
+      resetMessage.textContent = 'Sending reset link...';
+      resetMessage.style.display = 'block';
+      resetMessage.style.color = '#333';
+      
+      await authService.requestPasswordReset(email);
+      
+      resetMessage.textContent = 'Password reset link sent! Check your email.';
+      resetMessage.style.color = 'green';
+      
+      // Clear form and hide after delay
+      setTimeout(() => {
+        resetPasswordForm.reset();
+        resetMessage.style.display = 'none';
+        showTab('login');
+      }, 3000);
+    } catch (error) {
+      console.error('Reset error:', error);
+      resetMessage.textContent = error.message || 'Failed to send reset link';
+      resetMessage.style.color = 'red';
+    }
+  });
 
   if (!authModal) return;
 
@@ -459,15 +513,17 @@ function initAuthModal() {
     authModal.style.display = 'none';
   };
 
-  const showTab = (tabName) => {
+  // Updated showTab function to handle reset tab
+  function showTab(tabName) {
     tabBtns.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tabName);
     });
     
     tabContents.forEach(content => {
+      // Update this line to include reset-tab
       content.classList.toggle('active', content.id === `${tabName}-tab`);
     });
-  };
+  }
 
   // Event listeners
   loginLink?.addEventListener('click', (e) => {

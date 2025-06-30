@@ -1269,3 +1269,24 @@ footer {
 .mb-20 {
   margin-bottom: 20px;
 }
+/* Add to your CSS */
+.forgot-password {
+  text-align: right;
+  margin: 10px 0 20px;
+}
+
+.forgot-password a {
+  color: #3498db;
+  text-decoration: none;
+  font-size: 0.9em;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
+
+#reset-message {
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+}
