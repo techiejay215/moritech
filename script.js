@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://moritech.onrender.com'; 
+const API_BASE_URL = 'https://moritech.onrender.com/api';
 // Global cart instance
 let cartInstance = null;
 // Helper function to get authorization headers
