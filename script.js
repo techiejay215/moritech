@@ -463,43 +463,12 @@ function initAuthModal() {
   const tabContents = document.querySelectorAll('.tab-content');
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
-  const forgotPasswordLink = document.getElementById('forgot-password-link');
-  const resetPasswordForm = document.getElementById('reset-password-form');
+  
+  // FORGOT PASSWORD ELEMENTS (UPDATED IDS)
+  const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+  const resetPasswordForm = document.getElementById('resetPasswordForm');
   const resetMessage = document.getElementById('reset-message');
-
-  // Event listener for forgot password link
-  forgotPasswordLink?.addEventListener('click', (e) => {
-    e.preventDefault();
-    openModal('reset');
-  });
-
-  // Password reset form submission
-  resetPasswordForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = resetPasswordForm.querySelector('input[type="email"]').value;
-    
-    try {
-      resetMessage.textContent = 'Sending reset link...';
-      resetMessage.style.display = 'block';
-      resetMessage.style.color = '#333';
-      
-      await authService.requestPasswordReset(email);
-      
-      resetMessage.textContent = 'Password reset link sent! Check your email.';
-      resetMessage.style.color = 'green';
-      
-      // Clear form and hide after delay
-      setTimeout(() => {
-        resetPasswordForm.reset();
-        resetMessage.style.display = 'none';
-        showTab('login');
-      }, 3000);
-    } catch (error) {
-      console.error('Reset error:', error);
-      resetMessage.textContent = error.message || 'Failed to send reset link';
-      resetMessage.style.color = 'red';
-    }
-  });
+  const backToLogin = document.getElementById('backToLogin');
 
   if (!authModal) return;
 
@@ -511,6 +480,9 @@ function initAuthModal() {
 
   const closeModalHandler = () => {
     authModal.style.display = 'none';
+    // Reset forms when closing modal
+    loginForm.style.display = 'block';
+    resetPasswordForm.style.display = 'none';
   };
 
   // Updated showTab function to handle reset tab
@@ -520,10 +492,63 @@ function initAuthModal() {
     });
     
     tabContents.forEach(content => {
-      // Update this line to include reset-tab
       content.classList.toggle('active', content.id === `${tabName}-tab`);
     });
   }
+
+  // FORGOT PASSWORD TOGGLE LOGIC
+  forgotPasswordLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginForm.style.display = 'none';
+    resetPasswordForm.style.display = 'block';
+  });
+
+  backToLogin?.addEventListener('click', (e) => {
+    e.preventDefault();
+    resetPasswordForm.style.display = 'none';
+    loginForm.style.display = 'block';
+  });
+
+  // Password reset form submission
+  resetPasswordForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = resetPasswordForm.querySelector('input[type="email"]').value;
+    
+    try {
+      // Create message element if not exists
+      if (!resetMessage) {
+        const msgEl = document.createElement('div');
+        msgEl.id = 'reset-message';
+        msgEl.style.marginTop = '10px';
+        resetPasswordForm.appendChild(msgEl);
+      }
+      
+      // Use existing message element or create one
+      const messageEl = resetMessage || document.getElementById('reset-message');
+      messageEl.textContent = 'Sending reset link...';
+      messageEl.style.display = 'block';
+      messageEl.style.color = '#333';
+      
+      await authService.requestPasswordReset(email);
+      
+      messageEl.textContent = 'Password reset link sent! Check your email.';
+      messageEl.style.color = 'green';
+      
+      // Clear form and hide after delay
+      setTimeout(() => {
+        resetPasswordForm.reset();
+        messageEl.style.display = 'none';
+        resetPasswordForm.style.display = 'none';
+        loginForm.style.display = 'block';
+      }, 3000);
+    } catch (error) {
+      console.error('Reset error:', error);
+      const messageEl = resetMessage || document.getElementById('reset-message');
+      messageEl.textContent = error.message || 'Failed to send reset link';
+      messageEl.style.color = 'red';
+      messageEl.style.display = 'block';
+    }
+  });
 
   // Event listeners
   loginLink?.addEventListener('click', (e) => {
@@ -1178,24 +1203,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       initAdminPanel();
       initProductForm();
     }
-    document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('loginForm');
-    const resetForm = document.getElementById('resetPasswordForm');
-    const forgotLink = document.getElementById('forgotPasswordLink');
-
-    // Show reset form, hide login form
-    forgotLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      loginForm.style.display = 'none';
-      resetForm.style.display = 'block';
-    });
-
-    // Optional: Back-to-login link in reset form
-    document.getElementById('backToLogin').addEventListener('click', () => {
-      resetForm.style.display = 'none';
-      loginForm.style.display = 'block';
-    });
-  });
+    
     // Add event delegation for static product cards
     document.addEventListener('click', function(e) {
       if (e.target.classList.contains('add-to-cart-btn') && cartInstance) {
