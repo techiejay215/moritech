@@ -1102,11 +1102,14 @@ function initProductForm() {
     
     try {
       const response = await fetch(`${API_BASE_URL}/products`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: getAuthHeaders(null), // No content-type for FormData
-        body: formData
-      });
+  method: 'POST',
+  credentials: 'include',
+  headers: {
+    'api_key': '123456' // 🔑 Add this
+  },
+  body: formData
+});
+
       
       if (!response.ok) {
         const errorData = await response.json();
