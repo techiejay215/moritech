@@ -247,6 +247,7 @@ nav a:hover::after {
   0% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
+
 .slide-1 {
   background-image: url('https://images.unsplash.com/photo-1611078489935-0cb964de46d6?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
 }
@@ -340,14 +341,14 @@ nav a:hover::after {
 }
 
 .hero h2 {
-  font-size: 36px;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
   font-weight: 700;
   margin-bottom: 15px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .hero p {
-  font-size: 17px;
+  font-size: clamp(1rem, 2vw, 1.2rem);
   margin-bottom: 25px;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
@@ -388,19 +389,20 @@ nav a:hover::after {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
 }
 
 .category-btn {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.25);
   color: var(--white);
-  padding: 6px 16px;
+  padding: 6px 12px;
   border-radius: 30px;
   cursor: pointer;
   transition: var(--transition);
   font-size: 13px;
   font-weight: 400;
+  white-space: nowrap;
 }
 
 .category-btn:hover, .category-btn.active {
@@ -419,7 +421,7 @@ nav a:hover::after {
 }
 
 .section-title h2 {
-  font-size: 32px;
+  font-size: clamp(1.8rem, 4vw, 2.2rem);
   color: var(--primary);
   position: relative;
   display: inline-block;
@@ -706,19 +708,11 @@ footer {
 /* Responsive Adjustments */
 @media (max-width: 992px) {
   .header-container {
-    flex-direction: column;
+    flex-direction: row;
     gap: 15px;
-  }
-  
-  nav ul {
     flex-wrap: wrap;
-    justify-content: center;
   }
   
-  .hero h2 {
-    font-size: 30px;
-  }
-
   .section {
     padding: 60px 0;
   }
@@ -726,8 +720,23 @@ footer {
 
 @media (max-width: 768px) {
   .top-bar-content {
-    justify-content: center;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 8px;
+    padding: 8px 0;
+  }
+  
+  .top-bar-contact {
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+  }
+  
+  .top-bar-user {
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 5px;
+    border-top: 1px solid rgba(255,255,255,0.2);
   }
   
   .section-title h2 {
@@ -752,6 +761,97 @@ footer {
 
   .product-grid {
     grid-template-columns: 1fr;
+  }
+  
+  /* Mobile Navigation */
+  .menu-toggle {
+    display: block;
+  }
+  
+  nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: var(--white);
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    display: none;
+    z-index: 1000;
+  }
+  
+  nav.active {
+    display: block;
+  }
+  
+  nav ul {
+    flex-direction: column;
+    gap: 0;
+    padding: 10px 0;
+  }
+  
+  nav ul li {
+    width: 100%;
+  }
+  
+  nav a {
+    display: block;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--light-gray);
+  }
+  
+  nav a::after {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .cart-icon {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+  }
+  
+  .hero {
+    height: 50vh;
+  }
+  
+  .hero-content {
+    padding-top: 15vh;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  
+  .hero h2 {
+    font-size: 22px;
+  }
+  
+  .section {
+    padding: 50px 0;
+  }
+  
+  .categories-container {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    scrollbar-width: thin;
+  }
+  
+  .categories-container::-webkit-scrollbar {
+    height: 5px;
+  }
+  
+  .categories-container::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3);
+    border-radius: 10px;
+  }
+  
+  .service-list li {
+    padding: 20px;
   }
 }
 
@@ -865,31 +965,7 @@ footer {
   box-shadow: 0 4px 10px rgba(20, 104, 223, 0.3);
 }
 
-/* Cart Components */
-.cart-icon {
-  position: relative;
-  cursor: pointer;
-  font-size: 22px;
-  color: var(--dark);
-  margin-left: 20px;
-}
-
-.cart-count {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background-color: var(--secondary);
-  color: white;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-}
-
+/* Shopping Cart Sidebar */
 #cart-sidebar {
   position: fixed;
   top: 0;
@@ -916,48 +992,6 @@ footer {
   border-bottom: 1px solid var(--light-gray);
 }
 
-/* Admin Panel */
-.admin-form {
-  background: white;
-  padding: 25px;
-  border-radius: var(--border-radius);
-  box-shadow: 0 0 12px rgba(0,0,0,0.08);
-  max-width: 580px;
-  margin: 0 auto;
-}
-
-.admin-form input,
-.admin-form textarea,
-.admin-form select {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-family: 'Poppins', sans-serif;
-  font-size: 15px;
-}
-
-/* Product Images */
-.product-img img {
-  max-height: 100%;
-  max-width: 100%;
-  object-fit: contain;
-}
-
-.product-icon {
-  font-size: 3.5rem;
-  color: #6c757d;
-}
-
-/* Product List in Admin */
-.admin-products-list {
-  margin-top: 25px;
-  padding: 20px;
-  background: #f9f9f9;
-  border-radius: var(--border-radius);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
 /* Admin Panel Styles */
 #admin {
   background-color: #f9f9f9;
@@ -1224,43 +1258,6 @@ footer {
   background-color: #999;
 }
 
-/* Form Validation */
-.form-group input:invalid,
-.form-group select:invalid,
-.form-group textarea:invalid {
-  border-color: #ff4d4f;
-}
-
-.form-group input:invalid:focus,
-.form-group select:invalid:focus,
-.form-group textarea:invalid:focus {
-  box-shadow: 0 0 0 3px rgba(255, 77, 79, 0.15);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .admin-form,
-  .admin-products-list {
-    padding: 16px;
-  }
-
-  .admin-product-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .admin-product-actions {
-    width: 100%;
-    justify-content: flex-start;
-    gap: 12px;
-    margin-top: 10px;
-  }
-
-  .delete-product-btn {
-    width: 100%;
-    justify-content: center;
-  }
-}
 /* Utility Classes */
 .text-center {
   text-align: center;
