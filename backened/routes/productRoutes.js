@@ -7,6 +7,14 @@ const cloudinary = require('cloudinary').v2;
 const Product = require('../models/Product');
 const productController = require('../controllers/productController');
 
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true
+});
+
 // Configure multer to use memory storage
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -50,8 +58,11 @@ router.post(
       // Process image if uploaded
       if (req.file) {
         const uploadResult = await cloudinary.uploader.upload(
-          `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`,
-          { folder: 'moritech-products' }
+          req.file.buffer.toString('base64'),
+          { 
+            folder: 'moritech-products',
+            resource_type: 'auto' 
+          }
         );
         imageUrl = uploadResult.secure_url;
       }
@@ -68,6 +79,7 @@ router.post(
       const savedProduct = await newProduct.save();
       res.status(201).json(savedProduct);
     } catch (error) {
+      console.error('Product creation error:', error);
       res.status(500).json({ message: error.message });
     }
   }
