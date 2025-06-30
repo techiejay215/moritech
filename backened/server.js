@@ -4,7 +4,7 @@ require('dotenv').config();
 // Add Cloudinary configuration
 const cloudinary = require('cloudinary').v2;
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // Use meaningful names
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
   secure: true
@@ -42,7 +42,7 @@ const corsOptions = {
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'api_key'], // ✅ Include 'api_key'
   credentials: true
 };
 
@@ -53,7 +53,7 @@ if (process.env.NODE_ENV === 'production') {
 
 // Apply global middleware
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.options('*', cors(corsOptions)); // Allow preflight for all routes
 app.use(express.json());
 app.use(cookieParser());
 
@@ -71,7 +71,7 @@ app.use(session({
   }
 }));
 
-// Serve static files from /public
+// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Health check endpoint
@@ -79,12 +79,9 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Custom forgot password route (temporary placeholder logic)
+// Temporary placeholder route for forgot password
 app.post('/api/auth/forgot-password', (req, res) => {
   const { email } = req.body;
-  // 1. Check if email exists in your database
-  // 2. Generate a password reset token
-  // 3. Send reset email to the user
   res.status(200).json({ message: "Reset link sent!" });
 });
 
