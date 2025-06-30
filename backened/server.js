@@ -1,6 +1,15 @@
 // Load environment variables
 require('dotenv').config();
 
+// Add Cloudinary configuration
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+  cloud_name: process.env.dove5yk6u,
+  api_key: process.env.897696862356463,
+  api_secret: process.env.KNBytPMSrsUukZLJAXpxTq8wNJ0,
+  secure: true
+});
+
 // Import dependencies
 const express = require('express');
 const mongoose = require('mongoose');
@@ -8,7 +17,6 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs');
 const connectDB = require('./config/db');
 
 // Initialize Express app
@@ -16,15 +24,6 @@ const app = express();
 
 // Connect to MongoDB
 connectDB();
-
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, 'public', 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  console.log(`📂 Created uploads directory at: ${uploadDir}`);
-} else {
-  console.log(`📂 Uploads directory already exists at: ${uploadDir}`);
-}
 
 // Define allowed frontend origins
 const allowedOrigins = [
@@ -75,14 +74,6 @@ app.use(session({
 // Serve static files from /public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve /uploads with proper CORS and CORP headers
-app.use('/uploads', express.static(uploadDir, {
-  setHeaders: (res, filePath) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  }
-}));
-
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
@@ -114,5 +105,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server started on port ${PORT}`);
   console.log(`📁 Static path: ${path.join(__dirname, 'public')}`);
-  console.log(`📸 Uploads path: ${uploadDir}`);
 });

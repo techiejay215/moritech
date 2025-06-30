@@ -1,10 +1,3 @@
-// Replace the API_BASE_URL declaration at the top
-const IMAGE_BASE_URL = "https://moritech.onrender.com/uploads/";
-const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
-const API_BASE_URL = isLocal 
-  ? 'http://127.0.0.1:5000/api' 
-  : 'https://moritech.onrender.com/api';
-
 // Global cart instance
 let cartInstance = null;
 // Helper function to get authorization headers
@@ -825,35 +818,19 @@ function renderProducts(products) {
     return;
   }
 
- 
   products.forEach(product => {
     const card = document.createElement('div');
     card.className = 'product-card';
     card.dataset.category = product.category;
     card.dataset.id = product._id;
 
-    // Proper image URL handling
-   let imageHTML = '';
-if (product.image) {
-  // Case 1: Full external URL
-  if (product.image.startsWith('http')) {
-    imageHTML = `<img src="${product.image}" alt="${product.name}">`;
-
-  // Case 2: Absolute path like "/uploads/image.jpg"
-  } else if (product.image.startsWith('/')) {
-    const filename = product.image.split('/').pop();
-    imageHTML = `<img src="${IMAGE_BASE_URL}${filename}" alt="${product.name}">`;
-
-  // Case 3: Just filename
-  } else {
-    imageHTML = `<img src="${IMAGE_BASE_URL}${product.image}" alt="${product.name}">`;
-  }
-
-} else {
-  // Case 4: No image — fallback icon
-  imageHTML = `<div class="product-icon"><i class="${getProductIcon(product.category)}"></i></div>`;
-}
-
+    // SIMPLIFIED IMAGE HANDLING - Directly use Cloudinary URL
+    let imageHTML = '';
+    if (product.image) {
+      imageHTML = `<img src="${product.image}" alt="${product.name}">`;
+    } else {
+      imageHTML = `<div class="product-icon"><i class="${getProductIcon(product.category)}"></i></div>`;
+    }
 
     card.innerHTML = `
       <div class="product-img">
