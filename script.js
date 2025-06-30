@@ -1178,7 +1178,24 @@ document.addEventListener('DOMContentLoaded', async function() {
       initAdminPanel();
       initProductForm();
     }
-    
+    document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('loginForm');
+    const resetForm = document.getElementById('resetPasswordForm');
+    const forgotLink = document.getElementById('forgotPasswordLink');
+
+    // Show reset form, hide login form
+    forgotLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      loginForm.style.display = 'none';
+      resetForm.style.display = 'block';
+    });
+
+    // Optional: Back-to-login link in reset form
+    document.getElementById('backToLogin').addEventListener('click', () => {
+      resetForm.style.display = 'none';
+      loginForm.style.display = 'block';
+    });
+  });
     // Add event delegation for static product cards
     document.addEventListener('click', function(e) {
       if (e.target.classList.contains('add-to-cart-btn') && cartInstance) {
