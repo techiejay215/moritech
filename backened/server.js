@@ -25,14 +25,14 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Define allowed frontend origins
+// Allowed frontend origins
 const allowedOrigins = [
   'http://127.0.0.1:5500',
   'https://moritech-technologies.netlify.app',
   'https://moritech.onrender.com'
 ];
 
-// CORS configuration
+// CORS options
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -46,18 +46,18 @@ const corsOptions = {
   credentials: true
 };
 
-// Trust proxy in production for secure cookies
+// Trust reverse proxy in production for secure cookies
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// Apply global middleware
+// Middleware
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Handle preflight requests
-app.use(express.json()); // Parse JSON bodies only
+app.options('*', cors(corsOptions)); // Preflight
+app.use(express.json());
 app.use(cookieParser());
 
-// Session management
+// Session middleware
 app.use(session({
   secret: process.env.SESSION_SECRET || 'default_secret_key',
   resave: false,
@@ -74,18 +74,18 @@ app.use(session({
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Health check endpoint
+// Health check
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Temporary placeholder for forgot password
+// Temporary forgot password placeholder
 app.post('/api/auth/forgot-password', (req, res) => {
   const { email } = req.body;
   res.status(200).json({ message: "Reset link sent!" });
 });
 
-// Mount API routes
+// API routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
