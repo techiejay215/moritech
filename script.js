@@ -1109,10 +1109,14 @@ function initProductForm() {
     formData.delete('newCategory'); // Remove the temporary field
     
     try {
+      // For FormData, remove Content-Type header to allow browser to set it automatically
+      const headers = getAuthHeaders();
+      delete headers['Content-Type'];
+
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         credentials: 'include',
-        headers: getAuthHeaders(),
+        headers: headers,
         body: formData
       });
 
