@@ -1,15 +1,6 @@
 // Load environment variables
 require('dotenv').config();
 
-// Add Cloudinary configuration
-const cloudinary = require('cloudinary').v2;
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true
-});
-
 // Import dependencies
 const express = require('express');
 const mongoose = require('mongoose');
@@ -17,7 +8,16 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
+const cloudinary = require('cloudinary').v2;
 const connectDB = require('./config/db');
+
+// Cloudinary configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true
+});
 
 // Initialize Express app
 const app = express();
@@ -42,22 +42,22 @@ const corsOptions = {
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'api_key'], // ✅ 'api_key' included
+  allowedHeaders: ['Content-Type', 'Authorization', 'api_key'],
   credentials: true
 };
 
-// Trust proxy (important for secure cookies behind proxies)
+// Trust proxy in production for secure cookies
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
 // Apply global middleware
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Allow preflight for all routes
-app.use(express.json());
+app.options('*', cors(corsOptions)); // Handle preflight
+app.use(express.json()); // Parse JSON bodies only
 app.use(cookieParser());
 
-// Session configuration
+// Session management
 app.use(session({
   secret: process.env.SESSION_SECRET || 'default_secret_key',
   resave: false,
@@ -71,7 +71,7 @@ app.use(session({
   }
 }));
 
-// Serve static files
+// Serve static files (like uploaded images)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Health check endpoint
@@ -79,13 +79,13 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Temporary placeholder route for forgot password
+// Temporary placeholder for forgot password
 app.post('/api/auth/forgot-password', (req, res) => {
   const { email } = req.body;
   res.status(200).json({ message: "Reset link sent!" });
 });
 
-// API Routes
+// Mount API routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
@@ -101,5 +101,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server started on port ${PORT}`);
-  console.log(`📁 Static path: ${path.join(__dirname, 'public')}`);
+  console.log(`📁 Static files served from: ${path.join(__dirname, 'public')}`);
 });
