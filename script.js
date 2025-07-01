@@ -78,19 +78,30 @@ const authService = {
 
   async login(credentials) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        credentials: 'include',
-        body: JSON.stringify(credentials)
-      });
-      
-      if (!response.ok) throw await handleResponseError(response);
-      return await response.json();
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    credentials: 'include',
+    body: JSON.stringify(credentials)
+  });
+
+  if (!response.ok) throw await handleResponseError(response);
+
+  const data = await response.json();
+
+  // ✅ Save token from response into localStorage
+  if (data.token) {
+    localStorage.setItem('authToken', data.token);
+  } else {
+    console.warn('⚠️ No token received in login response');
+  }
+
+  return data;
+} catch (error) {
+  console.error('Login error:', error);
+  throw error;
+}
+
   },
   
   async checkSession() {
