@@ -23,12 +23,17 @@ const register = async (req, res) => {
     const user = await User.create({ name, email, phone, password });
     await Cart.create({ user: user._id, items: [] });
 
-    // ✅ Generate token after registration
+    // ✅ Generate token and set as HTTP-only cookie
     const token = generateToken(user._id);
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
 
     res.status(201).json({
       message: 'User registered successfully',
-      token,
       user: {
         _id: user._id,
         name: user.name,
@@ -52,12 +57,17 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // ✅ Generate JWT
+    // ✅ Generate token and set as HTTP-only cookie
     const token = generateToken(user._id);
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
 
     res.json({
       message: 'Login successful',
-      token,
       user: {
         _id: user._id,
         name: user.name,
@@ -84,8 +94,12 @@ const checkSession = (req, res) => {
 // @desc    Logout user
 // @route   POST /api/auth/logout
 const logout = (req, res) => {
-  // For JWT, logout is frontend-only (just clear token)
-  res.json({ message: 'Logged out — clear token on client' });
+  res.clearCookie('token', {
+    httpOnly: true,
+    sameSite: 'none',
+    secure: process.env.NODE_ENV === 'production'
+  });
+  res.json({ message: 'Logged out successfully' });
 };
 
 module.exports = {
