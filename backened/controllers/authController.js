@@ -2,10 +2,13 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Cart = require('../models/Cart');
 
+// Use environment variable or fallback
+const jwtSecret = process.env.JWT_SECRET || 'fallback_strong_secret_here';
+
 // 🔐 Generate JWT Token
 const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: '1d'
+  return jwt.sign({ id: userId }, jwtSecret, {
+    expiresIn: '1d',
   });
 };
 
@@ -23,8 +26,15 @@ const register = async (req, res) => {
     const user = await User.create({ name, email, phone, password });
     await Cart.create({ user: user._id, items: [] });
 
-    // ✅ Generate token after registration
     const token = generateToken(user._id);
+
+    // Optional: Set token in HTTP-only cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -33,8 +43,8 @@ const register = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Server error during registration' });
@@ -52,8 +62,15 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // ✅ Generate JWT
     const token = generateToken(user._id);
+
+    // Optional: Set token in HTTP-only cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
 
     res.json({
       message: 'Login successful',
@@ -62,8 +79,8 @@ const login = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -71,7 +88,7 @@ const login = async (req, res) => {
   }
 };
 
-// @desc    Check login status using token (optional)
+// @desc    Check login session (token must be verified in middleware)
 // @route   GET /api/auth/session
 const checkSession = (req, res) => {
   if (req.user) {
@@ -81,16 +98,20 @@ const checkSession = (req, res) => {
   }
 };
 
-// @desc    Logout user
+// @desc    Logout user (clear cookie)
 // @route   POST /api/auth/logout
 const logout = (req, res) => {
-  // For JWT, logout is frontend-only (just clear token)
-  res.json({ message: 'Logged out — clear token on client' });
+  res.clearCookie('token', {
+    httpOnly: true,
+    sameSite: 'none',
+    secure: process.env.NODE_ENV === 'production',
+  });
+  res.json({ message: 'Logged out successfully' });
 };
 
 module.exports = {
   register,
   login,
   checkSession,
-  logout
+  logout,
 };
