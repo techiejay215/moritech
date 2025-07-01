@@ -1,8 +1,16 @@
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Cart = require('../models/Cart');
 
-// @desc    Register new user
-// @route   POST /api/auth/register
+// 🔐 Generate JWT Token
+const generateToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+    expiresIn: '1d'
+  });
+};
+
+// 📝 @desc    Register new user
+// 📮 @route   POST /api/auth/register
 const register = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
@@ -13,75 +21,89 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
-    // Create new user (password will be hashed by pre-save hook)
+    // Create user
     const user = await User.create({ name, email, phone, password });
 
-    // Create empty cart for the user
+    // Create empty cart
     await Cart.create({ user: user._id, items: [] });
 
+    // Generate token
+    const token = generateToken(user._id);
+
     res.status(201).json({
-      message: 'User registered successfully',
+      token,
       user: {
         _id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Server error during registration' });
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'Server error during registration' });
   }
 };
 
-// @desc    Login user
-// @route   POST /api/auth/login
+// 📝 @desc    Login user
+// 📮 @route   POST /api/auth/login
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Find user by email
     const user = await User.findOne({ email });
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    req.session.user = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    };
+    // Generate token
+    const token = generateToken(user._id);
 
     res.json({
-      message: 'Login successful',
-      user: req.session.user
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
     });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Server error during login' });
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error during login' });
   }
 };
 
-// @desc    Check user session
-// @route   GET /api/auth/session
-const checkSession = (req, res) => {
-  if (req.session.user) {
-    res.json({ user: req.session.user });
-  } else {
-    res.status(401).json({ message: 'No active session' });
-  }
-};
-
-// @desc    Logout user
-// @route   POST /api/auth/logout
-const logout = (req, res) => {
-  req.session.destroy(err => {
-    if (err) {
-      return res.status(500).json({ message: 'Logout failed' });
+// 📝 @desc    Check user from token
+// 📮 @route   GET /api/auth/session
+const checkSession = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Not authorized, no token' });
     }
-    res.clearCookie('connect.sid');
-    res.json({ message: 'Logout successful' });
-  });
+
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+
+    if (!user) return res.status(401).json({ message: 'User not found' });
+
+    res.json({ user });
+  } catch (error) {
+    console.error('Check session error:', error);
+    res.status(401).json({ message: 'Invalid or expired token' });
+  }
 };
 
-// ✅ Correct export with all functions declared above
+// 📝 @desc    Logout user (token-based)
+// 📮 @route   POST /api/auth/logout
+const logout = async (req, res) => {
+  // Client should handle token removal (e.g. localStorage.clear())
+  res.json({ message: 'Logout handled on client side' });
+};
+
 module.exports = {
   register,
   login,
