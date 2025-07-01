@@ -600,13 +600,18 @@ function initCart() {
 
   if (!cartSidebar) return null;
 
-  const openCart = () => {
-    cartSidebar.classList.add('active');
-  };
+ const openCart = () => {
+  cartSidebar.classList.add('active');
+  document.querySelector('.cart-overlay').style.display = 'block';
+};
 
-  const closeCartHandler = () => {
-    cartSidebar.classList.remove('active');
-  };
+const closeCartHandler = () => {
+  cartSidebar.classList.remove('active');
+  document.querySelector('.cart-overlay').style.display = 'none';
+};
+
+// Add click event to close cart when clicking overlay
+document.querySelector('.cart-overlay')?.addEventListener('click', closeCartHandler);
 
   cartIcon?.addEventListener('click', openCart);
   closeCart?.addEventListener('click', closeCartHandler);
