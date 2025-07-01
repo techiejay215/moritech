@@ -1116,14 +1116,17 @@ function initProductForm() {
     }
     
     try {
-      const response = await fetch(`${API_BASE_URL}/products`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          api_key: '123456'
-        },
-        body: formData
-      });
+     const response = await fetch(`${API_BASE_URL}/products`, {
+  method: 'POST',
+  credentials: 'include',
+  headers: {
+    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+    'api_key': '123456' // Optional if your backend uses it
+    // ❌ No Content-Type when using FormData
+  },
+  body: formData
+});
+
 
       if (!response.ok) {
         const errorData = await response.json();
