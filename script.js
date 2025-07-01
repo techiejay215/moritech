@@ -5,17 +5,17 @@ let cartInstance = null;
 // Helper function to get authorization headers
 function getAuthHeaders(contentType = 'application/json') {
   const headers = {};
+  headers['api_key'] = '123456'; // API key always included
 
-  // Add API key to all requests
-  headers['api_key'] = '123456';
-
-  if (contentType) {
-    headers['Content-Type'] = contentType;
-  }
-
+  // Always set Authorization header if token exists
   const token = localStorage.getItem('authToken');
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  // Only set Content-Type if specified
+  if (contentType) {
+    headers['Content-Type'] = contentType;
   }
 
   return headers;
@@ -1142,7 +1142,7 @@ function initProductForm() {
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         credentials: 'include',
-        headers: getAuthHeaders(null),
+        headers: getAuthHeaders(multipart/form-data),
         body: formData
       });
 

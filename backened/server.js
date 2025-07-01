@@ -53,7 +53,7 @@ if (process.env.NODE_ENV === 'production') {
 
 // Apply global middleware
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Handle preflight
+app.options('*', cors(corsOptions)); // Handle preflight requests
 app.use(express.json()); // Parse JSON bodies only
 app.use(cookieParser());
 
@@ -71,7 +71,7 @@ app.use(session({
   }
 }));
 
-// Serve static files (like uploaded images)
+// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Health check endpoint
