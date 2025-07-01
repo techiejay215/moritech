@@ -1,9 +1,28 @@
 const API_BASE_URL = 'https://moritech.onrender.com/api';
 let cartInstance = null;
 
+// JWT decoding function (no library needed)
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+}
+
 function getAuthHeaders(contentType = 'application/json') {
   const headers = {};
   headers['api_key'] = '123456';
+  
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
   
   if (contentType) {
     headers['Content-Type'] = contentType;
@@ -78,30 +97,29 @@ const authService = {
 
   async login(credentials) {
     try {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-    credentials: 'include',
-    body: JSON.stringify(credentials)
-  });
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify(credentials)
+      });
 
-  if (!response.ok) throw await handleResponseError(response);
+      if (!response.ok) throw await handleResponseError(response);
 
-  const data = await response.json();
+      const data = await response.json();
+      console.log("Login response:", data); // Debug response
 
-  // ✅ Save token from response into localStorage
-  if (data.token) {
-    localStorage.setItem('authToken', data.token);
-  } else {
-    console.warn('⚠️ No token received in login response');
-  }
-
-  return data;
-} catch (error) {
-  console.error('Login error:', error);
-  throw error;
-}
-
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+      } else {
+        console.warn('⚠️ No token received in login response');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   },
   
   async checkSession() {
@@ -127,6 +145,7 @@ const authService = {
       });
       
       if (!response.ok) throw await handleResponseError(response);
+      localStorage.removeItem('authToken');
       return true;
     } catch (error) {
       console.error('Logout error:', error);
@@ -549,13 +568,18 @@ function initAuthModal() {
 
   loginForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    console.log("Login form submitted");
+    
     const email = loginForm.querySelector('input[type="email"]').value;
     const password = loginForm.querySelector('input[type="password"]').value;
     
     try {
-      await authService.login({ email, password });
+      const result = await authService.login({ email, password });
+      console.log("Login result:", result);
+      
       closeModalHandler();
-      await updateAuthUI();
+      const session = await updateAuthUI();
+      console.log("After login session:", session);
       
       if (!cartInstance) {
         cartInstance = initCart();
@@ -948,7 +972,45 @@ function inquire(productName) {
 // UPDATED AUTH UI FUNCTION
 async function updateAuthUI() {
   try {
-    const sessionData = await authService.checkSession();
+    // Verify token locally first
+    const token = localStorage.getItem('authToken');
+    let sessionData = null;
+
+    if (token) {
+      try {
+        // Verify token without server call
+        const decoded = parseJwt(token);
+        if (decoded && decoded.exp * 1000 > Date.now()) {
+          sessionData = { user: { 
+            _id: decoded.id,
+            name: "User", // Placeholder
+            role: "user" 
+          }};
+        } else {
+          localStorage.removeItem('authToken');
+        }
+      } catch (e) {
+        console.log("Token decode error:", e);
+        localStorage.removeItem('authToken');
+      }
+    }
+
+    // If no valid token, check server session
+    if (!sessionData) {
+      const response = await fetch(`${API_BASE_URL}/auth/session`, {
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        sessionData = await response.json();
+        // Store token if received in session response
+        if (sessionData?.token) {
+          localStorage.setItem('authToken', sessionData.token);
+        }
+      }
+    }
+
     const authLinks = document.querySelector('.top-bar-user .auth-links');
     const userProfile = document.querySelector('.top-bar-user .user-profile');
     const mobileUserProfile = document.querySelector('.mobile-user-profile');
@@ -1070,10 +1132,8 @@ async function renderAdminProducts() {
       `;
       
       container.appendChild(item);
-    });
-    
-    document.querySelectorAll('.delete-product-btn').forEach(btn => {
-      btn.addEventListener('click', async function() {
+      
+      item.querySelector('.delete-product-btn').addEventListener('click', async function() {
         const productId = this.closest('.admin-product-item').dataset.id;
         if (confirm('Are you sure you want to delete this product?')) {
           try {
@@ -1127,17 +1187,12 @@ function initProductForm() {
     }
     
     try {
-     const response = await fetch(`${API_BASE_URL}/products`, {
-  method: 'POST',
-  credentials: 'include',
-  headers: {
-    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-    'api_key': '123456' // Optional if your backend uses it
-    // ❌ No Content-Type when using FormData
-  },
-  body: formData
-});
-
+      const response = await fetch(`${API_BASE_URL}/products`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: getAuthHeaders(''), // No Content-Type for FormData
+        body: formData
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
