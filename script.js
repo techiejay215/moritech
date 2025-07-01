@@ -460,7 +460,7 @@ function initAuthModal() {
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
   
-  // FORGOT PASSWORD ELEMENTS (UPDATED IDS)
+  // FORGOT PASSWORD ELEMENTS
   const forgotPasswordLink = document.getElementById('forgotPasswordLink');
   const resetPasswordForm = document.getElementById('resetPasswordForm');
   const resetMessage = document.getElementById('reset-message');
@@ -628,12 +628,10 @@ function initCart() {
   if (cartInstance) return cartInstance;
   
   const cartIcon = document.querySelector('.cart-icon');
-  const mobileCartBtn = document.getElementById('mobile-cart-btn');
   const cartSidebar = document.getElementById('cart-sidebar');
   const closeCart = document.querySelector('.close-cart');
   const cartItemsContainer = document.querySelector('.cart-items');
   const cartCount = document.querySelector('.cart-count');
-  const mobileCartCount = document.querySelector('.mobile-cart-count');
   const cartTotal = document.querySelector('.total-amount');
   const checkoutBtn = document.querySelector('.checkout-btn');
 
@@ -650,7 +648,6 @@ function initCart() {
 
   // Event listeners
   cartIcon?.addEventListener('click', openCart);
-  mobileCartBtn?.addEventListener('click', openCart);
   closeCart?.addEventListener('click', closeCartHandler);
 
   // Fetch and display cart
@@ -670,10 +667,7 @@ function initCart() {
   function updateCartUI(cart) {
     const items = cart.items || [];
     const totalItems = items.reduce((total, item) => total + item.quantity, 0);
-    
-    // Update cart counts in both desktop and mobile
     if (cartCount) cartCount.textContent = totalItems;
-    if (mobileCartCount) mobileCartCount.textContent = totalItems;
     
     if (cartItemsContainer) {
       cartItemsContainer.innerHTML = '';
@@ -905,6 +899,34 @@ function getProductIcon(category) {
   return icons[category] || 'fas fa-box';
 }
 
+// Image compression helper
+async function compressImage(file, maxWidth = 800, quality = 0.7) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(maxWidth / img.width, 1);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        canvas.toBlob(
+          (blob) => resolve(new File([blob], file.name, { type: 'image/jpeg' })),
+          'image/jpeg',
+          quality
+        );
+      };
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 // Inquire Functionality
 function inquire(productName) {
   const modal = document.createElement('div');
@@ -1095,6 +1117,7 @@ function initProductForm() {
     
     const formData = new FormData(form);
     const categoryValue = formData.get('category');
+    const imageInput = document.getElementById('product-image');
     
     // Handle new category
     if (categoryValue === 'new') {
@@ -1108,15 +1131,18 @@ function initProductForm() {
     
     formData.delete('newCategory'); // Remove the temporary field
     
+    // Compress image if present
+    if (imageInput.files.length > 0) {
+      const originalFile = imageInput.files[0];
+      const compressedFile = await compressImage(originalFile);
+      formData.set('image', compressedFile);
+    }
+    
     try {
-      // For FormData, remove Content-Type header to allow browser to set it automatically
-      const headers = getAuthHeaders();
-      delete headers['Content-Type'];
-
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         credentials: 'include',
-        headers: headers,
+        headers: getAuthHeaders(),
         body: formData
       });
 
@@ -1147,9 +1173,23 @@ function initProductForm() {
   const imagePreview = document.getElementById('image-preview');
   
   if (imageInput && imagePreview) {
-    imageInput.addEventListener('change', function() {
+    imageInput.addEventListener('change', async function() {
       imagePreview.innerHTML = '';
+      
       if (this.files && this.files[0]) {
+        const file = this.files[0];
+        
+        // Show warning for large files
+        if (file.size > 2 * 1024 * 1024) { // 2MB
+          const warning = document.createElement('div');
+          warning.className = 'file-warning';
+          warning.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            Large image (${Math.round(file.size/1024/1024)}MB). Compressing...
+          `;
+          imagePreview.appendChild(warning);
+        }
+        
         const reader = new FileReader();
         reader.onload = function(e) {
           const img = document.createElement('img');
@@ -1158,7 +1198,7 @@ function initProductForm() {
           img.style.maxHeight = '200px';
           imagePreview.appendChild(img);
         }
-        reader.readAsDataURL(this.files[0]);
+        reader.readAsDataURL(file);
       }
     });
   }
