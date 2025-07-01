@@ -1142,7 +1142,7 @@ function initProductForm() {
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         credentials: 'include',
-        headers: getAuthHeaders(multipart/form-data),
+        headers: getAuthHeaders('multipart/form-data'),
         body: formData
       });
 
