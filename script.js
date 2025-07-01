@@ -1164,6 +1164,36 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('mobile-account-btn')?.addEventListener('click', () => {
       document.getElementById('login-link')?.click();
     });
+    // Mobile account button functionality
+  document.getElementById('mobile-account-btn')?.addEventListener('click', () => {
+    const mobileModal = document.getElementById('mobile-auth-modal');
+    mobileModal.style.display = 'flex';
+  });
+
+  // Close mobile modal
+  document.querySelector('.close-mobile-modal')?.addEventListener('click', () => {
+    document.getElementById('mobile-auth-modal').style.display = 'none';
+  });
+
+  // Mobile login button
+  document.querySelector('.mobile-login-btn')?.addEventListener('click', () => {
+    document.getElementById('mobile-auth-modal').style.display = 'none';
+    document.getElementById('login-link')?.click();
+  });
+
+  // Mobile register button
+  document.querySelector('.mobile-register-btn')?.addEventListener('click', () => {
+    document.getElementById('mobile-auth-modal').style.display = 'none';
+    document.getElementById('register-link')?.click();
+  });
+
+  // Close modal when clicking outside
+  window.addEventListener('click', (e) => {
+    const mobileModal = document.getElementById('mobile-auth-modal');
+    if (e.target === mobileModal) {
+      mobileModal.style.display = 'none';
+    }
+  });
     
   } catch (error) {
     console.error('Initialization error:', error);
