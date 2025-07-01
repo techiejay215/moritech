@@ -1,27 +1,17 @@
-// script.js
 const API_BASE_URL = 'https://moritech.onrender.com/api';
-// Global cart instance
 let cartInstance = null;
-// Helper function to get authorization headers
+
 function getAuthHeaders(contentType = 'application/json') {
   const headers = {};
-  headers['api_key'] = '123456'; // API key always included
-
-  // Always set Authorization header if token exists
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  // Only set Content-Type if specified
+  headers['api_key'] = '123456';
+  
   if (contentType) {
     headers['Content-Type'] = contentType;
   }
-
+  
   return headers;
 }
 
-// Connectivity Check Function
 async function checkConnectivity() {
   try {
     const response = await fetch(`${API_BASE_URL}/health`);
@@ -32,9 +22,7 @@ async function checkConnectivity() {
   }
 }
 
-// Enhanced error handling function
 async function handleResponseError(response) {
-  // Clone the response to safely read it multiple times
   const responseClone = response.clone();
   let errorMessage = 'Request failed';
 
@@ -53,14 +41,13 @@ async function handleResponseError(response) {
   return new Error(`${errorMessage} (Status: ${response.status})`);
 }
 
-// Authentication Service
 const authService = {
   async register(userData) {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        credentials: 'include',  // Added for session cookie support
+        credentials: 'include',
         body: JSON.stringify(userData)
       });
       
@@ -71,6 +58,7 @@ const authService = {
       throw error;
     }
   },
+  
   async requestPasswordReset(email) {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
@@ -113,11 +101,8 @@ const authService = {
         credentials: 'include'
       });
       
-      if (response.status === 401) return null;  // Explicitly handle 401
-      if (!response.ok) return null;
-      return await response.json();
+      return response.ok ? await response.json() : null;
     } catch (error) {
-      console.error('Session check error:', error);
       return null;
     }
   },
@@ -139,7 +124,6 @@ const authService = {
   }
 };
 
-// Cart Service
 const cartService = {
   async getCart() {
     try {
@@ -148,7 +132,7 @@ const cartService = {
         credentials: 'include'
       });
       
-      if (response.status === 401) return { items: [] };  // Handle 401 explicitly
+      if (response.status === 401) return { items: [] };
       if (!response.ok) return { items: [] };
       return await response.json();
     } catch (error) {
@@ -208,7 +192,6 @@ const cartService = {
   }
 };
 
-// Inquiry Service
 const inquiryService = {
   async submitInquiry(inquiryData) {
     try {
@@ -228,7 +211,6 @@ const inquiryService = {
   }
 };
 
-// Product Service
 const productService = {
   async getProducts() {
     try {
@@ -286,7 +268,6 @@ const productService = {
   }
 };
 
-// Image Slider Functionality
 function initSlider() {
   const slides = document.querySelectorAll('.slide');
   const dots = document.querySelectorAll('.slider-dot');
@@ -323,7 +304,6 @@ function initSlider() {
     clearInterval(slideInterval);
   }
   
-  // Event listeners
   prevBtn?.addEventListener('click', () => {
     stopSlideShow();
     prevSlide();
@@ -345,12 +325,10 @@ function initSlider() {
     });
   });
   
-  // Start the slideshow
   showSlide(0);
   startSlideShow();
 }
 
-// Category Filtering
 function initCategoryFilter() {
   const categoryButtons = document.querySelectorAll('.category-btn');
   
@@ -362,6 +340,17 @@ function initCategoryFilter() {
       this.classList.add('active');
       
       const category = this.dataset.category;
+      
+      // Scroll to products section on mobile
+      if (window.innerWidth <= 768) {
+        const productsSection = document.getElementById('products');
+        if (productsSection) {
+          window.scrollTo({
+            top: productsSection.offsetTop - 100,
+            behavior: 'smooth'
+          });
+        }
+      }
       
       try {
         const products = category === 'all' 
@@ -377,7 +366,6 @@ function initCategoryFilter() {
   });
 }
 
-// Search Functionality
 function initSearch() {
   const searchInput = document.getElementById('search-input');
   
@@ -407,7 +395,6 @@ function initSearch() {
   });
 }
 
-// Smooth Scrolling
 function initSmoothScrolling() {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
@@ -424,7 +411,6 @@ function initSmoothScrolling() {
     });
   });
   
-  // Active nav highlighting
   const sections = document.querySelectorAll('section');
   const navLinks = document.querySelectorAll('nav ul li a');
   
@@ -449,7 +435,6 @@ function initSmoothScrolling() {
   });
 }
 
-// Authentication Modal
 function initAuthModal() {
   const authModal = document.getElementById('auth-modal');
   const loginLink = document.getElementById('login-link');
@@ -459,16 +444,12 @@ function initAuthModal() {
   const tabContents = document.querySelectorAll('.tab-content');
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
-  
-  // FORGOT PASSWORD ELEMENTS
   const forgotPasswordLink = document.getElementById('forgotPasswordLink');
   const resetPasswordForm = document.getElementById('resetPasswordForm');
-  const resetMessage = document.getElementById('reset-message');
   const backToLogin = document.getElementById('backToLogin');
 
   if (!authModal) return;
 
-  // Modal toggle functions
   const openModal = (tab) => {
     authModal.style.display = 'block';
     showTab(tab);
@@ -476,12 +457,10 @@ function initAuthModal() {
 
   const closeModalHandler = () => {
     authModal.style.display = 'none';
-    // Reset forms when closing modal
     loginForm.style.display = 'block';
     resetPasswordForm.style.display = 'none';
   };
 
-  // Updated showTab function to handle reset tab
   function showTab(tabName) {
     tabBtns.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tabName);
@@ -492,7 +471,6 @@ function initAuthModal() {
     });
   }
 
-  // FORGOT PASSWORD TOGGLE LOGIC
   forgotPasswordLink?.addEventListener('click', (e) => {
     e.preventDefault();
     loginForm.style.display = 'none';
@@ -505,22 +483,18 @@ function initAuthModal() {
     loginForm.style.display = 'block';
   });
 
-  // Password reset form submission
   resetPasswordForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = resetPasswordForm.querySelector('input[type="email"]').value;
     
     try {
-      // Create message element if not exists
-      if (!resetMessage) {
-        const msgEl = document.createElement('div');
-        msgEl.id = 'reset-message';
-        msgEl.style.marginTop = '10px';
-        resetPasswordForm.appendChild(msgEl);
+      const messageEl = document.getElementById('reset-message') || document.createElement('div');
+      if (!messageEl.id) {
+        messageEl.id = 'reset-message';
+        messageEl.style.marginTop = '10px';
+        resetPasswordForm.appendChild(messageEl);
       }
       
-      // Use existing message element or create one
-      const messageEl = resetMessage || document.getElementById('reset-message');
       messageEl.textContent = 'Sending reset link...';
       messageEl.style.display = 'block';
       messageEl.style.color = '#333';
@@ -530,7 +504,6 @@ function initAuthModal() {
       messageEl.textContent = 'Password reset link sent! Check your email.';
       messageEl.style.color = 'green';
       
-      // Clear form and hide after delay
       setTimeout(() => {
         resetPasswordForm.reset();
         messageEl.style.display = 'none';
@@ -539,14 +512,13 @@ function initAuthModal() {
       }, 3000);
     } catch (error) {
       console.error('Reset error:', error);
-      const messageEl = resetMessage || document.getElementById('reset-message');
+      const messageEl = document.getElementById('reset-message');
       messageEl.textContent = error.message || 'Failed to send reset link';
       messageEl.style.color = 'red';
       messageEl.style.display = 'block';
     }
   });
 
-  // Event listeners
   loginLink?.addEventListener('click', (e) => {
     e.preventDefault();
     openModal('login');
@@ -564,24 +536,16 @@ function initAuthModal() {
     btn.addEventListener('click', () => showTab(btn.dataset.tab));
   });
 
-  // Form submissions
   loginForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = loginForm.querySelector('input[type="email"]').value;
     const password = loginForm.querySelector('input[type="password"]').value;
     
     try {
-      const response = await authService.login({ email, password });
-      
-      // Store token if present in response
-      if (response.token) {
-        localStorage.setItem('authToken', response.token);
-      }
-      
+      await authService.login({ email, password });
       closeModalHandler();
-      const sessionData = await updateAuthUI();
+      await updateAuthUI();
       
-      // Initialize cart if not already initialized
       if (!cartInstance) {
         cartInstance = initCart();
       }
@@ -623,7 +587,6 @@ function initAuthModal() {
   });
 }
 
-// Cart Management
 function initCart() {
   if (cartInstance) return cartInstance;
   
@@ -637,7 +600,6 @@ function initCart() {
 
   if (!cartSidebar) return null;
 
-  // Cart toggle functions
   const openCart = () => {
     cartSidebar.classList.add('active');
   };
@@ -646,11 +608,9 @@ function initCart() {
     cartSidebar.classList.remove('active');
   };
 
-  // Event listeners
   cartIcon?.addEventListener('click', openCart);
   closeCart?.addEventListener('click', closeCartHandler);
 
-  // Fetch and display cart
   async function fetchCart() {
     try {
       const cartData = await cartService.getCart();
@@ -663,7 +623,6 @@ function initCart() {
     }
   }
 
-  // Update cart UI
   function updateCartUI(cart) {
     const items = cart.items || [];
     const totalItems = items.reduce((total, item) => total + item.quantity, 0);
@@ -704,7 +663,6 @@ function initCart() {
         
         cartItemsContainer.appendChild(cartItem);
         
-        // Add event listeners
         cartItem.querySelector('.decrease-quantity').addEventListener('click', async () => {
           await updateQuantity(item._id, item.quantity - 1);
         });
@@ -722,7 +680,6 @@ function initCart() {
     }
   }
 
-  // Update cart item quantity
   async function updateQuantity(itemId, quantity) {
     try {
       if (quantity < 1) {
@@ -738,7 +695,6 @@ function initCart() {
     }
   }
 
-  // Remove cart item
   async function removeItem(itemId) {
     try {
       await cartService.removeCartItem(itemId);
@@ -749,7 +705,6 @@ function initCart() {
     }
   }
 
-  // Checkout process
   checkoutBtn?.addEventListener('click', async () => {
     try {
       const cart = await fetchCart();
@@ -766,7 +721,6 @@ function initCart() {
     }
   });
 
-  // Add to cart function
   async function addToCart(productId) {
     try {
       await cartService.addToCart(productId);
@@ -784,18 +738,16 @@ function initCart() {
     }
   }
 
-  // Initialize cart
   fetchCart();
 
-  // Return public methods
   cartInstance = {
     addToCart,
-    fetchCart
+    fetchCart,
+    openCart
   };
   return cartInstance;
 }
 
-// Toggle new category input visibility
 function toggleNewCategoryInput() {
   const categorySelect = document.getElementById('product-category');
   const newCategoryInput = document.getElementById('new-category-input');
@@ -809,7 +761,6 @@ function toggleNewCategoryInput() {
   }
 }
 
-// Product Rendering with Category Display
 function renderProducts(products) {
   const productGrid = document.querySelector('.product-grid');
   if (!productGrid) return;
@@ -827,7 +778,6 @@ function renderProducts(products) {
     card.dataset.category = product.category;
     card.dataset.id = product._id;
 
-    // SIMPLIFIED IMAGE HANDLING - Directly use Cloudinary URL
     let imageHTML = '';
     if (product.image) {
       imageHTML = `<img src="${product.image}" alt="${product.name}">`;
@@ -851,7 +801,6 @@ function renderProducts(products) {
       </div>
     `;
 
-    // Add event listeners
     card.querySelector('.inquire-btn').addEventListener('click', () => inquire(product.name));
     card.querySelector('.add-to-cart-btn').addEventListener('click', () => {
       if (cartInstance) {
@@ -863,7 +812,6 @@ function renderProducts(products) {
   });
 }
 
-// Load Products Function
 async function loadProducts() {
   const productGrid = document.querySelector('.product-grid');
   if (!productGrid) return;
@@ -885,7 +833,6 @@ async function loadProducts() {
   }
 }
 
-// Helper Functions
 function getProductIcon(category) {
   const icons = {
     'laptops': 'fas fa-laptop',
@@ -899,7 +846,6 @@ function getProductIcon(category) {
   return icons[category] || 'fas fa-box';
 }
 
-// Image compression helper
 async function compressImage(file, maxWidth = 800, quality = 0.7) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -927,7 +873,6 @@ async function compressImage(file, maxWidth = 800, quality = 0.7) {
   });
 }
 
-// Inquire Functionality
 function inquire(productName) {
   const modal = document.createElement('div');
   modal.className = 'inquiry-modal';
@@ -947,7 +892,6 @@ function inquire(productName) {
   
   document.body.appendChild(modal);
   
-  // Add styles to position modal in center of viewport
   modal.style.position = 'fixed';
   modal.style.top = '0';
   modal.style.left = '0';
@@ -985,7 +929,6 @@ function inquire(productName) {
   });
 }
 
-// Authentication UI Management
 async function updateAuthUI() {
   try {
     const sessionData = await authService.checkSession();
@@ -1010,7 +953,6 @@ async function updateAuthUI() {
   }
 }
 
-// Logout Functionality
 function initLogout() {
   const logoutBtn = document.getElementById('logout-btn');
   if (!logoutBtn) return;
@@ -1018,7 +960,6 @@ function initLogout() {
   logoutBtn.addEventListener('click', async () => {
     try {
       await authService.logout();
-      localStorage.removeItem('authToken'); // Remove token on logout
       await updateAuthUI();
       if (cartInstance) {
         await cartInstance.fetchCart();
@@ -1031,7 +972,6 @@ function initLogout() {
   });
 }
 
-// Admin Panel
 async function initAdminPanel() {
   try {
     const sessionData = await authService.checkSession();
@@ -1045,7 +985,6 @@ async function initAdminPanel() {
   }
 }
 
-// Render products in admin panel
 async function renderAdminProducts() {
   const container = document.querySelector('.products-list-container');
   if (!container) return;
@@ -1079,7 +1018,6 @@ async function renderAdminProducts() {
       container.appendChild(item);
     });
     
-    // Add event listeners to delete buttons
     document.querySelectorAll('.delete-product-btn').forEach(btn => {
       btn.addEventListener('click', async function() {
         const productId = this.closest('.admin-product-item').dataset.id;
@@ -1087,7 +1025,7 @@ async function renderAdminProducts() {
           try {
             await productService.deleteProduct(productId);
             this.closest('.admin-product-item').remove();
-            loadProducts(); // Refresh main product list
+            loadProducts();
             alert('Product deleted successfully');
           } catch (error) {
             console.error('Delete error:', error);
@@ -1103,12 +1041,10 @@ async function renderAdminProducts() {
   }
 }
 
-// Product Form with Category Management
 function initProductForm() {
   const form = document.getElementById('add-product-form');
   if (!form) return;
   
-  // Add event listener for category change
   const categorySelect = document.getElementById('product-category');
   categorySelect.addEventListener('change', toggleNewCategoryInput);
   
@@ -1119,7 +1055,6 @@ function initProductForm() {
     const categoryValue = formData.get('category');
     const imageInput = document.getElementById('product-image');
     
-    // Handle new category
     if (categoryValue === 'new') {
       const newCategory = formData.get('newCategory').trim().toLowerCase();
       if (!newCategory) {
@@ -1129,9 +1064,8 @@ function initProductForm() {
       formData.set('category', newCategory);
     }
     
-    formData.delete('newCategory'); // Remove the temporary field
+    formData.delete('newCategory');
     
-    // Compress image if present
     if (imageInput.files.length > 0) {
       const originalFile = imageInput.files[0];
       const compressedFile = await compressImage(originalFile);
@@ -1142,7 +1076,7 @@ function initProductForm() {
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         credentials: 'include',
-        headers: getAuthHeaders('multipart/form-data'),
+        headers: getAuthHeaders(),
         body: formData
       });
 
@@ -1154,12 +1088,10 @@ function initProductForm() {
       alert('Product added successfully!');
       form.reset();
       
-      // Clear image preview and reset category
       const imagePreview = document.getElementById('image-preview');
       if (imagePreview) imagePreview.innerHTML = '';
-      toggleNewCategoryInput(); // Reset category UI
+      toggleNewCategoryInput();
       
-      // Reload products
       loadProducts();
       renderAdminProducts();
     } catch (error) {
@@ -1168,7 +1100,6 @@ function initProductForm() {
     }
   });
 
-  // Image preview functionality
   const imageInput = document.getElementById('product-image');
   const imagePreview = document.getElementById('image-preview');
   
@@ -1179,8 +1110,7 @@ function initProductForm() {
       if (this.files && this.files[0]) {
         const file = this.files[0];
         
-        // Show warning for large files
-        if (file.size > 2 * 1024 * 1024) { // 2MB
+        if (file.size > 2 * 1024 * 1024) {
           const warning = document.createElement('div');
           warning.className = 'file-warning';
           warning.innerHTML = `
@@ -1203,49 +1133,38 @@ function initProductForm() {
     });
   }
 
-  // Initialize category input state
   toggleNewCategoryInput();
 }
 
-// Main Initialization
 document.addEventListener('DOMContentLoaded', async function() {
   try {
-    // Initialize authentication UI first
     const sessionData = await updateAuthUI();
     
-    // Initialize all modules
     initSlider();
     initCategoryFilter();
     initSearch();
     initSmoothScrolling();
     initAuthModal();
     
-    // Initialize cart BEFORE loading products
     cartInstance = initCart();
-    
-    // Now load products
     loadProducts();
-    
     initLogout();
     
-    // Initialize admin panel if user is admin
     if (sessionData?.user?.role === 'admin') {
       initAdminPanel();
       initProductForm();
     }
     
-    // Add event delegation for static product cards
-    document.addEventListener('click', function(e) {
-      if (e.target.classList.contains('add-to-cart-btn') && cartInstance) {
-        const productCard = e.target.closest('.product-card');
-        if (productCard) {
-          const productId = productCard.dataset.id;
-          if (productId) {
-            cartInstance.addToCart(productId);
-          }
-        }
+    document.getElementById('mobile-cart-btn')?.addEventListener('click', () => {
+      if (cartInstance) {
+        cartInstance.openCart();
       }
     });
+    
+    document.getElementById('mobile-account-btn')?.addEventListener('click', () => {
+      document.getElementById('login-link')?.click();
+    });
+    
   } catch (error) {
     console.error('Initialization error:', error);
   }
