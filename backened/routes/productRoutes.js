@@ -8,18 +8,18 @@ const Product = require('../models/Product');
 const productController = require('../controllers/productController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
-// Configure Cloudinary
+// ✅ Cloudinary configuration
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
+  secure: true
 });
 
-// Set up multer with memory storage for buffer upload
+// ✅ Multer memory storage (for Cloudinary stream upload)
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Validation rules for product input
+// ✅ Validation middleware
 const productValidationRules = [
   body('name').trim().notEmpty().withMessage('Product name is required'),
   body('description').trim().notEmpty().withMessage('Description is required'),
@@ -27,69 +27,44 @@ const productValidationRules = [
   body('category').trim().notEmpty().withMessage('Category is required'),
 ];
 
-//
-// ROUTES
-//
+// ------------------------
+// 🌐 Public Routes
+// ------------------------
 
-// @route   GET /api/products
-// @desc    Get all products
+// GET /api/products - All products
 router.get('/', productController.getProducts);
 
-// @route   GET /api/products/search?query=...
-// @desc    Search products by query
+// GET /api/products/search?query=... - Search
 router.get('/search', productController.searchProducts);
 
-// @route   GET /api/products/category/:category
-// @desc    Get products by category
+// GET /api/products/category/:category - By category
 router.get('/category/:category', productController.getProductsByCategory);
 
-// @route   POST /api/products
-// @desc    Create a new product (Admin only)
+// ------------------------
+// 🔒 Admin Protected Routes
+// ------------------------
+
+// POST /api/products - Create new product
 router.post(
   '/',
   protect,
   admin,
   upload.single('image'),
   productValidationRules,
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    try {
-      const { name, description, price, category } = req.body;
-      let imageUrl = '';
-
-      // If image was uploaded, upload to Cloudinary
-      if (req.file) {
-        const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
-        const uploadResult = await cloudinary.uploader.upload(base64Image, {
-          folder: 'moritech-products',
-          resource_type: 'auto',
-        });
-        imageUrl = uploadResult.secure_url;
-      }
-
-      const newProduct = new Product({
-        name,
-        description,
-        price,
-        category,
-        image: imageUrl,
-      });
-
-      const savedProduct = await newProduct.save();
-      res.status(201).json(savedProduct);
-    } catch (error) {
-      console.error('Product creation error:', error);
-      res.status(500).json({ message: error.message });
-    }
-  }
+  productController.createProduct
 );
 
-// @route   DELETE /api/products/:id
-// @desc    Delete product by ID (Admin only)
+// PUT /api/products/:id - Update existing product
+router.put(
+  '/:id',
+  protect,
+  admin,
+  upload.single('image'),
+  productValidationRules,
+  productController.updateProduct
+);
+
+// DELETE /api/products/:id - Delete product
 router.delete('/:id', protect, admin, productController.deleteProduct);
 
 module.exports = router;
