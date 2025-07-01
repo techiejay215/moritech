@@ -1,5 +1,13 @@
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Cart = require('../models/Cart');
+
+// 🔐 Generate JWT Token
+const generateToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+    expiresIn: '1d'
+  });
+};
 
 // @desc    Register new user
 // @route   POST /api/auth/register
@@ -7,24 +15,25 @@ const register = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
-    // Create new user (password will be hashed by pre-save hook)
     const user = await User.create({ name, email, phone, password });
-
-    // Create empty cart for the user
     await Cart.create({ user: user._id, items: [] });
+
+    // ✅ Generate token after registration
+    const token = generateToken(user._id);
 
     res.status(201).json({
       message: 'User registered successfully',
+      token,
       user: {
         _id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
   } catch (error) {
@@ -43,27 +52,30 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    req.session.user = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    };
+    // ✅ Generate JWT
+    const token = generateToken(user._id);
 
     res.json({
       message: 'Login successful',
-      user: req.session.user
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
     });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Server error during login' });
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error during login' });
   }
 };
 
-// @desc    Check user session
+// @desc    Check login status using token (optional)
 // @route   GET /api/auth/session
 const checkSession = (req, res) => {
-  if (req.session.user) {
-    res.json({ user: req.session.user });
+  if (req.user) {
+    res.json({ user: req.user });
   } else {
     res.status(401).json({ message: 'No active session' });
   }
@@ -72,16 +84,10 @@ const checkSession = (req, res) => {
 // @desc    Logout user
 // @route   POST /api/auth/logout
 const logout = (req, res) => {
-  req.session.destroy(err => {
-    if (err) {
-      return res.status(500).json({ message: 'Logout failed' });
-    }
-    res.clearCookie('connect.sid');
-    res.json({ message: 'Logout successful' });
-  });
+  // For JWT, logout is frontend-only (just clear token)
+  res.json({ message: 'Logged out — clear token on client' });
 };
 
-// ✅ Correct export with all functions declared above
 module.exports = {
   register,
   login,
