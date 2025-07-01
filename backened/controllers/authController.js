@@ -1,117 +1,60 @@
+// authController.js
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const Cart = require('../models/Cart');
+const User = require('../models/userModel');
+const asyncHandler = require('express-async-handler');
 
-// Use environment variable or fallback
-const jwtSecret = process.env.JWT_SECRET || 'fallback_strong_secret_here';
-
-// 🔐 Generate JWT Token
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, jwtSecret, {
-    expiresIn: '1d',
+// Token generation utility
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || '30d'
   });
 };
 
-// @desc    Register new user
-// @route   POST /api/auth/register
-const register = async (req, res) => {
-  try {
-    const { name, email, phone, password } = req.body;
+const login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'Email already registered' });
-    }
-
-    const user = await User.create({ name, email, phone, password });
-    await Cart.create({ user: user._id, items: [] });
-
-    const token = generateToken(user._id);
-
-    // Optional: Set token in HTTP-only cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-    });
-
-    res.status(201).json({
-      message: 'User registered successfully',
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message || 'Server error during registration' });
+  // Validate request
+  if (!email || !password) {
+    res.status(400);
+    throw new Error('Please provide both email and password');
   }
-};
 
-// @desc    Login user
-// @route   POST /api/auth/login
-const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+  // Check for user
+  const user = await User.findOne({ email });
+  const isPasswordValid = user && (await user.matchPassword(password));
 
-    const user = await User.findOne({ email });
-    if (!user || !(await user.matchPassword(password))) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    const token = generateToken(user._id);
-
-    // Optional: Set token in HTTP-only cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
-      maxAge: 24 * 60 * 60 * 1000,
-    });
-
-    res.json({
-      message: 'Login successful',
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login' });
+  if (!user || !isPasswordValid) {
+    res.status(401);
+    throw new Error('Invalid email or password');
   }
-};
 
-// @desc    Check login session (token must be verified in middleware)
-// @route   GET /api/auth/session
-const checkSession = (req, res) => {
-  if (req.user) {
-    res.json({ user: req.user });
-  } else {
-    res.status(401).json({ message: 'No active session' });
-  }
-};
-
-// @desc    Logout user (clear cookie)
-// @route   POST /api/auth/logout
-const logout = (req, res) => {
-  res.clearCookie('token', {
+  // Generate JWT with enhanced logging
+  console.log("🔑 JWT_SECRET:", process.env.JWT_SECRET ? "exists" : "MISSING - Check environment variables");
+  const token = generateToken(user._id);
+  console.log("🆕 Generated token:", token);
+  
+  // Set HTTP-only cookie
+  const cookieOptions = {
     httpOnly: true,
-    sameSite: 'none',
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+  };
+
+  res.cookie('token', token, cookieOptions);
+
+  // Send response with user data and token
+  res.status(200).json({
+    success: true,
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    token,
+    expiresIn: process.env.JWT_EXPIRES_IN || '30d'
   });
-  res.json({ message: 'Logged out successfully' });
-};
+});
 
 module.exports = {
-  register,
-  login,
-  checkSession,
-  logout,
+  login
 };
