@@ -5,6 +5,9 @@ let cartInstance = null;
 function getAuthHeaders(contentType = 'application/json') {
   const headers = {};
 
+  // Add API key to all requests
+  headers['api_key'] = '123456';
+
   if (contentType) {
     headers['Content-Type'] = contentType;
   }
@@ -16,7 +19,6 @@ function getAuthHeaders(contentType = 'application/json') {
 
   return headers;
 }
-
 
 // Connectivity Check Function
 async function checkConnectivity() {
@@ -1102,15 +1104,12 @@ function initProductForm() {
     
     try {
       const response = await fetch(`${API_BASE_URL}/products`, {
-  method: 'POST',
-  credentials: 'include',
-  headers: {
-    'api_key': '123456' // 🔑 Add this
-  },
-  body: formData
-});
+        method: 'POST',
+        credentials: 'include',
+        headers: getAuthHeaders(),
+        body: formData
+      });
 
-      
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to add product');
