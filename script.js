@@ -934,35 +934,16 @@ async function updateAuthUI() {
     const sessionData = await authService.checkSession();
     const authLinks = document.querySelector('.top-bar-user .auth-links');
     const userProfile = document.querySelector('.top-bar-user .user-profile');
-    const mobileUserProfile = document.querySelector('.mobile-user-profile');
-    const mobileAccountText = document.getElementById('mobile-account-text');
     
-    if (authLinks && userProfile && mobileUserProfile && mobileAccountText) {
+    if (authLinks && userProfile) {
       if (sessionData?.user) {
-        // Show desktop user profile
         authLinks.style.display = 'none';
         userProfile.style.display = 'flex';
-        
-        // Show mobile user profile
-        mobileUserProfile.style.display = 'flex';
-        
-        // Update names
         const userName = sessionData.user.name || 'User';
-        const firstName = userName.split(' ')[0];
-        
         userProfile.querySelector('span').textContent = `Welcome, ${userName}`;
-        document.getElementById('mobile-welcome').textContent = `Welcome, ${firstName}`;
-        
-        // Change account button text
-        mobileAccountText.textContent = 'Profile';
       } else {
-        // Hide user profiles
         authLinks.style.display = 'flex';
         userProfile.style.display = 'none';
-        mobileUserProfile.style.display = 'none';
-        
-        // Reset account button text
-        mobileAccountText.textContent = 'Account';
       }
     }
     return sessionData;
@@ -986,26 +967,6 @@ function initLogout() {
       alert('You have been logged out');
     } catch (error) {
       console.error('Logout error:', error);
-      alert('Logout failed. Please try again.');
-    }
-  });
-}
-
-function initMobileLogout() {
-  const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
-  if (!mobileLogoutBtn) return;
-  
-  mobileLogoutBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    try {
-      await authService.logout();
-      await updateAuthUI();
-      if (cartInstance) {
-        await cartInstance.fetchCart();
-      }
-      alert('You have been logged out');
-    } catch (error) {
-      console.error('Mobile logout error:', error);
       alert('Logout failed. Please try again.');
     }
   });
@@ -1115,7 +1076,9 @@ function initProductForm() {
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         credentials: 'include',
-        headers: { api_key: '123456' },
+       headers: {
+    api_key: '123456'
+   },
         body: formData
       });
 
@@ -1188,7 +1151,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     cartInstance = initCart();
     loadProducts();
     initLogout();
-    initMobileLogout(); // Initialize mobile logout
     
     if (sessionData?.user?.role === 'admin') {
       initAdminPanel();
@@ -1201,36 +1163,39 @@ document.addEventListener('DOMContentLoaded', async function() {
       }
     });
     
-    // Mobile account button functionality
     document.getElementById('mobile-account-btn')?.addEventListener('click', () => {
-      const mobileModal = document.getElementById('mobile-auth-modal');
-      mobileModal.style.display = 'flex';
-    });
-
-    // Close mobile modal
-    document.querySelector('.close-mobile-modal')?.addEventListener('click', () => {
-      document.getElementById('mobile-auth-modal').style.display = 'none';
-    });
-
-    // Mobile login button
-    document.querySelector('.mobile-login-btn')?.addEventListener('click', () => {
-      document.getElementById('mobile-auth-modal').style.display = 'none';
       document.getElementById('login-link')?.click();
     });
+    // Mobile account button functionality
+  document.getElementById('mobile-account-btn')?.addEventListener('click', () => {
+    const mobileModal = document.getElementById('mobile-auth-modal');
+    mobileModal.style.display = 'flex';
+  });
 
-    // Mobile register button
-    document.querySelector('.mobile-register-btn')?.addEventListener('click', () => {
-      document.getElementById('mobile-auth-modal').style.display = 'none';
-      document.getElementById('register-link')?.click();
-    });
+  // Close mobile modal
+  document.querySelector('.close-mobile-modal')?.addEventListener('click', () => {
+    document.getElementById('mobile-auth-modal').style.display = 'none';
+  });
 
-    // Close modal when clicking outside
-    window.addEventListener('click', (e) => {
-      const mobileModal = document.getElementById('mobile-auth-modal');
-      if (e.target === mobileModal) {
-        mobileModal.style.display = 'none';
-      }
-    });
+  // Mobile login button
+  document.querySelector('.mobile-login-btn')?.addEventListener('click', () => {
+    document.getElementById('mobile-auth-modal').style.display = 'none';
+    document.getElementById('login-link')?.click();
+  });
+
+  // Mobile register button
+  document.querySelector('.mobile-register-btn')?.addEventListener('click', () => {
+    document.getElementById('mobile-auth-modal').style.display = 'none';
+    document.getElementById('register-link')?.click();
+  });
+
+  // Close modal when clicking outside
+  window.addEventListener('click', (e) => {
+    const mobileModal = document.getElementById('mobile-auth-modal');
+    if (e.target === mobileModal) {
+      mobileModal.style.display = 'none';
+    }
+  });
     
   } catch (error) {
     console.error('Initialization error:', error);
