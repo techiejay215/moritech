@@ -33,8 +33,8 @@
     </div>
   </div>
   
-  <!-- Header -->
-  <header>
+  <!-- Desktop Header -->
+  <header class="desktop-header">
     <div class="container header-container">
       <div class="logo-container">
         <div class="logo">MT</div>
@@ -58,6 +58,26 @@
       </nav>
     </div>
   </header>
+  
+  <!-- Mobile Header -->
+  <div class="mobile-header">
+    <div class="mobile-logo-container">
+      <div class="mobile-logo">MT</div>
+      <div class="mobile-company-name">
+        <h1>Moritech</h1>
+      </div>
+    </div>
+    
+    <div class="mobile-search">
+      <i class="fas fa-search"></i>
+      <input type="text" placeholder="Search products...">
+    </div>
+    
+    <div class="mobile-cart">
+      <i class="fas fa-shopping-cart"></i>
+      <span class="mobile-cart-count">0</span>
+    </div>
+  </div>
   
   <!-- Categories Bar -->
   <div class="categories">
@@ -252,6 +272,26 @@
     </div>
   </footer>
   
+  <!-- Mobile Bottom Navigation -->
+  <div class="bottom-nav">
+    <a href="#home" class="nav-item active">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </a>
+    <a href="#" class="nav-item" id="mobile-cart-btn">
+      <i class="fas fa-shopping-cart"></i>
+      <span>Cart</span>
+    </a>
+    <a href="#" class="nav-item" id="mobile-account-btn">
+      <i class="fas fa-user"></i>
+      <span>Account</span>
+    </a>
+    <a href="https://wa.me/254719362202" class="nav-item" target="_blank">
+      <i class="fab fa-whatsapp"></i>
+      <span>WhatsApp</span>
+    </a>
+  </div>
+  
   <!-- Authentication Modal -->
   <div id="auth-modal" class="modal">
     <div class="modal-content">
@@ -369,7 +409,6 @@
       </div>
     </div>
   </section>
-
   <script src="script.js"></script>
 </body>
 </html>

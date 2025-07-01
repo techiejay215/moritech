@@ -1,3 +1,4 @@
+// script.js
 const API_BASE_URL = 'https://moritech.onrender.com/api';
 // Global cart instance
 let cartInstance = null;
@@ -70,23 +71,22 @@ const authService = {
       throw error;
     }
   },
-  // Inside authService
-async requestPasswordReset(email) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      credentials: 'include',
-      body: JSON.stringify({ email })
-    });
-    
-    if (!response.ok) throw await handleResponseError(response);
-    return await response.json();
-  } catch (error) {
-    console.error('Password reset error:', error);
-    throw error;
-  }
-},
+  async requestPasswordReset(email) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify({ email })
+      });
+      
+      if (!response.ok) throw await handleResponseError(response);
+      return await response.json();
+    } catch (error) {
+      console.error('Password reset error:', error);
+      throw error;
+    }
+  },
 
   async login(credentials) {
     try {
@@ -628,10 +628,12 @@ function initCart() {
   if (cartInstance) return cartInstance;
   
   const cartIcon = document.querySelector('.cart-icon');
+  const mobileCartBtn = document.getElementById('mobile-cart-btn');
   const cartSidebar = document.getElementById('cart-sidebar');
   const closeCart = document.querySelector('.close-cart');
   const cartItemsContainer = document.querySelector('.cart-items');
   const cartCount = document.querySelector('.cart-count');
+  const mobileCartCount = document.querySelector('.mobile-cart-count');
   const cartTotal = document.querySelector('.total-amount');
   const checkoutBtn = document.querySelector('.checkout-btn');
 
@@ -648,6 +650,7 @@ function initCart() {
 
   // Event listeners
   cartIcon?.addEventListener('click', openCart);
+  mobileCartBtn?.addEventListener('click', openCart);
   closeCart?.addEventListener('click', closeCartHandler);
 
   // Fetch and display cart
@@ -667,7 +670,10 @@ function initCart() {
   function updateCartUI(cart) {
     const items = cart.items || [];
     const totalItems = items.reduce((total, item) => total + item.quantity, 0);
+    
+    // Update cart counts in both desktop and mobile
     if (cartCount) cartCount.textContent = totalItems;
+    if (mobileCartCount) mobileCartCount.textContent = totalItems;
     
     if (cartItemsContainer) {
       cartItemsContainer.innerHTML = '';
@@ -1199,5 +1205,4 @@ document.addEventListener('DOMContentLoaded', async function() {
   } catch (error) {
     console.error('Initialization error:', error);
   }
-  
 });
