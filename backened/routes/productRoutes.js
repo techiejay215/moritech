@@ -1,4 +1,3 @@
-// productRoutes.js
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
@@ -7,20 +6,20 @@ const cloudinary = require('cloudinary').v2;
 
 const Product = require('../models/Product');
 const productController = require('../controllers/productController');
-const { authenticate, authorizeAdmin } = require('../middleware/auth');
+const { protect, admin } = require('../middleware/authMiddleware');
 
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true
+  secure: true,
 });
 
-// Multer with memory storage (for cloud upload)
+// Set up multer with memory storage for buffer upload
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Validation rules
+// Validation rules for product input
 const productValidationRules = [
   body('name').trim().notEmpty().withMessage('Product name is required'),
   body('description').trim().notEmpty().withMessage('Description is required'),
@@ -28,21 +27,28 @@ const productValidationRules = [
   body('category').trim().notEmpty().withMessage('Category is required'),
 ];
 
+//
+// ROUTES
+//
+
 // @route   GET /api/products
+// @desc    Get all products
 router.get('/', productController.getProducts);
 
 // @route   GET /api/products/search?query=...
+// @desc    Search products by query
 router.get('/search', productController.searchProducts);
 
 // @route   GET /api/products/category/:category
+// @desc    Get products by category
 router.get('/category/:category', productController.getProductsByCategory);
 
 // @route   POST /api/products
-// @desc    Create new product (admin only) with Cloudinary image upload
+// @desc    Create a new product (Admin only)
 router.post(
   '/',
-  authenticate,
-  authorizeAdmin,
+  protect,
+  admin,
   upload.single('image'),
   productValidationRules,
   async (req, res) => {
@@ -55,12 +61,12 @@ router.post(
       const { name, description, price, category } = req.body;
       let imageUrl = '';
 
-      // Upload image to Cloudinary if provided
+      // If image was uploaded, upload to Cloudinary
       if (req.file) {
         const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
         const uploadResult = await cloudinary.uploader.upload(base64Image, {
           folder: 'moritech-products',
-          resource_type: 'auto'
+          resource_type: 'auto',
         });
         imageUrl = uploadResult.secure_url;
       }
@@ -70,7 +76,7 @@ router.post(
         description,
         price,
         category,
-        image: imageUrl
+        image: imageUrl,
       });
 
       const savedProduct = await newProduct.save();
@@ -83,6 +89,7 @@ router.post(
 );
 
 // @route   DELETE /api/products/:id
-router.delete('/:id', authenticate, authorizeAdmin, productController.deleteProduct);
+// @desc    Delete product by ID (Admin only)
+router.delete('/:id', protect, admin, productController.deleteProduct);
 
 module.exports = router;
