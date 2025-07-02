@@ -2,8 +2,14 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const asyncHandler = require('express-async-handler');
 
-// Generate JWT Token
+// 🔐 Generate JWT Token with runtime debug logging
 const generateToken = (id) => {
+  console.log("🚨 JWT_SECRET at runtime:", process.env.JWT_SECRET);
+
+  if (!process.env.JWT_SECRET) {
+    throw new Error("❌ JWT_SECRET is missing! Please check your environment variables on Render.");
+  }
+
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '30d'
   });
