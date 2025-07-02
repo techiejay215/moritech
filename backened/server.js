@@ -1,11 +1,8 @@
-// 🌍 Load environment variables (only in development)
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
-}
+// 🌍 Always load environment variables first
+require('dotenv').config();
 
 // 📦 Import dependencies
 const express = require('express');
-const mongoose = require('mongoose');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
@@ -16,8 +13,24 @@ const connectDB = require('./config/db');
 // 🔗 Connect to MongoDB
 connectDB();
 
-// 🔐 Log JWT_SECRET for debugging
-console.log("🔐 JWT_SECRET at startup:", process.env.JWT_SECRET);
+// 🔐 Validate critical environment variables
+const requiredEnvVars = [
+  'JWT_SECRET', 
+  'MONGODB_URI', 
+  'SESSION_SECRET',
+  'CLOUDINARY_CLOUD_NAME',
+  'CLOUDINARY_API_KEY',
+  'CLOUDINARY_API_SECRET'
+];
+
+requiredEnvVars.forEach(env => {
+  if (!process.env[env]) {
+    console.error(`❌ Critical error: ${env} environment variable is missing!`);
+    process.exit(1);
+  }
+});
+
+console.log("✅ Environment variables validated");
 
 // ☁️ Configure Cloudinary
 cloudinary.config({
@@ -34,7 +47,8 @@ const app = express();
 const allowedOrigins = [
   'http://127.0.0.1:5500',
   'https://moritech-technologies.netlify.app',
-  'https://moritech.onrender.com'
+  'https://moritech.onrender.com',
+  'https://moritech-technologies.netlify.app'
 ];
 
 // 🌐 CORS options
@@ -43,6 +57,7 @@ const corsOptions = {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn(`🚨 Blocked by CORS: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -64,7 +79,7 @@ app.use(cookieParser());
 
 // 🗝 Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'default_secret_key',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   proxy: process.env.NODE_ENV === 'production',
@@ -72,7 +87,7 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 24 * 60 * 60 * 1000, // 1 day
+    maxAge: 24 * 60 * 60 * 1000,
   },
 }));
 
@@ -81,13 +96,25 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // 🩺 Health check route
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+  res.status(200).json({ 
+    status: 'ok',
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
-// 🔐 Placeholder for password reset
-app.post('/api/auth/forgot-password', (req, res) => {
-  const { email } = req.body;
-  res.status(200).json({ message: "Reset link sent!" });
+// 🔐 Environment debug route (protected in production)
+app.get('/api/env-check', (req, res) => {
+  if (process.env.NODE_ENV === 'production' && !req.headers['x-debug-key']) {
+    return res.status(403).json({ message: 'Access forbidden' });
+  }
+  
+  res.json({
+    node_env: process.env.NODE_ENV,
+    jwt_secret_set: !!process.env.JWT_SECRET,
+    session_secret_set: !!process.env.SESSION_SECRET,
+    cloudinary_configured: !!process.env.CLOUDINARY_CLOUD_NAME,
+    origin: req.headers['origin'] || 'No origin header'
+  });
 });
 
 // 🔀 API routes
@@ -98,8 +125,11 @@ app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 
 // 🧯 Global error handler
 app.use((err, req, res, next) => {
-  console.error('🔥 Server Error:', err.stack || err.message);
-  res.status(500).json({ message: err.message || 'Internal Server Error' });
+  console.error('🔥 Server Error:', err.message);
+  res.status(err.status || 500).json({ 
+    message: err.message || 'Internal Server Error',
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
 });
 
 // 🏁 Start the server
@@ -107,4 +137,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server started on port ${PORT}`);
   console.log(`📁 Static files served from: ${path.join(__dirname, 'public')}`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
