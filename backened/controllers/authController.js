@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const asyncHandler = require('express-async-handler');
 
-// 🔐 Generate JWT Token with runtime debug logging
+// 🔐 Generate JWT Token with debug logging
 const generateToken = (id) => {
   console.log("🚨 JWT_SECRET at runtime:", process.env.JWT_SECRET);
 
@@ -18,6 +18,7 @@ const generateToken = (id) => {
 // 📥 Register a new user
 const register = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
+  console.log("📨 Register attempt:", email);
 
   if (!name || !email || !password) {
     res.status(400);
@@ -53,6 +54,8 @@ const register = asyncHandler(async (req, res) => {
 // 🔐 Login user
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
+  console.log("🔑 Login attempt:", email);
+  console.log("🧪 JWT_SECRET before password check:", process.env.JWT_SECRET);
 
   if (!email || !password) {
     res.status(400);
@@ -63,10 +66,12 @@ const login = asyncHandler(async (req, res) => {
   const isPasswordValid = user && (await user.matchPassword(password));
 
   if (!user || !isPasswordValid) {
+    console.log("❌ Invalid login for email:", email);
     res.status(401);
     throw new Error('Invalid email or password');
   }
 
+  console.log("✅ Login successful:", email);
   const token = generateToken(user._id);
 
   res.cookie('token', token, {
@@ -89,6 +94,7 @@ const login = asyncHandler(async (req, res) => {
 // 🔍 Check session
 const checkSession = asyncHandler(async (req, res) => {
   const token = req.cookies.token;
+  console.log("🔍 Checking session...");
 
   if (!token) {
     res.status(401);
@@ -99,8 +105,10 @@ const checkSession = asyncHandler(async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id).select('-password');
     if (!user) throw new Error('User not found');
+
     res.status(200).json({ success: true, user });
   } catch (err) {
+    console.log("❌ Session check failed:", err.message);
     res.status(401);
     throw new Error('Invalid session');
   }
@@ -112,7 +120,7 @@ const logout = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, message: 'Logged out' });
 });
 
-// Export all
+// Export all handlers
 module.exports = {
   register,
   login,
