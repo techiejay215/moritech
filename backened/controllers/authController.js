@@ -1,13 +1,17 @@
+// controllers/authController.js
+
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const asyncHandler = require('express-async-handler');
 
 // 🔐 Generate JWT Token with debug logging
 const generateToken = (id) => {
-  console.log("🚨 JWT_SECRET at runtime:", process.env.JWT_SECRET);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log("🚨 JWT_SECRET at runtime:", process.env.JWT_SECRET);
+  }
 
   if (!process.env.JWT_SECRET) {
-    throw new Error("❌ JWT_SECRET is missing! Please check your environment variables on Render.");
+    throw new Error("❌ JWT_SECRET is missing! Please check your environment variables.");
   }
 
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -15,10 +19,21 @@ const generateToken = (id) => {
   });
 };
 
+// 🍪 Unified cookie options
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+};
+
 // 📥 Register a new user
 const register = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
-  console.log("📨 Register attempt:", email);
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log("📨 Register attempt:", email);
+  }
 
   if (!name || !email || !password) {
     res.status(400);
@@ -34,12 +49,7 @@ const register = asyncHandler(async (req, res) => {
   const user = await User.create({ name, email, password });
   const token = generateToken(user._id);
 
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-  });
+  res.cookie('token', token, cookieOptions);
 
   res.status(201).json({
     success: true,
@@ -54,8 +64,10 @@ const register = asyncHandler(async (req, res) => {
 // 🔐 Login user
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  console.log("🔑 Login attempt:", email);
-  console.log("🧪 JWT_SECRET before password check:", process.env.JWT_SECRET);
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log("🔑 Login attempt:", email);
+  }
 
   if (!email || !password) {
     res.status(400);
@@ -71,15 +83,8 @@ const login = asyncHandler(async (req, res) => {
     throw new Error('Invalid email or password');
   }
 
-  console.log("✅ Login successful:", email);
   const token = generateToken(user._id);
-
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 30 * 24 * 60 * 60 * 1000
-  });
+  res.cookie('token', token, cookieOptions);
 
   res.status(200).json({
     success: true,
@@ -94,7 +99,10 @@ const login = asyncHandler(async (req, res) => {
 // 🔍 Check session
 const checkSession = asyncHandler(async (req, res) => {
   const token = req.cookies.token;
-  console.log("🔍 Checking session...");
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log("🔍 Checking session...");
+  }
 
   if (!token) {
     res.status(401);
@@ -104,7 +112,10 @@ const checkSession = asyncHandler(async (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id).select('-password');
-    if (!user) throw new Error('User not found');
+
+    if (!user) {
+      throw new Error('User not found');
+    }
 
     res.status(200).json({ success: true, user });
   } catch (err) {
@@ -116,7 +127,12 @@ const checkSession = asyncHandler(async (req, res) => {
 
 // 🚪 Logout user
 const logout = asyncHandler(async (req, res) => {
-  res.clearCookie('token');
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  });
+
   res.status(200).json({ success: true, message: 'Logged out' });
 });
 
