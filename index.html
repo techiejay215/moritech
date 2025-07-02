@@ -74,9 +74,9 @@
     </div>
 
     <div class="mobile-user-profile" style="display:none">
-    <span id="mobile-welcome">Welcome, User</span>
-    <a href="#" id="mobile-logout-btn">Logout</a>
-  </div>
+      <span id="mobile-welcome">Welcome, User</span>
+      <a href="#" id="mobile-logout-btn">Logout</a>
+    </div>
     
     <div class="mobile-cart">
       <i class="fas fa-shopping-cart"></i>
@@ -252,8 +252,9 @@
         <div class="map">
           <i class="fas fa-map-marked-alt" style="font-size: 50px;"></i>
           <p></p>
+          <!-- Updated to use a placeholder map image -->
           <img 
-            src="http://127.0.0.1:5000/uploads/WhatsApp%20Image%202025-06-18%20at%2016.11.54_7274cd11.jpg" 
+            src="https://via.placeholder.com/400x300?text=Map+Location" 
             alt="Kisii CBD Map" 
             style="width: 100%; max-width: 400px; margin-top: 10px; border-radius: 10px;"
           />
@@ -262,15 +263,15 @@
     </div>
   </section>
   <div id="mobile-auth-modal" class="mobile-modal">
-  <div class="mobile-modal-content">
-    <span class="close-mobile-modal">&times;</span>
-    <h3>Account</h3>
-    <div class="mobile-auth-options">
-      <button class="mobile-auth-btn mobile-login-btn">Login</button>
-      <button class="mobile-auth-btn mobile-register-btn">Register</button>
+    <div class="mobile-modal-content">
+      <span class="close-mobile-modal">&times;</span>
+      <h3>Account</h3>
+      <div class="mobile-auth-options">
+        <button class="mobile-auth-btn mobile-login-btn">Login</button>
+        <button class="mobile-auth-btn mobile-register-btn">Register</button>
+      </div>
     </div>
   </div>
-</div>
   
   <!-- Footer -->
   <footer>
@@ -325,13 +326,13 @@
           <a href="#" id="forgotPasswordLink">Forgot Password?</a>
         </form>
         <form id="resetPasswordForm" 
-      action="/api/auth/forgot-password" 
-      method="POST"
-      style="display:none;">
-  <input type="email" name="email" placeholder="Your Email" required> 
-  <button type="submit">Send Reset Link</button>
-  <a href="#" id="backToLogin">Back to Login</a>
-</form>
+          action="/api/auth/forgot-password" 
+          method="POST"
+          style="display:none;">
+          <input type="email" name="email" placeholder="Your Email" required> 
+          <button type="submit">Send Reset Link</button>
+          <a href="#" id="backToLogin">Back to Login</a>
+        </form>
       </div>
       
       <div class="tab-content" id="register-tab">
