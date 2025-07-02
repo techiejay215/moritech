@@ -1,3 +1,4 @@
+// Load .env in development only
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
@@ -26,6 +27,9 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
+// ✅ DEBUG: Log JWT_SECRET after DB connection
+console.log("🔐 JWT_SECRET at startup:", process.env.JWT_SECRET);
+
 // Allowed frontend origins
 const allowedOrigins = [
   'http://127.0.0.1:5500',
@@ -47,14 +51,14 @@ const corsOptions = {
   credentials: true
 };
 
-// Trust reverse proxy in production for secure cookies
+// Trust proxy for secure cookies (in production)
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
 // Middleware
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Preflight
+app.options('*', cors(corsOptions)); // Handle preflight
 app.use(express.json());
 app.use(cookieParser());
 
@@ -80,7 +84,7 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Temporary forgot password placeholder
+// Placeholder for forgot password
 app.post('/api/auth/forgot-password', (req, res) => {
   const { email } = req.body;
   res.status(200).json({ message: "Reset link sent!" });
