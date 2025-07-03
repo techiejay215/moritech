@@ -1,26 +1,14 @@
+console.log("🟢 Loaded latest script.js (sessions version)");
 const API_BASE_URL = 'https://moritech.onrender.com/api';
-// Global cart instance
 let cartInstance = null;
-// Helper function to get authorization headers
+
 function getAuthHeaders(contentType = 'application/json') {
-  const headers = {};
-
-  // Add API key to all requests
-  headers['api_key'] = '123456';
-
-  if (contentType) {
-    headers['Content-Type'] = contentType;
-  }
-
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  return headers;
+  return {
+    'api_key': '123456',
+    'Content-Type': contentType
+  };
 }
 
-// Connectivity Check Function
 async function checkConnectivity() {
   try {
     const response = await fetch(`${API_BASE_URL}/health`);
@@ -30,36 +18,48 @@ async function checkConnectivity() {
     return false;
   }
 }
-
-// Enhanced error handling function
 async function handleResponseError(response) {
-  // Clone the response to safely read it multiple times
   const responseClone = response.clone();
   let errorMessage = 'Request failed';
 
   try {
     const errorData = await responseClone.json();
     errorMessage = errorData.message || errorMessage;
-  } catch (jsonError) {
+  } catch {
     try {
-      const text = await response.text();
-      errorMessage = text || errorMessage;
-    } catch (textError) {
-      console.error('Error reading response text:', textError);
+      errorMessage = await response.text() || errorMessage;
+    } catch {
+      errorMessage = `Request failed with status ${response.status}`;
     }
   }
-  
-  return new Error(`${errorMessage} (Status: ${response.status})`);
+
+  throw new Error(`${errorMessage} (Status: ${response.status})`);
 }
 
-// Authentication Service
 const authService = {
+  async login(credentials) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify(credentials)
+      });
+
+      if (!response.ok) throw await handleResponseError(response);
+      return await response.json();
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  },
+  
   async register(userData) {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        credentials: 'include',  // Added for session cookie support
+        credentials: 'include',
         body: JSON.stringify(userData)
       });
       
@@ -70,41 +70,24 @@ const authService = {
       throw error;
     }
   },
-  // Inside authService
-async requestPasswordReset(email) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      credentials: 'include',
-      body: JSON.stringify({ email })
-    });
-    
-    if (!response.ok) throw await handleResponseError(response);
-    return await response.json();
-  } catch (error) {
-    console.error('Password reset error:', error);
-    throw error;
-  }
-},
-
-  async login(credentials) {
+  
+  async requestPasswordReset(email) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
         method: 'POST',
         headers: getAuthHeaders(),
         credentials: 'include',
-        body: JSON.stringify(credentials)
+        body: JSON.stringify({ email })
       });
       
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Password reset error:', error);
       throw error;
     }
   },
-  
+
   async checkSession() {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/session`, {
@@ -113,24 +96,20 @@ async requestPasswordReset(email) {
         credentials: 'include'
       });
       
-      if (response.status === 401) return null;  // Explicitly handle 401
-      if (!response.ok) return null;
-      return await response.json();
-    } catch (error) {
-      console.error('Session check error:', error);
+      return response.ok ? await response.json() : null;
+    } catch {
       return null;
     }
   },
   
   async logout() {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+      await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
         headers: getAuthHeaders(),
         credentials: 'include'
       });
       
-      if (!response.ok) throw await handleResponseError(response);
       return true;
     } catch (error) {
       console.error('Logout error:', error);
@@ -139,7 +118,6 @@ async requestPasswordReset(email) {
   }
 };
 
-// Cart Service
 const cartService = {
   async getCart() {
     try {
@@ -148,11 +126,10 @@ const cartService = {
         credentials: 'include'
       });
       
-      if (response.status === 401) return { items: [] };  // Handle 401 explicitly
+      if (response.status === 401) return { items: [] };
       if (!response.ok) return { items: [] };
       return await response.json();
-    } catch (error) {
-      console.error('Cart error:', error);
+    } catch {
       return { items: [] };
     }
   },
@@ -208,7 +185,6 @@ const cartService = {
   }
 };
 
-// Inquiry Service
 const inquiryService = {
   async submitInquiry(inquiryData) {
     try {
@@ -228,7 +204,6 @@ const inquiryService = {
   }
 };
 
-// Product Service
 const productService = {
   async getProducts() {
     try {
@@ -278,7 +253,7 @@ const productService = {
       });
       
       if (!response.ok) throw await handleResponseError(response);
-      return await response.json();
+      return true;
     } catch (error) {
       console.error('Delete product error:', error);
       throw error;
@@ -286,14 +261,13 @@ const productService = {
   }
 };
 
-// Image Slider Functionality
 function initSlider() {
   const slides = document.querySelectorAll('.slide');
+  if (!slides.length) return;
+  
   const dots = document.querySelectorAll('.slider-dot');
   const prevBtn = document.querySelector('.prev-btn');
   const nextBtn = document.querySelector('.next-btn');
-  
-  if (!slides.length) return;
   
   let currentSlide = 0;
   let slideInterval;
@@ -323,7 +297,6 @@ function initSlider() {
     clearInterval(slideInterval);
   }
   
-  // Event listeners
   prevBtn?.addEventListener('click', () => {
     stopSlideShow();
     prevSlide();
@@ -345,15 +318,12 @@ function initSlider() {
     });
   });
   
-  // Start the slideshow
   showSlide(0);
   startSlideShow();
 }
 
-// Category Filtering
 function initCategoryFilter() {
   const categoryButtons = document.querySelectorAll('.category-btn');
-  
   if (!categoryButtons.length) return;
   
   categoryButtons.forEach(button => {
@@ -363,31 +333,37 @@ function initCategoryFilter() {
       
       const category = this.dataset.category;
       
+      if (window.innerWidth <= 768) {
+        const productsSection = document.getElementById('products');
+        if (productsSection) {
+          window.scrollTo({
+            top: productsSection.offsetTop - 100,
+            behavior: 'smooth'
+          });
+        }
+      }
+      
       try {
         const products = category === 'all' 
           ? await productService.getProducts()
           : await productService.getProductsByCategory(category);
         
         renderProducts(products);
-      } catch (error) {
-        console.error('Category filter error:', error);
+      } catch {
         alert('Failed to load products. Please try again.');
       }
     });
   });
 }
 
-// Search Functionality
 function initSearch() {
   const searchInput = document.getElementById('search-input');
-  
   if (!searchInput) return;
   
   let searchTimeout;
   
   searchInput.addEventListener('input', function() {
     const searchTerm = this.value.trim();
-    
     clearTimeout(searchTimeout);
     
     if (searchTerm.length < 2) {
@@ -399,15 +375,13 @@ function initSearch() {
       try {
         const products = await productService.searchProducts(searchTerm);
         renderProducts(products);
-      } catch (error) {
-        console.error('Search error:', error);
+      } catch {
         alert('Search failed. Please try again.');
       }
     }, 500);
   });
 }
 
-// Smooth Scrolling
 function initSmoothScrolling() {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
@@ -424,7 +398,6 @@ function initSmoothScrolling() {
     });
   });
   
-  // Active nav highlighting
   const sections = document.querySelectorAll('section');
   const navLinks = document.querySelectorAll('nav ul li a');
   
@@ -433,9 +406,7 @@ function initSmoothScrolling() {
     
     sections.forEach(section => {
       const sectionTop = section.offsetTop;
-      const sectionHeight = section.clientHeight;
-      
-      if (pageYOffset >= (sectionTop - sectionHeight / 3)) {
+      if (pageYOffset >= (sectionTop - 150)) {
         current = section.getAttribute('id');
       }
     });
@@ -449,9 +420,10 @@ function initSmoothScrolling() {
   });
 }
 
-// Authentication Modal
 function initAuthModal() {
   const authModal = document.getElementById('auth-modal');
+  if (!authModal) return;
+
   const loginLink = document.getElementById('login-link');
   const registerLink = document.getElementById('register-link');
   const closeModal = document.querySelector('.modal .close-modal');
@@ -459,16 +431,10 @@ function initAuthModal() {
   const tabContents = document.querySelectorAll('.tab-content');
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
-  
-  // FORGOT PASSWORD ELEMENTS (UPDATED IDS)
   const forgotPasswordLink = document.getElementById('forgotPasswordLink');
   const resetPasswordForm = document.getElementById('resetPasswordForm');
-  const resetMessage = document.getElementById('reset-message');
   const backToLogin = document.getElementById('backToLogin');
 
-  if (!authModal) return;
-
-  // Modal toggle functions
   const openModal = (tab) => {
     authModal.style.display = 'block';
     showTab(tab);
@@ -476,12 +442,10 @@ function initAuthModal() {
 
   const closeModalHandler = () => {
     authModal.style.display = 'none';
-    // Reset forms when closing modal
-    loginForm.style.display = 'block';
-    resetPasswordForm.style.display = 'none';
+    if (loginForm) loginForm.style.display = 'block';
+    if (resetPasswordForm) resetPasswordForm.style.display = 'none';
   };
 
-  // Updated showTab function to handle reset tab
   function showTab(tabName) {
     tabBtns.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tabName);
@@ -492,35 +456,28 @@ function initAuthModal() {
     });
   }
 
-  // FORGOT PASSWORD TOGGLE LOGIC
   forgotPasswordLink?.addEventListener('click', (e) => {
     e.preventDefault();
-    loginForm.style.display = 'none';
-    resetPasswordForm.style.display = 'block';
+    if (loginForm) loginForm.style.display = 'none';
+    if (resetPasswordForm) resetPasswordForm.style.display = 'block';
   });
 
   backToLogin?.addEventListener('click', (e) => {
     e.preventDefault();
-    resetPasswordForm.style.display = 'none';
-    loginForm.style.display = 'block';
+    if (resetPasswordForm) resetPasswordForm.style.display = 'none';
+    if (loginForm) loginForm.style.display = 'block';
   });
 
-  // Password reset form submission
   resetPasswordForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = resetPasswordForm.querySelector('input[type="email"]').value;
     
     try {
-      // Create message element if not exists
-      if (!resetMessage) {
-        const msgEl = document.createElement('div');
-        msgEl.id = 'reset-message';
-        msgEl.style.marginTop = '10px';
-        resetPasswordForm.appendChild(msgEl);
-      }
+      const messageEl = document.getElementById('reset-message') || document.createElement('div');
+      messageEl.id = 'reset-message';
+      messageEl.style.marginTop = '10px';
+      resetPasswordForm.appendChild(messageEl);
       
-      // Use existing message element or create one
-      const messageEl = resetMessage || document.getElementById('reset-message');
       messageEl.textContent = 'Sending reset link...';
       messageEl.style.display = 'block';
       messageEl.style.color = '#333';
@@ -530,23 +487,20 @@ function initAuthModal() {
       messageEl.textContent = 'Password reset link sent! Check your email.';
       messageEl.style.color = 'green';
       
-      // Clear form and hide after delay
       setTimeout(() => {
         resetPasswordForm.reset();
         messageEl.style.display = 'none';
-        resetPasswordForm.style.display = 'none';
-        loginForm.style.display = 'block';
+        if (resetPasswordForm) resetPasswordForm.style.display = 'none';
+        if (loginForm) loginForm.style.display = 'block';
       }, 3000);
     } catch (error) {
-      console.error('Reset error:', error);
-      const messageEl = resetMessage || document.getElementById('reset-message');
+      const messageEl = document.getElementById('reset-message');
       messageEl.textContent = error.message || 'Failed to send reset link';
       messageEl.style.color = 'red';
       messageEl.style.display = 'block';
     }
   });
 
-  // Event listeners
   loginLink?.addEventListener('click', (e) => {
     e.preventDefault();
     openModal('login');
@@ -564,33 +518,20 @@ function initAuthModal() {
     btn.addEventListener('click', () => showTab(btn.dataset.tab));
   });
 
-  // Form submissions
   loginForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = loginForm.querySelector('input[type="email"]').value;
     const password = loginForm.querySelector('input[type="password"]').value;
     
     try {
-      const response = await authService.login({ email, password });
-      
-      // Store token if present in response
-      if (response.token) {
-        localStorage.setItem('authToken', response.token);
-      }
-      
+      await authService.login({ email, password });
       closeModalHandler();
-      const sessionData = await updateAuthUI();
-      
-      // Initialize cart if not already initialized
-      if (!cartInstance) {
-        cartInstance = initCart();
-      }
+      await updateAuthUI();
       
       if (cartInstance) {
         await cartInstance.fetchCart();
       }
     } catch (error) {
-      console.error('Login error details:', error);
       if (error.message.includes('Network')) {
         alert('Network error. Please check your internet connection.');
       } else {
@@ -623,51 +564,55 @@ function initAuthModal() {
   });
 }
 
-// Cart Management
 function initCart() {
   if (cartInstance) return cartInstance;
   
   const cartIcon = document.querySelector('.cart-icon');
   const cartSidebar = document.getElementById('cart-sidebar');
+  if (!cartSidebar) return null;
+
   const closeCart = document.querySelector('.close-cart');
   const cartItemsContainer = document.querySelector('.cart-items');
   const cartCount = document.querySelector('.cart-count');
   const cartTotal = document.querySelector('.total-amount');
   const checkoutBtn = document.querySelector('.checkout-btn');
+  const cartOverlay = document.createElement('div');
+  cartOverlay.className = 'cart-overlay';
+  document.body.appendChild(cartOverlay);
 
-  if (!cartSidebar) return null;
-
-  // Cart toggle functions
   const openCart = () => {
     cartSidebar.classList.add('active');
+    cartOverlay.style.display = 'block';
   };
 
   const closeCartHandler = () => {
     cartSidebar.classList.remove('active');
+    cartOverlay.style.display = 'none';
   };
 
-  // Event listeners
+  cartOverlay.addEventListener('click', closeCartHandler);
   cartIcon?.addEventListener('click', openCart);
   closeCart?.addEventListener('click', closeCartHandler);
 
-  // Fetch and display cart
   async function fetchCart() {
     try {
       const cartData = await cartService.getCart();
       updateCartUI(cartData);
       return cartData;
-    } catch (error) {
-      console.error('Cart fetch error:', error);
+    } catch {
       updateCartUI({ items: [] });
       return { items: [] };
     }
   }
 
-  // Update cart UI
   function updateCartUI(cart) {
     const items = cart.items || [];
     const totalItems = items.reduce((total, item) => total + item.quantity, 0);
-    if (cartCount) cartCount.textContent = totalItems;
+    
+    // Update both desktop and mobile cart counts
+    document.querySelectorAll('.cart-count, .mobile-cart-count').forEach(el => {
+      el.textContent = totalItems;
+    });
     
     if (cartItemsContainer) {
       cartItemsContainer.innerHTML = '';
@@ -704,7 +649,6 @@ function initCart() {
         
         cartItemsContainer.appendChild(cartItem);
         
-        // Add event listeners
         cartItem.querySelector('.decrease-quantity').addEventListener('click', async () => {
           await updateQuantity(item._id, item.quantity - 1);
         });
@@ -722,7 +666,6 @@ function initCart() {
     }
   }
 
-  // Update cart item quantity
   async function updateQuantity(itemId, quantity) {
     try {
       if (quantity < 1) {
@@ -733,23 +676,19 @@ function initCart() {
       await cartService.updateCartItem(itemId, quantity);
       await fetchCart();
     } catch (error) {
-      console.error('Cart update error:', error);
       alert(error.message || 'Failed to update item quantity');
     }
   }
 
-  // Remove cart item
   async function removeItem(itemId) {
     try {
       await cartService.removeCartItem(itemId);
       await fetchCart();
     } catch (error) {
-      console.error('Cart remove error:', error);
       alert(error.message || 'Failed to remove item');
     }
   }
 
-  // Checkout process
   checkoutBtn?.addEventListener('click', async () => {
     try {
       const cart = await fetchCart();
@@ -758,23 +697,19 @@ function initCart() {
         return;
       }
       
-      alert('Proceeding to checkout - this would connect to payment gateway');
+      alert('Proceeding to checkout');
       await fetchCart();
-    } catch (error) {
-      console.error('Checkout error:', error);
+    } catch {
       alert('Checkout failed. Please try again.');
     }
   });
 
-  // Add to cart function
   async function addToCart(productId) {
     try {
       await cartService.addToCart(productId);
       await fetchCart();
       openCart();
     } catch (error) {
-      console.error('Add to cart error:', error);
-      
       if (error.message.includes('Authentication')) {
         document.getElementById('login-link')?.click();
         alert('Please login to add items to your cart');
@@ -784,21 +719,21 @@ function initCart() {
     }
   }
 
-  // Initialize cart
   fetchCart();
 
-  // Return public methods
   cartInstance = {
     addToCart,
-    fetchCart
+    fetchCart,
+    openCart
   };
   return cartInstance;
 }
 
-// Toggle new category input visibility
 function toggleNewCategoryInput() {
   const categorySelect = document.getElementById('product-category');
   const newCategoryInput = document.getElementById('new-category-input');
+  
+  if (!categorySelect || !newCategoryInput) return;
   
   if (categorySelect.value === 'new') {
     newCategoryInput.style.display = 'block';
@@ -809,7 +744,6 @@ function toggleNewCategoryInput() {
   }
 }
 
-// Product Rendering with Category Display
 function renderProducts(products) {
   const productGrid = document.querySelector('.product-grid');
   if (!productGrid) return;
@@ -817,7 +751,7 @@ function renderProducts(products) {
   productGrid.innerHTML = '';
 
   if (!products || !products.length) {
-    productGrid.innerHTML = '<p class="no-products">No products available at this time</p>';
+    productGrid.innerHTML = '<p class="no-products">No products available</p>';
     return;
   }
 
@@ -827,7 +761,6 @@ function renderProducts(products) {
     card.dataset.category = product.category;
     card.dataset.id = product._id;
 
-    // SIMPLIFIED IMAGE HANDLING - Directly use Cloudinary URL
     let imageHTML = '';
     if (product.image) {
       imageHTML = `<img src="${product.image}" alt="${product.name}">`;
@@ -851,19 +784,15 @@ function renderProducts(products) {
       </div>
     `;
 
-    // Add event listeners
     card.querySelector('.inquire-btn').addEventListener('click', () => inquire(product.name));
     card.querySelector('.add-to-cart-btn').addEventListener('click', () => {
-      if (cartInstance) {
-        cartInstance.addToCart(product._id);
-      }
+      cartInstance?.addToCart(product._id);
     });
     
     productGrid.appendChild(card);
   });
 }
 
-// Load Products Function
 async function loadProducts() {
   const productGrid = document.querySelector('.product-grid');
   if (!productGrid) return;
@@ -872,20 +801,17 @@ async function loadProducts() {
     productGrid.innerHTML = '<div class="loading">Loading products...</div>';
     const products = await productService.getProducts();
     renderProducts(products);
-  } catch (error) {
-    console.error('Product load error:', error);
+  } catch {
     productGrid.innerHTML = `
       <div class="error-message">
-        <i class="fas fa-exclamation-triangle"></i>
         <h3>Products Unavailable</h3>
-        <p>We're having trouble loading products. Please try again later.</p>
+        <p>We're having trouble loading products</p>
         <button onclick="loadProducts()">Retry</button>
       </div>
     `;
   }
 }
 
-// Helper Functions
 function getProductIcon(category) {
   const icons = {
     'laptops': 'fas fa-laptop',
@@ -899,7 +825,34 @@ function getProductIcon(category) {
   return icons[category] || 'fas fa-box';
 }
 
-// Inquire Functionality
+async function compressImage(file, maxWidth = 800, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Image loading failed'));
+      img.src = event.target.result;
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(maxWidth / img.width, 1);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        canvas.toBlob(
+          blob => resolve(new File([blob], file.name, { type: 'image/jpeg' })),
+          'image/jpeg',
+          quality
+        );
+      };
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function inquire(productName) {
   const modal = document.createElement('div');
   modal.className = 'inquiry-modal';
@@ -919,18 +872,6 @@ function inquire(productName) {
   
   document.body.appendChild(modal);
   
-  // Add styles to position modal in center of viewport
-  modal.style.position = 'fixed';
-  modal.style.top = '0';
-  modal.style.left = '0';
-  modal.style.width = '100%';
-  modal.style.height = '100%';
-  modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
-  modal.style.display = 'flex';
-  modal.style.justifyContent = 'center';
-  modal.style.alignItems = 'center';
-  modal.style.zIndex = '1000';
-
   modal.querySelector('.close-modal').addEventListener('click', () => {
     document.body.removeChild(modal);
   });
@@ -951,38 +892,48 @@ function inquire(productName) {
       await inquiryService.submitInquiry(formData);
       alert('Thank you for your inquiry! We will contact you shortly.');
       document.body.removeChild(modal);
-    } catch (error) {
-      alert(error.message || 'Failed to submit inquiry');
+    } catch {
+      alert('Failed to submit inquiry');
     }
   });
 }
 
-// Authentication UI Management
 async function updateAuthUI() {
   try {
     const sessionData = await authService.checkSession();
+    
+    // UI elements
     const authLinks = document.querySelector('.top-bar-user .auth-links');
     const userProfile = document.querySelector('.top-bar-user .user-profile');
-    
-    if (authLinks && userProfile) {
+    const mobileUserProfile = document.querySelector('.mobile-user-profile');
+    const mobileAccountText = document.getElementById('mobile-account-text');
+
+    if (authLinks && userProfile && mobileUserProfile) {
       if (sessionData?.user) {
         authLinks.style.display = 'none';
         userProfile.style.display = 'flex';
+        mobileUserProfile.style.display = 'flex';
+
         const userName = sessionData.user.name || 'User';
         userProfile.querySelector('span').textContent = `Welcome, ${userName}`;
+        document.getElementById('mobile-welcome').textContent = `Welcome, ${userName.split(' ')[0]}`;
+
+        if (mobileAccountText) mobileAccountText.textContent = 'Profile';
       } else {
         authLinks.style.display = 'flex';
         userProfile.style.display = 'none';
+        mobileUserProfile.style.display = 'none';
+
+        if (mobileAccountText) mobileAccountText.textContent = 'Account';
       }
     }
+
     return sessionData;
-  } catch (error) {
-    console.error('Auth UI update error:', error);
+  } catch {
     return null;
   }
 }
 
-// Logout Functionality
 function initLogout() {
   const logoutBtn = document.getElementById('logout-btn');
   if (!logoutBtn) return;
@@ -990,20 +941,36 @@ function initLogout() {
   logoutBtn.addEventListener('click', async () => {
     try {
       await authService.logout();
-      localStorage.removeItem('authToken'); // Remove token on logout
       await updateAuthUI();
       if (cartInstance) {
         await cartInstance.fetchCart();
       }
       alert('You have been logged out');
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch {
       alert('Logout failed. Please try again.');
     }
   });
 }
 
-// Admin Panel
+function initMobileLogout() {
+  const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+  if (!mobileLogoutBtn) return;
+  
+  mobileLogoutBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    try {
+      await authService.logout();
+      await updateAuthUI();
+      if (cartInstance) {
+        await cartInstance.fetchCart();
+      }
+      alert('You have been logged out');
+    } catch {
+      alert('Logout failed. Please try again.');
+    }
+  });
+}
+
 async function initAdminPanel() {
   try {
     const sessionData = await authService.checkSession();
@@ -1017,7 +984,6 @@ async function initAdminPanel() {
   }
 }
 
-// Render products in admin panel
 async function renderAdminProducts() {
   const container = document.querySelector('.products-list-container');
   if (!container) return;
@@ -1049,48 +1015,43 @@ async function renderAdminProducts() {
       `;
       
       container.appendChild(item);
-    });
-    
-    // Add event listeners to delete buttons
-    document.querySelectorAll('.delete-product-btn').forEach(btn => {
-      btn.addEventListener('click', async function() {
+      
+      item.querySelector('.delete-product-btn').addEventListener('click', async function() {
         const productId = this.closest('.admin-product-item').dataset.id;
-        if (confirm('Are you sure you want to delete this product?')) {
+        if (confirm('Delete this product?')) {
           try {
             await productService.deleteProduct(productId);
             this.closest('.admin-product-item').remove();
-            loadProducts(); // Refresh main product list
-            alert('Product deleted successfully');
-          } catch (error) {
-            console.error('Delete error:', error);
-            alert('Failed to delete product: ' + error.message);
+            loadProducts();
+            alert('Product deleted');
+          } catch {
+            alert('Failed to delete product');
           }
         }
       });
     });
     
-  } catch (error) {
-    console.error('Admin products load error:', error);
-    container.innerHTML = `<div class="error">Error loading products: ${error.message}</div>`;
+  } catch {
+    container.innerHTML = `<div class="error">Error loading products</div>`;
   }
 }
 
-// Product Form with Category Management
 function initProductForm() {
   const form = document.getElementById('add-product-form');
   if (!form) return;
   
-  // Add event listener for category change
   const categorySelect = document.getElementById('product-category');
-  categorySelect.addEventListener('change', toggleNewCategoryInput);
+  if (categorySelect) {
+    categorySelect.addEventListener('change', toggleNewCategoryInput);
+  }
   
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const formData = new FormData(form);
     const categoryValue = formData.get('category');
+    const imageInput = document.getElementById('product-image');
     
-    // Handle new category
     if (categoryValue === 'new') {
       const newCategory = formData.get('newCategory').trim().toLowerCase();
       if (!newCategory) {
@@ -1100,46 +1061,62 @@ function initProductForm() {
       formData.set('category', newCategory);
     }
     
-    formData.delete('newCategory'); // Remove the temporary field
+    formData.delete('newCategory');
+    
+    if (imageInput?.files.length > 0) {
+      try {
+        const originalFile = imageInput.files[0];
+        const compressedFile = await compressImage(originalFile);
+        formData.set('image', compressedFile);
+      } catch (error) {
+        alert('Error processing image: ' + error.message);
+        return;
+      }
+    }
     
     try {
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         credentials: 'include',
-        headers: getAuthHeaders(),
+        headers: getAuthHeaders(''),
         body: formData
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add product');
+        throw new Error('Failed to add product');
       }
       
       alert('Product added successfully!');
       form.reset();
       
-      // Clear image preview and reset category
       const imagePreview = document.getElementById('image-preview');
       if (imagePreview) imagePreview.innerHTML = '';
-      toggleNewCategoryInput(); // Reset category UI
+      toggleNewCategoryInput();
       
-      // Reload products
       loadProducts();
       renderAdminProducts();
     } catch (error) {
-      console.error('Product submission error:', error);
       alert(error.message || 'Failed to add product');
     }
   });
 
-  // Image preview functionality
   const imageInput = document.getElementById('product-image');
   const imagePreview = document.getElementById('image-preview');
   
   if (imageInput && imagePreview) {
     imageInput.addEventListener('change', function() {
       imagePreview.innerHTML = '';
+      
       if (this.files && this.files[0]) {
+        const file = this.files[0];
+        
+        if (file.size > 2 * 1024 * 1024) {
+          const warning = document.createElement('div');
+          warning.className = 'file-warning';
+          warning.textContent = `Large image (${Math.round(file.size/1024/1024)}MB). Compressing...`;
+          imagePreview.appendChild(warning);
+        }
+        
         const reader = new FileReader();
         reader.onload = function(e) {
           const img = document.createElement('img');
@@ -1148,56 +1125,67 @@ function initProductForm() {
           img.style.maxHeight = '200px';
           imagePreview.appendChild(img);
         }
-        reader.readAsDataURL(this.files[0]);
+        reader.readAsDataURL(file);
       }
     });
   }
 
-  // Initialize category input state
   toggleNewCategoryInput();
 }
 
-// Main Initialization
 document.addEventListener('DOMContentLoaded', async function() {
   try {
-    // Initialize authentication UI first
     const sessionData = await updateAuthUI();
     
-    // Initialize all modules
     initSlider();
     initCategoryFilter();
     initSearch();
     initSmoothScrolling();
     initAuthModal();
     
-    // Initialize cart BEFORE loading products
     cartInstance = initCart();
-    
-    // Now load products
     loadProducts();
-    
     initLogout();
+    initMobileLogout();
     
-    // Initialize admin panel if user is admin
     if (sessionData?.user?.role === 'admin') {
       initAdminPanel();
       initProductForm();
     }
     
-    // Add event delegation for static product cards
-    document.addEventListener('click', function(e) {
-      if (e.target.classList.contains('add-to-cart-btn') && cartInstance) {
-        const productCard = e.target.closest('.product-card');
-        if (productCard) {
-          const productId = productCard.dataset.id;
-          if (productId) {
-            cartInstance.addToCart(productId);
-          }
-        }
+    document.getElementById('mobile-cart-btn')?.addEventListener('click', () => {
+      cartInstance?.openCart();
+    });
+    
+    document.getElementById('mobile-account-btn')?.addEventListener('click', () => {
+      const mobileModal = document.getElementById('mobile-auth-modal');
+      if (mobileModal) {
+        mobileModal.style.display = 'flex';
       }
     });
+
+    document.querySelector('.close-mobile-modal')?.addEventListener('click', () => {
+      document.getElementById('mobile-auth-modal').style.display = 'none';
+    });
+
+    document.querySelector('.mobile-login-btn')?.addEventListener('click', () => {
+      document.getElementById('mobile-auth-modal').style.display = 'none';
+      document.getElementById('login-link')?.click();
+    });
+
+    document.querySelector('.mobile-register-btn')?.addEventListener('click', () => {
+      document.getElementById('mobile-auth-modal').style.display = 'none';
+      document.getElementById('register-link')?.click();
+    });
+
+    window.addEventListener('click', (e) => {
+      const mobileModal = document.getElementById('mobile-auth-modal');
+      if (e.target === mobileModal) {
+        mobileModal.style.display = 'none';
+      }
+    });
+    
   } catch (error) {
     console.error('Initialization error:', error);
   }
-  
 });
