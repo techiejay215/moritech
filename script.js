@@ -1,3 +1,4 @@
+console.log("🟢 Loaded latest script.js (sessions version)");
 const API_BASE_URL = 'https://moritech.onrender.com/api';
 let cartInstance = null;
 
