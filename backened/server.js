@@ -103,12 +103,8 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 🧪 Debug route (protected in production)
+// 🧪 Debug route (OPEN for testing)
 app.get('/api/env-check', (req, res) => {
-  if (process.env.NODE_ENV === 'production' && !req.headers['x-debug-key']) {
-    return res.status(403).json({ message: 'Access forbidden' });
-  }
-
   res.json({
     node_env: process.env.NODE_ENV,
     session_secret_set: !!process.env.SESSION_SECRET,
