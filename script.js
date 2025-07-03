@@ -4,10 +4,10 @@ let cartInstance = null;
 
 function getAuthHeaders(contentType = 'application/json') {
   return {
-    'api_key': '123456',
-    'Content-Type': contentType
+  'Content-Type': contentType
   };
 }
+
 
 async function checkConnectivity() {
   try {
@@ -95,19 +95,24 @@ const authService = {
   },
 
   async checkSession() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/session`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    
+    if (!response.ok) return null;
+    
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/session`, {
-        method: 'GET',
-        headers: getAuthHeaders(),
-        credentials: 'include'
-      });
-      
-      return response.ok ? await response.json() : null;
+      return await response.json(); // Handle empty responses safely
     } catch {
-      return null;
+      return null; // Return null if response isn't JSON
     }
-  },
-  
+  } catch {
+    return null;
+  }
+},
   async logout() {
     try {
       await fetch(`${API_BASE_URL}/auth/logout`, {
@@ -131,15 +136,20 @@ const cartService = {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
-      
-      if (response.status === 401) return { items: [] };
+
+      if (response.status === 401) {
+        await authService.logout(); // Clear invalid session
+        return { items: [] };
+      }
+
       if (!response.ok) return { items: [] };
+
       return await response.json();
     } catch {
       return { items: [] };
     }
-  },
-
+  
+},
   async addToCart(productId, quantity = 1) {
     try {
       const response = await fetch(`${API_BASE_URL}/cart/items`, {
@@ -214,15 +224,19 @@ const productService = {
   async getProducts() {
     try {
       const response = await fetch(`${API_BASE_URL}/products`, {
-        headers: getAuthHeaders()
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include' // ✅ Important for sending session cookies
       });
+
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
     } catch (error) {
       console.error('Product fetch error:', error);
       throw error;
     }
-  },
+},
+
 
   async searchProducts(query) {
     try {

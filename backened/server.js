@@ -40,7 +40,6 @@ const corsOptions = {
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'api_key'], // ✅ include api_key
   credentials: true
 };
 
