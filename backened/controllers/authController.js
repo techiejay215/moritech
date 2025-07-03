@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const asyncHandler = require('express-async-handler');
 
-// 🍪 Unified cookie options
+// � Unified cookie options
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
@@ -49,7 +49,7 @@ const register = asyncHandler(async (req, res) => {
   });
 });
 
-// 🔐 Login user
+// 🔐 Login user (updated with token in response)
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -74,7 +74,8 @@ const login = asyncHandler(async (req, res) => {
     _id: user._id,
     name: user.name,
     email: user.email,
-    role: user.role
+    role: user.role,
+    token: token  // 🆕 Added to response body
   });
 });
 
@@ -106,7 +107,6 @@ const logout = asyncHandler(async (req, res) => {
   res.status(200).json({ message: 'Logged out' });
 });
 
-// Export all handlers
 module.exports = {
   register,
   login,

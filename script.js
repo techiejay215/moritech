@@ -65,19 +65,23 @@ async function handleResponseError(response) {
 }
 
 const authService = {
-  async register(userData) {
+  async login(credentials) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: getAuthHeaders(),
         credentials: 'include',
-        body: JSON.stringify(userData)
+        body: JSON.stringify(credentials)
       });
-      
+
       if (!response.ok) throw await handleResponseError(response);
-      return await response.json();
+
+      const data = await response.json();
+      // Add token to localStorage
+      localStorage.setItem('authToken', data.token);
+      return data;
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('Login error:', error);
       throw error;
     }
   },
@@ -934,24 +938,34 @@ function inquire(productName) {
 
 async function updateAuthUI() {
   try {
-    const token = localStorage.getItem('authToken');
     let sessionData = null;
+    const token = localStorage.getItem('authToken');
 
     if (token) {
-      const decoded = parseJwt(token);
-      if (decoded && decoded.exp * 1000 > Date.now()) {
-        sessionData = { 
-          user: { 
-            _id: decoded.id,
-            name: decoded.name || "User",
-            role: decoded.role || "user" 
+      try {
+        // Try verifying token with the backend
+        const response = await fetch(`${API_BASE_URL}/auth/session`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          sessionData = await response.json();
+          if (sessionData?.token) {
+            localStorage.setItem('authToken', sessionData.token);
           }
-        };
-      } else {
+        } else {
+          localStorage.removeItem('authToken');
+        }
+      } catch {
         localStorage.removeItem('authToken');
       }
     }
 
+    // Fallback to session check
     if (!sessionData) {
       sessionData = await authService.checkSession();
       if (sessionData?.token) {
@@ -959,39 +973,38 @@ async function updateAuthUI() {
       }
     }
 
+    // UI elements
     const authLinks = document.querySelector('.top-bar-user .auth-links');
     const userProfile = document.querySelector('.top-bar-user .user-profile');
     const mobileUserProfile = document.querySelector('.mobile-user-profile');
     const mobileAccountText = document.getElementById('mobile-account-text');
-    
+
     if (authLinks && userProfile && mobileUserProfile) {
       if (sessionData?.user) {
         authLinks.style.display = 'none';
         userProfile.style.display = 'flex';
         mobileUserProfile.style.display = 'flex';
-        
+
         const userName = sessionData.user.name || 'User';
         userProfile.querySelector('span').textContent = `Welcome, ${userName}`;
         document.getElementById('mobile-welcome').textContent = `Welcome, ${userName.split(' ')[0]}`;
-        
-        if (mobileAccountText) {
-          mobileAccountText.textContent = 'Profile';
-        }
+
+        if (mobileAccountText) mobileAccountText.textContent = 'Profile';
       } else {
         authLinks.style.display = 'flex';
         userProfile.style.display = 'none';
         mobileUserProfile.style.display = 'none';
-        
-        if (mobileAccountText) {
-          mobileAccountText.textContent = 'Account';
-        }
+
+        if (mobileAccountText) mobileAccountText.textContent = 'Account';
       }
     }
+
     return sessionData;
   } catch {
     return null;
   }
 }
+
 
 function initLogout() {
   const logoutBtn = document.getElementById('logout-btn');
