@@ -1,27 +1,5 @@
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const asyncHandler = require('express-async-handler');
-
-// � Unified cookie options
-const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-  maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-};
-
-// 🔐 Generate JWT Token
-const generateToken = (id) => {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    console.error('❌ JWT_SECRET is missing at token generation!');
-    throw new Error('JWT_SECRET not set');
-  }
-
-  return jwt.sign({ id }, secret, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '30d'
-  });
-};
 
 // 📥 Register a new user
 const register = asyncHandler(async (req, res) => {
@@ -37,19 +15,19 @@ const register = asyncHandler(async (req, res) => {
   }
 
   const user = await User.create({ name, email, password });
-  const token = generateToken(user._id);
 
-  res.cookie('token', token, cookieOptions);
-
-  res.status(201).json({
-    _id: user._id,
+  // ✅ Set session user
+  req.session.user = {
+    id: user._id,
     name: user.name,
     email: user.email,
     role: user.role
-  });
+  };
+
+  res.status(201).json(req.session.user);
 });
 
-// 🔐 Login user (updated with token in response)
+// 🔐 Login user
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -67,44 +45,35 @@ const login = asyncHandler(async (req, res) => {
     return res.status(401).json({ message: 'Invalid email or password' });
   }
 
-  const token = generateToken(user._id);
-  res.cookie('token', token, cookieOptions);
-
-  res.status(200).json({
-    _id: user._id,
+  // ✅ Set session user
+  req.session.user = {
+    id: user._id,
     name: user.name,
     email: user.email,
-    role: user.role,
-    token: token  // 🆕 Added to response body
-  });
+    role: user.role
+  };
+
+  res.status(200).json(req.session.user);
 });
 
-// 🔍 Check session
+// 🔍 Check active session
 const checkSession = asyncHandler(async (req, res) => {
-  const token = req.cookies.token;
-
-  if (!token) {
+  if (!req.session.user) {
     return res.status(401).json({ message: 'No session found' });
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password');
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.status(200).json(user);
-  } catch (err) {
-    res.status(401).json({ message: 'Invalid session' });
-  }
+  res.status(200).json(req.session.user);
 });
 
 // 🚪 Logout user
 const logout = asyncHandler(async (req, res) => {
-  res.clearCookie('token', cookieOptions);
-  res.status(200).json({ message: 'Logged out' });
+  req.session.destroy(err => {
+    if (err) {
+      return res.status(500).json({ message: 'Logout failed' });
+    }
+    res.clearCookie('connect.sid'); // Default cookie name unless customized
+    res.status(200).json({ message: 'Logged out' });
+  });
 });
 
 module.exports = {

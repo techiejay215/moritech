@@ -1,39 +1,11 @@
 const API_BASE_URL = 'https://moritech.onrender.com/api';
 let cartInstance = null;
 
-// Fixed JWT decoding function
-function parseJwt(token) {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    return null;
-  }
-}
-
-
 function getAuthHeaders(contentType = 'application/json') {
-  const headers = {
-    'api_key': '123456'
+  return {
+    'api_key': '123456',
+    'Content-Type': contentType
   };
-  
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  
-  if (contentType) {
-    headers['Content-Type'] = contentType;
-  }
-  
-  return headers;
 }
 
 async function checkConnectivity() {
@@ -75,11 +47,7 @@ const authService = {
       });
 
       if (!response.ok) throw await handleResponseError(response);
-
-      const data = await response.json();
-      // Add token to localStorage
-      localStorage.setItem('authToken', data.token);
-      return data;
+      return await response.json();
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -103,28 +71,6 @@ const authService = {
     }
   },
 
-  async login(credentials) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        credentials: 'include',
-        body: JSON.stringify(credentials)
-      });
-
-      if (!response.ok) throw await handleResponseError(response);
-
-      const data = await response.json();
-      if (data.token) {
-        localStorage.setItem('authToken', data.token);
-      }
-      return data;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
-  },
-  
   async checkSession() {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/session`, {
@@ -147,7 +93,6 @@ const authService = {
         credentials: 'include'
       });
       
-      localStorage.removeItem('authToken');
       return true;
     } catch (error) {
       console.error('Logout error:', error);
@@ -938,41 +883,8 @@ function inquire(productName) {
 
 async function updateAuthUI() {
   try {
-    let sessionData = null;
-    const token = localStorage.getItem('authToken');
-
-    if (token) {
-      try {
-        // Try verifying token with the backend
-        const response = await fetch(`${API_BASE_URL}/auth/session`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          credentials: 'include'
-        });
-
-        if (response.ok) {
-          sessionData = await response.json();
-          if (sessionData?.token) {
-            localStorage.setItem('authToken', sessionData.token);
-          }
-        } else {
-          localStorage.removeItem('authToken');
-        }
-      } catch {
-        localStorage.removeItem('authToken');
-      }
-    }
-
-    // Fallback to session check
-    if (!sessionData) {
-      sessionData = await authService.checkSession();
-      if (sessionData?.token) {
-        localStorage.setItem('authToken', sessionData.token);
-      }
-    }
-
+    const sessionData = await authService.checkSession();
+    
     // UI elements
     const authLinks = document.querySelector('.top-bar-user .auth-links');
     const userProfile = document.querySelector('.top-bar-user .user-profile');
@@ -1004,7 +916,6 @@ async function updateAuthUI() {
     return null;
   }
 }
-
 
 function initLogout() {
   const logoutBtn = document.getElementById('logout-btn');

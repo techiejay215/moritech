@@ -4,6 +4,7 @@ require('dotenv').config();
 // 📦 Import dependencies
 const express = require('express');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
@@ -12,7 +13,6 @@ const connectDB = require('./config/db');
 
 // 🔐 Validate required environment variables
 const requiredEnvVars = [
-  'JWT_SECRET',
   'MONGODB_URI',
   'SESSION_SECRET',
   'CLOUDINARY_CLOUD_NAME',
@@ -75,12 +75,18 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 🗝 Setup session handling
+// 🗝 Setup session handling with MongoDB session store
 app.use(session({
+  name: 'connect.sid',
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   proxy: process.env.NODE_ENV === 'production',
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    collectionName: 'sessions',
+    ttl: 30 * 24 * 60 * 60 // 30 days
+  }),
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
@@ -105,7 +111,6 @@ app.get('/api/env-check', (req, res) => {
 
   res.json({
     node_env: process.env.NODE_ENV,
-    jwt_secret_set: !!process.env.JWT_SECRET,
     session_secret_set: !!process.env.SESSION_SECRET,
     cloudinary_configured: !!process.env.CLOUDINARY_CLOUD_NAME,
     origin: req.headers['origin'] || 'No origin header'
