@@ -1,49 +1,30 @@
-// 🌍 Load environment variables
 require('dotenv').config();
-
-// 📦 Import dependencies
 const express = require('express');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
-const cloudinary = require('cloudinary').v2;
 const connectDB = require('./config/db');
 
-// 🔐 Validate required environment variables
-const requiredEnvVars = [
-  'MONGODB_URI',
-  'SESSION_SECRET',
-  'CLOUDINARY_CLOUD_NAME',
-  'CLOUDINARY_API_KEY',
-  'CLOUDINARY_API_SECRET'
-];
-
-requiredEnvVars.forEach((env) => {
+// Validate environment variables
+const requiredEnvVars = ['MONGODB_URI', 'SESSION_SECRET'];
+requiredEnvVars.forEach(env => {
   if (!process.env[env]) {
-    console.error(`❌ Critical error: ${env} environment variable is missing!`);
+    console.error(`❌ Critical error: ${env} missing`);
     process.exit(1);
   }
 });
-console.log('✅ Environment variables validated');
 
-// 🔗 Connect to MongoDB
+// Connect to database
 connectDB();
 
-// ☁️ Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-});
-
-// 🚀 Initialize Express app
+// Initialize app
 const app = express();
 
-// 🌐 CORS Setup
+// CORS configuration
 const allowedOrigins = [
+  'http://localhost:3000',
   'http://127.0.0.1:5500',
   'https://moritech-technologies.netlify.app',
   'https://moritech.onrender.com'
@@ -58,26 +39,26 @@ const corsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'api_key'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 };
 
-// 🛡 Trust proxy in production for secure cookies
+// Trust proxy in production
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// 🧩 Apply middleware
+// Middleware
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 🗝 Setup session handling with MongoDB session store
+// Session configuration
 app.use(session({
-  name: 'connect.sid',
+  name: 'auth.sid',
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
@@ -85,53 +66,49 @@ app.use(session({
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
     collectionName: 'sessions',
-    ttl: 30 * 24 * 60 * 60 // 30 days
+    ttl: 7 * 24 * 60 * 60 // 1 week
   }),
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 24 * 60 * 60 * 1000, // 1 day
-  },
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+    domain: process.env.COOKIE_DOMAIN || undefined
+  }
 }));
 
-// ✅ Health check route
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    environment: process.env.NODE_ENV || 'development'
-  });
+// Session debugging
+app.use((req, res, next) => {
+  console.log('Session ID:', req.sessionID);
+  console.log('Session data:', req.session);
+  next();
 });
 
-// 🧪 Debug route (OPEN for testing)
-app.get('/api/env-check', (req, res) => {
-  res.json({
-    node_env: process.env.NODE_ENV,
-    session_secret_set: !!process.env.SESSION_SECRET,
-    cloudinary_configured: !!process.env.CLOUDINARY_CLOUD_NAME,
-    origin: req.headers['origin'] || 'No origin header'
-  });
-});
-
-// 🔀 API routes
+// Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 
-// 🧯 Global error handler
-app.use((err, req, res, next) => {
-  console.error('🔥 Server Error:', err.message);
-  res.status(err.status || 500).json({
-    message: err.message || 'Internal Server Error',
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    session: !!req.session.user 
   });
 });
 
-// 🏁 Start the server
+// Error handling
+app.use((err, req, res, next) => {
+  console.error('🔥 Error:', err.message);
+  res.status(err.status || 500).json({
+    message: err.message || 'Server error'
+  });
+});
+
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`✅ Server started on port ${PORT}`);
-  console.log(`📁 Static files served from: ${path.join(__dirname, 'public')}`);
+  console.log(`✅ Server running on port ${PORT}`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
 });

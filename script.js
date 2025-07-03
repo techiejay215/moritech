@@ -37,23 +37,29 @@ async function handleResponseError(response) {
 }
 
 const authService = {
-  async login(credentials) {
+  async login({ email, password }) {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
-        headers: getAuthHeaders(),
-        credentials: 'include',
-        body: JSON.stringify(credentials)
+        credentials: 'include', // 🔐 Important for sending session cookies
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
       });
 
-      if (!response.ok) throw await handleResponseError(response);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
+      }
+
       return await response.json();
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('🔴 Login error:', error.message);
       throw error;
     }
   },
-  
+
   async register(userData) {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
