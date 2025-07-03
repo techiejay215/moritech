@@ -1,4 +1,4 @@
-// 🌍 Always load environment variables first
+// 🌍 Load environment variables
 require('dotenv').config();
 
 // 📦 Import dependencies
@@ -10,27 +10,26 @@ const path = require('path');
 const cloudinary = require('cloudinary').v2;
 const connectDB = require('./config/db');
 
-// 🔗 Connect to MongoDB
-connectDB();
-
-// 🔐 Validate critical environment variables
+// 🔐 Validate required environment variables
 const requiredEnvVars = [
-  'JWT_SECRET', 
-  'MONGODB_URI', 
+  'JWT_SECRET',
+  'MONGODB_URI',
   'SESSION_SECRET',
   'CLOUDINARY_CLOUD_NAME',
   'CLOUDINARY_API_KEY',
   'CLOUDINARY_API_SECRET'
 ];
 
-requiredEnvVars.forEach(env => {
+requiredEnvVars.forEach((env) => {
   if (!process.env[env]) {
     console.error(`❌ Critical error: ${env} environment variable is missing!`);
     process.exit(1);
   }
 });
+console.log('✅ Environment variables validated');
 
-console.log("✅ Environment variables validated");
+// 🔗 Connect to MongoDB
+connectDB();
 
 // ☁️ Configure Cloudinary
 cloudinary.config({
@@ -43,17 +42,15 @@ cloudinary.config({
 // 🚀 Initialize Express app
 const app = express();
 
-// 🌐 Allowed frontend origins
+// 🌐 CORS Setup
 const allowedOrigins = [
   'http://127.0.0.1:5500',
   'https://moritech-technologies.netlify.app',
-  'https://moritech.onrender.com',
-  'https://moritech-technologies.netlify.app'
+  'https://moritech.onrender.com'
 ];
 
-// 🌐 CORS options
 const corsOptions = {
-  origin: function (origin, callback) {
+  origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -66,18 +63,19 @@ const corsOptions = {
   credentials: true
 };
 
-// 🛡 Trust proxy for secure cookies in production
+// 🛡 Trust proxy in production for secure cookies
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// 🧩 Middleware setup
+// 🧩 Apply middleware
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// 🗝 Session configuration
+// 🗝 Setup session handling
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -87,27 +85,24 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 24 * 60 * 60 * 1000,
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
   },
 }));
 
-// 🗂 Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
-
-// 🩺 Health check route
+// ✅ Health check route
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ 
+  res.status(200).json({
     status: 'ok',
     environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// 🔐 Environment debug route (protected in production)
+// 🧪 Debug route (protected in production)
 app.get('/api/env-check', (req, res) => {
   if (process.env.NODE_ENV === 'production' && !req.headers['x-debug-key']) {
     return res.status(403).json({ message: 'Access forbidden' });
   }
-  
+
   res.json({
     node_env: process.env.NODE_ENV,
     jwt_secret_set: !!process.env.JWT_SECRET,
@@ -126,7 +121,7 @@ app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 // 🧯 Global error handler
 app.use((err, req, res, next) => {
   console.error('🔥 Server Error:', err.message);
-  res.status(err.status || 500).json({ 
+  res.status(err.status || 500).json({
     message: err.message || 'Internal Server Error',
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
