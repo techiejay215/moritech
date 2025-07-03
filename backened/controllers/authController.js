@@ -2,24 +2,23 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const asyncHandler = require('express-async-handler');
 
-// 🔐 Capture JWT_SECRET at module load time
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  console.error('❌ FATAL: JWT_SECRET is missing!');
-  process.exit(1);
-}
-
 // 🍪 Unified cookie options
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-  maxAge: 30 * 24 * 60 * 60 * 1000
+  maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
 };
 
 // 🔐 Generate JWT Token
 const generateToken = (id) => {
-  return jwt.sign({ id }, JWT_SECRET, {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    console.error('❌ JWT_SECRET is missing at token generation!');
+    throw new Error('JWT_SECRET not set');
+  }
+
+  return jwt.sign({ id }, secret, {
     expiresIn: process.env.JWT_EXPIRES_IN || '30d'
   });
 };
@@ -88,9 +87,9 @@ const checkSession = asyncHandler(async (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id).select('-password');
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
