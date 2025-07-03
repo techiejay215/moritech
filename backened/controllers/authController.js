@@ -61,6 +61,9 @@ const register = asyncHandler(async (req, res) => {
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
+  // Added login request logging
+  console.log('Login request for:', email);
+
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password required' });
   }
@@ -98,6 +101,8 @@ const login = asyncHandler(async (req, res) => {
       console.error('Session save error:', err);
       return res.status(500).json({ message: 'Login failed' });
     }
+    // Added session success logging
+    console.log('Session saved for:', user.email);
     res.status(200).json(req.session.user);
   });
 });
@@ -131,7 +136,8 @@ const logout = asyncHandler(async (req, res) => {
       return res.status(500).json({ message: 'Logout failed' });
     }
     
-    res.clearCookie('connect.sid', {
+    // Updated cookie name to 'auth.sid'
+    res.clearCookie('auth.sid', {
       path: '/',
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

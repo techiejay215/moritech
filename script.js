@@ -524,27 +524,30 @@ function initAuthModal() {
     btn.addEventListener('click', () => showTab(btn.dataset.tab));
   });
 
-  loginForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = loginForm.querySelector('input[type="email"]').value;
-    const password = loginForm.querySelector('input[type="password"]').value;
+ loginForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = loginForm.querySelector('input[type="email"]').value;
+  const password = loginForm.querySelector('input[type="password"]').value;
+  
+  console.log('Attempting login...'); // Added log
+  try {
+    await authService.login({ email, password });
+    console.log('Login API success'); // Added log
+    closeModalHandler();
+    await updateAuthUI();
     
-    try {
-      await authService.login({ email, password });
-      closeModalHandler();
-      await updateAuthUI();
-      
-      if (cartInstance) {
-        await cartInstance.fetchCart();
-      }
-    } catch (error) {
-      if (error.message.includes('Network')) {
-        alert('Network error. Please check your internet connection.');
-      } else {
-        alert(error.message || 'Login failed. Please try again.');
-      }
+    if (cartInstance) {
+      await cartInstance.fetchCart();
     }
-  });
+  } catch (error) {
+    console.error('Login error:', error); // Enhanced error log
+    if (error.message.includes('Network')) {
+      alert('Network error. Please check your internet connection.');
+    } else {
+      alert(error.message || 'Login failed. Please try again.');
+    }
+  }
+});
 
   registerForm?.addEventListener('submit', async (e) => {
     e.preventDefault();

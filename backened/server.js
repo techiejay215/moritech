@@ -49,9 +49,28 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
+// Create session store with error handling
+const sessionStore = MongoStore.create({
+  mongoUrl: process.env.MONGODB_URI,
+  collectionName: 'sessions',
+  ttl: 7 * 24 * 60 * 60 // 1 week
+});
+
+sessionStore.on('error', (error) => {
+  console.error('Session store error:', error);
+});
+
 // Middleware
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
+
+// Dynamic CORS headers middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Origin', req.headers.origin || allowedOrigins[0]);
+  next();
+});
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -63,17 +82,15 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   proxy: process.env.NODE_ENV === 'production',
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    collectionName: 'sessions',
-    ttl: 7 * 24 * 60 * 60 // 1 week
-  }),
+  store: sessionStore,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
-    domain: process.env.COOKIE_DOMAIN || undefined
+    domain: process.env.NODE_ENV === 'production' 
+      ? '.onrender.com' // Production domain
+      : undefined // Development (localhost)
   }
 }));
 
