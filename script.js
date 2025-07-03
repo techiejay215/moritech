@@ -18,7 +18,6 @@ async function checkConnectivity() {
     return false;
   }
 }
-
 async function handleResponseError(response) {
   const responseClone = response.clone();
   let errorMessage = 'Request failed';
@@ -33,8 +32,8 @@ async function handleResponseError(response) {
       errorMessage = `Request failed with status ${response.status}`;
     }
   }
-  
-  return new Error(`${errorMessage} (Status: ${response.status})`);
+
+  throw new Error(`${errorMessage} (Status: ${response.status})`);
 }
 
 const authService = {
