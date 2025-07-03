@@ -55,6 +55,23 @@ const authService = {
     }
   },
   
+  async register(userData) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify(userData)
+      });
+      
+      if (!response.ok) throw await handleResponseError(response);
+      return await response.json();
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
+  },
+  
   async requestPasswordReset(email) {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
