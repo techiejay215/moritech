@@ -47,7 +47,7 @@ const authService = {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({email, password, credentials: 'include'})
       });
 
       if (!response.ok) {
@@ -249,7 +249,7 @@ const productService = {
 
   async searchProducts(query) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`, {
+      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query, { credentials: 'include' })}`, {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
@@ -263,7 +263,7 @@ const productService = {
 
   async getProductsByCategory(category) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
+      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category, { credentials: 'include' })}`, {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
