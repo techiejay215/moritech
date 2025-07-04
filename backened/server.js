@@ -8,46 +8,37 @@ const path = require('path');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
-// 🔐 Ensure required environment variables
-const requiredEnvVars = ['MONGODB_URI', 'SESSION_SECRET'];
-requiredEnvVars.forEach(env => {
+// 🔐 Validate required env vars
+['MONGODB_URI', 'SESSION_SECRET'].forEach(env => {
   if (!process.env[env]) {
-    console.error(`❌ Missing env variable: ${env}`);
+    console.error(`❌ Missing required env var: ${env}`);
     process.exit(1);
   }
 });
 
-// 🔗 Connect to MongoDB
+// 🔗 Connect MongoDB
 connectDB();
 mongoose.connection.on('connected', () => {
-  console.log('✅ MongoDB connected for sessions');
+  console.log('✅ MongoDB connected');
 });
 
-// 🚀 Initialize app
 const app = express();
 
-// 🌍 CORS setup
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://127.0.0.1:5500',
-  'https://moritech-technologies.netlify.app',
-  'https://moritech.onrender.com'
-];
-
+// 🌍 CORS Setup (Frontend: Netlify)
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`🚫 Blocked by CORS: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: 'https://moritech-technologies.netlify.app', // ✅ Only allow production frontend
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
 };
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
-// 🛡 Trust proxy for secure cookies in production
+// 🧩 Middleware
+app.use(express.json());
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// 🛡 Trust proxy for secure cookies
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
@@ -56,21 +47,13 @@ if (process.env.NODE_ENV === 'production') {
 const sessionStore = MongoStore.create({
   mongoUrl: process.env.MONGODB_URI,
   collectionName: 'sessions',
-  ttl: 7 * 24 * 60 * 60 // 1 week
+  ttl: 7 * 24 * 60 * 60,
 });
-
-sessionStore.on('error', (err) => {
+sessionStore.on('error', err => {
   console.error('❌ Session store error:', err);
 });
 
-// 🧩 Middleware
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
-app.use(express.json());
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-// 🍪 Session config (no domain manually set!)
+// 🍪 Session Config
 app.use(session({
   name: 'auth.sid',
   secret: process.env.SESSION_SECRET,
@@ -79,20 +62,20 @@ app.use(session({
   store: sessionStore,
   proxy: process.env.NODE_ENV === 'production',
   cookie: {
-  secure: process.env.NODE_ENV === 'production',
-  httpOnly: true,
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  domain: process.env.NODE_ENV === 'production'
-    ? '.moritech-technologies.netlify.app'
-    : undefined
-}
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    domain: process.env.NODE_ENV === 'production'
+      ? '.moritech-technologies.netlify.app'
+      : undefined,
+  }
 }));
 
-// 🐞 Debug session info
+// 🐞 Log session info
 app.use((req, res, next) => {
   console.log('Session ID:', req.sessionID);
-  console.log('Session data:', req.session);
+  console.log('Session Data:', req.session);
   next();
 });
 
@@ -102,20 +85,20 @@ app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 
-// ✅ Health check
+// ✅ Health Check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', session: !!req.session.user });
 });
 
-// 🔥 Global error handler
+// 🧯 Error Handler
 app.use((err, req, res, next) => {
-  console.error('🔥 Error:', err.message);
+  console.error('🔥 Server Error:', err.message);
   res.status(err.status || 500).json({ message: err.message || 'Server error' });
 });
 
-// 🏁 Start server
+// 🚀 Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
-  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV}`);
 });
