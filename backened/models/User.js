@@ -26,16 +26,16 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// Create case-insensitive index
+// 📧 Case-insensitive email uniqueness
 userSchema.index({ email: 1 }, { collation: { locale: 'en', strength: 2 } });
 
-// Password comparison method
-userSchema.methods.matchPassword = async function(enteredPassword) {
+// 🔐 Password comparison method
+userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Password hashing middleware
-userSchema.pre('save', async function(next) {
+// 🔒 Password hashing middleware
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
   try {

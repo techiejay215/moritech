@@ -42,19 +42,28 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// 🔐 JWT Authentication Middleware
+// 🔐 UPDATED JWT Authentication Middleware (Header + Cookie)
 app.use((req, res, next) => {
+  // 1. Check Authorization header
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
+  const tokenFromHeader = authHeader && authHeader.split(' ')[1];
+  
+  // 2. Check cookies
+  const tokenFromCookie = req.cookies.token;
+  
+  // Use whichever token is available
+  const token = tokenFromHeader || tokenFromCookie;
+  
   if (token) {
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      if (!err) {
-        req.user = user;
-        console.log('🔐 Authenticated user:', user);
-      } else {
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
         console.log('❌ JWT verification failed:', err.message);
+        return next();
       }
+      
+      // Attach decoded user data to request
+      req.user = decoded;
+      console.log('🔐 Authenticated user:', decoded);
       next();
     });
   } else {
@@ -76,19 +85,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 🆕 Session Check Route (Place before error handler)
+// 🔄 UPDATED Session Check Route
 app.get('/api/auth/session', (req, res) => {
-  if (req.user) {
-    const safeUser = {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  
+  res.json({
+    user: {
       id: req.user.id,
       name: req.user.name,
       email: req.user.email,
       role: req.user.role
-    };
-    res.json({ user: safeUser });
-  } else {
-    res.status(401).json({ message: 'Unauthorized' });
-  }
+    }
+  });
 });
 
 // 🧯 Error Handler

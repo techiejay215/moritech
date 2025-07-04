@@ -1,18 +1,10 @@
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const asyncHandler = require('express-async-handler');
 
-// 🔐 Helper: Generate JWT Token
-const generateToken = (user) => {
-  return jwt.sign(
-    { id: user._id, name: user.name, email: user.email, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-};
-
 // 🔐 Register a new user
-const register = asyncHandler(async (req, res) => {
+exports.register = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
@@ -35,10 +27,24 @@ const register = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'User already exists' });
   }
 
-  const user = new User({ name, email: normalizedEmail, password });
+  // Hash password before saving
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  const user = new User({ 
+    name, 
+    email: normalizedEmail, 
+    password: hashedPassword 
+  });
+  
   await user.save();
 
-  const token = generateToken(user);
+  // Generate token with user ID
+  const token = jwt.sign(
+    { id: user._id, email: user.email, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: '1d' }
+  );
 
   res.status(201).json({
     user: {
@@ -52,9 +58,12 @@ const register = asyncHandler(async (req, res) => {
 });
 
 // 🔐 Login user
-const login = asyncHandler(async (req, res) => {
+exports.login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-
+  
+  // Debug logs
+  console.log('Login request for:', email);
+  
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password required' });
   }
@@ -65,25 +74,42 @@ const login = asyncHandler(async (req, res) => {
     strength: 2
   });
 
-  if (!user || !(await user.matchPassword(password))) {
-    return res.status(401).json({ message: 'Invalid credentials' });
+  // Debug logs
+  console.log('Found user:', user ? user.email : 'none');
+  
+  if (!user) {
+    return res.status(401).json({ message: 'Invalid email or password' });
+  }
+  
+  const isMatch = await user.matchPassword(password);
+  
+  // Debug log
+  console.log('Password match:', isMatch);
+  
+  if (!isMatch) {
+    return res.status(401).json({ message: 'Invalid email or password' });
   }
 
-  const token = generateToken(user);
+  // Generate token with user ID
+  const token = jwt.sign(
+    { id: user._id, email: user.email, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: '1d' }
+  );
 
   res.status(200).json({
+    token,
     user: {
       id: user._id,
       name: user.name,
       email: user.email,
       role: user.role
-    },
-    token
+    }
   });
 });
 
-// ✅ Check user from token (assumes JWT middleware has set req.user)
-const checkSession = asyncHandler(async (req, res) => {
+// ✅ Check user session
+exports.checkSession = asyncHandler(async (req, res) => {
   if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
 
   const user = await User.findById(req.user.id).select('-password');
@@ -98,14 +124,6 @@ const checkSession = asyncHandler(async (req, res) => {
 });
 
 // 🔓 Logout (stateless)
-const logout = asyncHandler(async (req, res) => {
-  // Optional: Let frontend just delete the token
+exports.logout = asyncHandler(async (req, res) => {
   res.status(200).json({ message: 'Logged out successfully' });
 });
-
-module.exports = {
-  register,
-  login,
-  checkSession,
-  logout
-};

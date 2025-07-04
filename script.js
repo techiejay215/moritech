@@ -550,27 +550,30 @@ function initAuthModal() {
   });
 
   loginForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = loginForm.querySelector('input[type="email"]').value;
-    const password = loginForm.querySelector('input[type="password"]').value;
+  e.preventDefault();
+  const email = loginForm.querySelector('input[type="email"]').value;
+  const password = loginForm.querySelector('input[type="password"]').value;
+  
+  try {
+    const result = await authService.login({ email, password });
     
-    try {
-      const user = await authService.login({ email, password });
-      closeModalHandler();
-      await updateAuthUI();
-      
-      if (!cartInstance) {
-  cartInstance = initCart();
-}
-await cartInstance.fetchCart();
-
-    } catch (error) {
-      if (error.message.includes('Network')) {
-        alert('Network error. Please check your internet connection.');
-      } else {
-        alert(error.message || 'Login failed. Please try again.');
-      }
+    // Store token and user data
+    localStorage.setItem('token', result.token);
+    localStorage.setItem('user', JSON.stringify(result.user));
+    
+    closeModalHandler();
+    await updateAuthUI();
+    
+    // Initialize cart
+    if (!cartInstance) {
+      cartInstance = initCart();
     }
+    await cartInstance.fetchCart();
+    
+  } catch (error) {
+    console.error('Login error:', error);
+    alert(error.message || 'Login failed. Please try again.');
+  }
   });
 
   registerForm?.addEventListener('submit', async (e) => {
@@ -937,36 +940,34 @@ function inquire(productName) {
 
 async function updateAuthUI() {
   try {
-    const sessionData = await authService.checkSession();
+    let user = null;
     
-    // UI elements
+    // Check if we have user data in localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      user = JSON.parse(storedUser);
+    } else {
+      // Fallback to session check
+      const sessionData = await authService.checkSession();
+      user = sessionData?.user || null;
+    }
+    
+    // Update UI based on authentication status
     const authLinks = document.querySelector('.top-bar-user .auth-links');
     const userProfile = document.querySelector('.top-bar-user .user-profile');
-    const mobileUserProfile = document.querySelector('.mobile-user-profile');
-    const mobileAccountText = document.getElementById('mobile-account-text');
-
-    if (authLinks && userProfile && mobileUserProfile) {
-      if (sessionData?.user) {
-        authLinks.style.display = 'none';
-        userProfile.style.display = 'flex';
-        mobileUserProfile.style.display = 'flex';
-
-        const userName = sessionData.user.name || 'User';
-        userProfile.querySelector('span').textContent = `Welcome, ${userName}`;
-        document.getElementById('mobile-welcome').textContent = `Welcome, ${userName.split(' ')[0]}`;
-
-        if (mobileAccountText) mobileAccountText.textContent = 'Profile';
-      } else {
-        authLinks.style.display = 'flex';
-        userProfile.style.display = 'none';
-        mobileUserProfile.style.display = 'none';
-
-        if (mobileAccountText) mobileAccountText.textContent = 'Account';
-      }
+    
+    if (user) {
+      authLinks.style.display = 'none';
+      userProfile.style.display = 'flex';
+      userProfile.querySelector('span').textContent = `Welcome, ${user.name}`;
+    } else {
+      authLinks.style.display = 'flex';
+      userProfile.style.display = 'none';
     }
-
-    return sessionData;
-  } catch {
+    
+    return user;
+  } catch (error) {
+    console.error('Auth UI update error:', error);
     return null;
   }
 }
