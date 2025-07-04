@@ -8,17 +8,18 @@ function getAuthHeaders(contentType = 'application/json') {
   };
 }
 
-
 async function checkConnectivity() {
   try {
-    const response = await fetch(`${API_BASE_URL}/health`);
+    const response = await fetch(`${API_BASE_URL}/health`, {
+      credentials: 'include' // ✅ Must be inside the fetch options
+    });
     return response.ok;
-      credentials: 'include'
   } catch (error) {
     console.error('Connection error:', error);
     return false;
   }
 }
+
 async function handleResponseError(response) {
   const responseClone = response.clone();
   let errorMessage = 'Request failed';
