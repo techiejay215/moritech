@@ -5,7 +5,7 @@ const MongoStore = require('connect-mongo');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
-const mongoose = require('mongoose'); // Added mongoose import
+const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
 // 🔐 Validate required env vars
@@ -46,7 +46,7 @@ const corsOptions = {
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  credentials: true // Added credentials support
 };
 
 // 🛡 Trust proxy in production
@@ -72,7 +72,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 🍪 Updated session config (removed domain restriction)
+// 🍪 Updated session config with domain restriction
 app.use(session({
   name: 'auth.sid',
   secret: process.env.SESSION_SECRET,
@@ -84,19 +84,21 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 1 week
-    // Domain restriction removed as requested
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+    domain: process.env.NODE_ENV === 'production' 
+      ? '.moritech-technologies.netlify.app' 
+      : 'localhost'
   }
 }));
 
-// 🐞 Debug session info
+// 🐞 Debug session info (moved after session middleware)
 app.use((req, res, next) => {
   console.log('Session ID:', req.sessionID);
   console.log('Session data:', req.session);
   next();
 });
 
-// 🔀 API routes (session middleware comes before routes)
+// 🔀 API routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));

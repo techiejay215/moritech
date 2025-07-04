@@ -26,22 +26,14 @@ const register = asyncHandler(async (req, res) => {
   }
 
   const user = new User({ name, email: normalizedEmail, password });
-  await user.save(); // triggers pre-save password hashing
+  await user.save();
 
-  req.session.user = {
+  // Return user data directly instead of setting session
+  res.status(201).json({
     id: user._id,
     name: user.name,
     email: user.email,
     role: user.role
-  };
-
-  req.session.save(err => {
-    if (err) {
-      console.error('Session save error:', err);
-      return res.status(500).json({ message: 'Failed to save session' });
-    }
-
-    res.status(201).json(req.session.user);
   });
 });
 
