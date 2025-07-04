@@ -28,12 +28,21 @@ const register = asyncHandler(async (req, res) => {
   const user = new User({ name, email: normalizedEmail, password });
   await user.save();
 
-  // Return user data directly instead of setting session
-  res.status(201).json({
+  // ✅ Auto-login after register
+  req.session.user = {
     id: user._id,
     name: user.name,
     email: user.email,
     role: user.role
+  };
+
+  req.session.save(err => {
+    if (err) {
+      console.error('Session save error after register:', err);
+      return res.status(500).json({ message: 'Registration succeeded but session failed' });
+    }
+
+    res.status(201).json(req.session.user);
   });
 });
 
