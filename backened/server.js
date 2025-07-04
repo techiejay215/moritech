@@ -8,7 +8,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
-// 🔐 Ensure required environment variables
+// ✅ Ensure required environment variables
 const requiredEnvVars = ['MONGODB_URI', 'SESSION_SECRET'];
 requiredEnvVars.forEach(env => {
   if (!process.env[env]) {
@@ -17,13 +17,13 @@ requiredEnvVars.forEach(env => {
   }
 });
 
-// 🔗 Connect to MongoDB
+// ✅ Connect to MongoDB
 connectDB();
 mongoose.connection.on('connected', () => {
   console.log('✅ MongoDB connected for sessions');
 });
 
-// 🚀 Initialize app
+// 🚀 Initialize Express app
 const app = express();
 
 // 🌍 CORS setup
@@ -52,25 +52,25 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// 🧠 Session Store
+// 🍪 Session Store
 const sessionStore = MongoStore.create({
   mongoUrl: process.env.MONGODB_URI,
   collectionName: 'sessions',
   ttl: 7 * 24 * 60 * 60 // 1 week
 });
 
-sessionStore.on('error', (err) => {
+sessionStore.on('error', err => {
   console.error('❌ Session store error:', err);
 });
 
-// 🧩 Middleware
+// 🔧 Middleware
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'))); // Serve static frontend
 
-// 🍪 Session config (no domain manually set!)
+// 🍪 Session Configuration
 app.use(session({
   name: 'auth.sid',
   secret: process.env.SESSION_SECRET,
@@ -79,39 +79,44 @@ app.use(session({
   store: sessionStore,
   proxy: process.env.NODE_ENV === 'production',
   cookie: {
-  secure: process.env.NODE_ENV === 'production',
-  httpOnly: true,
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  domain: process.env.NODE_ENV === 'production' ? '.moritech.onrender.com' : 'localhost'
-}
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+    domain: process.env.NODE_ENV === 'production' ? '.moritech.onrender.com' : 'localhost'
+  }
 }));
 
-// 🐞 Debug session info
+// 🐞 Session Debug
 app.use((req, res, next) => {
   console.log('Session ID:', req.sessionID);
   console.log('Session data:', req.session);
   next();
 });
 
-// 🔀 Routes
+// 🔀 API Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 
-// ✅ Health check
+// ✅ Health Check Endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', session: !!req.session.user });
 });
 
-// 🔥 Global error handler
+// 🧩 Fallback to Frontend (for `/`, etc.)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// 🔥 Global Error Handler
 app.use((err, req, res, next) => {
   console.error('🔥 Error:', err.message);
   res.status(err.status || 500).json({ message: err.message || 'Server error' });
 });
 
-// 🏁 Start server
+// 🏁 Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
