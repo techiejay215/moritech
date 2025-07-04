@@ -559,9 +559,11 @@ function initAuthModal() {
       closeModalHandler();
       await updateAuthUI();
       
-      if (cartInstance) {
-        await cartInstance.fetchCart();
-      }
+      if (!cartInstance) {
+  cartInstance = initCart();
+}
+await cartInstance.fetchCart();
+
     } catch (error) {
       if (error.message.includes('Network')) {
         alert('Network error. Please check your internet connection.');
