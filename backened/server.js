@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const session = require('express-session');
-const MongoStore = require('connect-mongo');
+const jwt = require('jsonwebtoken'); // Added JWT module
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
@@ -9,7 +8,7 @@ const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
 // 🔐 Validate required env vars
-['MONGODB_URI', 'SESSION_SECRET'].forEach(env => {
+['MONGODB_URI', 'JWT_SECRET'].forEach(env => { // Updated to JWT_SECRET
   if (!process.env[env]) {
     console.error(`❌ Missing required env var: ${env}`);
     process.exit(1);
@@ -43,40 +42,24 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// 🧠 Session Store
-const sessionStore = MongoStore.create({
-  mongoUrl: process.env.MONGODB_URI,
-  collectionName: 'sessions',
-  ttl: 7 * 24 * 60 * 60,
-});
-sessionStore.on('error', err => {
-  console.error('❌ Session store error:', err);
-});
-
-// 🍪 Session Config
-app.use(session({
-  name: 'auth.sid',
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  store: sessionStore,
-  proxy: process.env.NODE_ENV === 'production',
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    domain: process.env.NODE_ENV === 'production'
-      ? '.moritech-technologies.netlify.app'
-      : undefined,
-  }
-}));
-
-// 🐞 Log session info
+// 🔐 JWT Authentication Middleware
 app.use((req, res, next) => {
-  console.log('Session ID:', req.sessionID);
-  console.log('Session Data:', req.session);
-  next();
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (token) {
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (!err) {
+        req.user = user;
+        console.log('🔐 Authenticated user:', user);
+      } else {
+        console.log('❌ JWT verification failed:', err.message);
+      }
+      next();
+    });
+  } else {
+    next();
+  }
 });
 
 // 🔀 Routes
@@ -87,7 +70,10 @@ app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 
 // ✅ Health Check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', session: !!req.session.user });
+  res.json({ 
+    status: 'ok', 
+    user: req.user ? req.user.id : 'unauthenticated'
+  });
 });
 
 // 🧯 Error Handler
@@ -101,4 +87,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV}`);
+  console.log(`🔐 JWT Authentication Enabled`);
 });

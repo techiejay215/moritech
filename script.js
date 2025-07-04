@@ -1,18 +1,24 @@
-console.log("🟢 Loaded latest script.js (sessions version)");
+console.log("🟢 Loaded latest script.js (JWT version)");
 const API_BASE_URL = 'https://moritech.onrender.com/api';
 let cartInstance = null;
 
 function getAuthHeaders(contentType = 'application/json') {
-  return {
-  'Content-Type': contentType
+  const headers = {
+    'Content-Type': contentType
   };
+  
+  // Add JWT token to headers if available
+  const token = localStorage.getItem('token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
 }
 
 async function checkConnectivity() {
   try {
-    const response = await fetch(`${API_BASE_URL}/health`, {
-      credentials: 'include' // ✅ Must be inside the fetch options
-    });
+    const response = await fetch(`${API_BASE_URL}/health`);
     return response.ok;
   } catch (error) {
     console.error('Connection error:', error);
@@ -35,6 +41,12 @@ async function handleResponseError(response) {
     }
   }
 
+  // Handle token expiration
+  if (response.status === 401) {
+    localStorage.removeItem('token');
+    await updateAuthUI();
+  }
+
   throw new Error(`${errorMessage} (Status: ${response.status})`);
 }
 
@@ -43,10 +55,7 @@ const authService = {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
-        credentials: 'include', // 🔐 Important for sending session cookies
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ email, password })
       });
 
@@ -55,7 +64,9 @@ const authService = {
         throw new Error(errorData.message || 'Login failed');
       }
 
-      return await response.json();
+      const { user, token } = await response.json();
+      localStorage.setItem('token', token); // Store JWT token
+      return user;
     } catch (error) {
       console.error('🔴 Login error:', error.message);
       throw error;
@@ -63,29 +74,29 @@ const authService = {
   },
 
   async register(userData) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: getAuthHeaders(),      // ✅ As long as this returns valid headers
-      credentials: 'include',         // ✅ Required for session cookie
-      body: JSON.stringify(userData)  // ✅ Assuming name, email, password are present
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(userData)
+      });
 
-    if (!response.ok) throw await handleResponseError(response);
-    return await response.json();
-  } catch (error) {
-    console.error('Registration error:', error);
-    throw error;
-  }
-},
-
+      if (!response.ok) throw await handleResponseError(response);
+      
+      const { user, token } = await response.json();
+      localStorage.setItem('token', token); // Store JWT token
+      return user;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
+  },
   
   async requestPasswordReset(email) {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        credentials: 'include',
         body: JSON.stringify({ email })
       });
       
@@ -96,38 +107,37 @@ const authService = {
       throw error;
     }
   },
-// Update checkSession function
-async checkSession() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/session`, {
-      method: 'GET',
-      headers: getAuthHeaders(),
-      credentials: 'include'
-    });
-    
-    // Add debug logging
-    console.log('Session check status:', response.status);
-    
-    if (response.status === 401) {
-      console.warn('Session expired or invalid');
+
+  async checkSession() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/session`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+      
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        return null;
+      }
+      
+      if (!response.ok) return null;
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Session check error:', error);
       return null;
     }
-    
-    if (!response.ok) return null;
-    
-    return await response.json();
-  } catch (error) {
-    console.error('Session check error:', error);
-    return null;
-  }
-  
-},
+  },
+
   async logout() {
     try {
+      // Clear token first
+      localStorage.removeItem('token');
+      
+      // Call logout API if needed
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
-        headers: getAuthHeaders(),
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       return true;
@@ -142,12 +152,11 @@ const cartService = {
   async getCart() {
     try {
       const response = await fetch(`${API_BASE_URL}/cart`, {
-        headers: getAuthHeaders(),
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
 
       if (response.status === 401) {
-        await authService.logout(); // Clear invalid session
+        localStorage.removeItem('token');
         return { items: [] };
       }
 
@@ -157,14 +166,13 @@ const cartService = {
     } catch {
       return { items: [] };
     }
+  },
   
-},
   async addToCart(productId, quantity = 1) {
     try {
       const response = await fetch(`${API_BASE_URL}/cart/items`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        credentials: 'include',
         body: JSON.stringify({ productId, quantity })
       });
       
@@ -181,7 +189,6 @@ const cartService = {
       const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
-        credentials: 'include',
         body: JSON.stringify({ quantity })
       });
       
@@ -197,8 +204,7 @@ const cartService = {
     try {
       const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
         method: 'DELETE',
-        headers: getAuthHeaders(),
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -216,7 +222,6 @@ const inquiryService = {
       const response = await fetch(`${API_BASE_URL}/inquiries`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        credentials: 'include',
         body: JSON.stringify(inquiryData)
       });
       
@@ -234,8 +239,7 @@ const productService = {
     try {
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'GET',
-        headers: getAuthHeaders(),
-        credentials: 'include' // ✅ Important for sending session cookies
+        headers: getAuthHeaders()
       });
 
       if (!response.ok) throw await handleResponseError(response);
@@ -246,12 +250,10 @@ const productService = {
     }
 },
 
-
   async searchProducts(query) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query, { credentials: 'include' })}`, {
-        headers: getAuthHeaders(),
-        credentials: 'include'
+      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`, {
+        headers: getAuthHeaders()
       });
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
@@ -263,9 +265,8 @@ const productService = {
 
   async getProductsByCategory(category) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category, { credentials: 'include' })}`, {
-        headers: getAuthHeaders(),
-        credentials: 'include'
+      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
+        headers: getAuthHeaders()
       });
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
@@ -279,8 +280,7 @@ const productService = {
     try {
       const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
         method: 'DELETE',
-        headers: getAuthHeaders(),
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -549,30 +549,27 @@ function initAuthModal() {
     btn.addEventListener('click', () => showTab(btn.dataset.tab));
   });
 
- loginForm?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = loginForm.querySelector('input[type="email"]').value;
-  const password = loginForm.querySelector('input[type="password"]').value;
-  
-  console.log('Attempting login...'); // Added log
-  try {
-    await authService.login({ email, password });
-    console.log('Login API success'); // Added log
-    closeModalHandler();
-    await updateAuthUI();
+  loginForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = loginForm.querySelector('input[type="email"]').value;
+    const password = loginForm.querySelector('input[type="password"]').value;
     
-    if (cartInstance) {
-      await cartInstance.fetchCart();
+    try {
+      const user = await authService.login({ email, password });
+      closeModalHandler();
+      await updateAuthUI();
+      
+      if (cartInstance) {
+        await cartInstance.fetchCart();
+      }
+    } catch (error) {
+      if (error.message.includes('Network')) {
+        alert('Network error. Please check your internet connection.');
+      } else {
+        alert(error.message || 'Login failed. Please try again.');
+      }
     }
-  } catch (error) {
-    console.error('Login error:', error); // Enhanced error log
-    if (error.message.includes('Network')) {
-      alert('Network error. Please check your internet connection.');
-    } else {
-      alert(error.message || 'Login failed. Please try again.');
-    }
-  }
-});
+  });
 
   registerForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -589,9 +586,10 @@ function initAuthModal() {
     }
 
     try {
-      await authService.register({ name, email, phone, password });
-      alert('Registration successful! Please login.');
-      showTab('login');
+      const user = await authService.register({ name, email, phone, password });
+      alert('Registration successful! You are now logged in.');
+      closeModalHandler();
+      await updateAuthUI();
     } catch (error) {
       alert(error.message || 'Registration failed. Please try again.');
     }
@@ -740,16 +738,19 @@ function initCart() {
 
   async function addToCart(productId) {
     try {
+      // Check if user is authenticated
+      const token = localStorage.getItem('token');
+      if (!token) {
+        document.getElementById('login-link')?.click();
+        alert('Please login to add items to your cart');
+        return;
+      }
+      
       await cartService.addToCart(productId);
       await fetchCart();
       openCart();
     } catch (error) {
-      if (error.message.includes('Authentication')) {
-        document.getElementById('login-link')?.click();
-        alert('Please login to add items to your cart');
-      } else {
-        alert(error.message || 'Failed to add to cart');
-      }
+      alert(error.message || 'Failed to add to cart');
     }
   }
 
@@ -1111,7 +1112,6 @@ function initProductForm() {
     try {
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
-        credentials: 'include',
         headers: getAuthHeaders(''),
         body: formData
       });

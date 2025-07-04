@@ -1,5 +1,15 @@
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const asyncHandler = require('express-async-handler');
+
+// 🔐 Helper: Generate JWT Token
+const generateToken = (user) => {
+  return jwt.sign(
+    { id: user._id, name: user.name, email: user.email, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+};
 
 // 🔐 Register a new user
 const register = asyncHandler(async (req, res) => {
@@ -28,21 +38,16 @@ const register = asyncHandler(async (req, res) => {
   const user = new User({ name, email: normalizedEmail, password });
   await user.save();
 
-  // ✅ Auto-login after register
-  req.session.user = {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role
-  };
+  const token = generateToken(user);
 
-  req.session.save(err => {
-    if (err) {
-      console.error('Session save error after register:', err);
-      return res.status(500).json({ message: 'Registration succeeded but session failed' });
-    }
-
-    res.status(201).json(req.session.user);
+  res.status(201).json({
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    },
+    token
   });
 });
 
@@ -50,59 +55,39 @@ const register = asyncHandler(async (req, res) => {
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  console.log('Login attempt for:', email);
-
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password required' });
   }
 
   const normalizedEmail = email.toLowerCase().trim();
-
   const user = await User.findOne({ email: normalizedEmail }).collation({
     locale: 'en',
     strength: 2
   });
 
-  if (!user) {
+  if (!user || !(await user.matchPassword(password))) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
-  const isMatch = await user.matchPassword(password);
-  if (!isMatch) {
-    return res.status(401).json({ message: 'Invalid credentials' });
-  }
+  const token = generateToken(user);
 
-  req.session.user = {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role
-  };
-
-  req.session.save(err => {
-    if (err) {
-      console.error('Session save error:', err);
-      return res.status(500).json({ message: 'Login failed' });
-    }
-
-    console.log('✅ Logged in:', user.email);
-    res.status(200).json(req.session.user);
+  res.status(200).json({
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    },
+    token
   });
 });
 
-// ✅ Check active session
+// ✅ Check user from token (assumes JWT middleware has set req.user)
 const checkSession = asyncHandler(async (req, res) => {
-  console.log('Checking session:', req.sessionID);
+  if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
 
-  if (!req.session.user) {
-    return res.status(401).json({ message: 'No active session' });
-  }
-
-  const user = await User.findById(req.session.user.id).select('-password');
-  if (!user) {
-    req.session.destroy();
-    return res.status(404).json({ message: 'User not found' });
-  }
+  const user = await User.findById(req.user.id).select('-password');
+  if (!user) return res.status(404).json({ message: 'User not found' });
 
   res.status(200).json({
     id: user._id,
@@ -112,24 +97,10 @@ const checkSession = asyncHandler(async (req, res) => {
   });
 });
 
-// 🔓 Logout user
+// 🔓 Logout (stateless)
 const logout = asyncHandler(async (req, res) => {
-  req.session.destroy(err => {
-    if (err) {
-      console.error('Session destroy error:', err);
-      return res.status(500).json({ message: 'Logout failed' });
-    }
-
-    res.clearCookie('auth.sid', {
-      path: '/',
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      domain: process.env.COOKIE_DOMAIN || undefined
-    });
-
-    res.status(200).json({ message: 'Logged out successfully' });
-  });
+  // Optional: Let frontend just delete the token
+  res.status(200).json({ message: 'Logged out successfully' });
 });
 
 module.exports = {
