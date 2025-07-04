@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const jwt = require('jsonwebtoken'); // Added JWT module
+const jwt = require('jsonwebtoken'); // 🔐 JWT module
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
 // 🔐 Validate required env vars
-['MONGODB_URI', 'JWT_SECRET'].forEach(env => { // Updated to JWT_SECRET
+['MONGODB_URI', 'JWT_SECRET'].forEach(env => {
   if (!process.env[env]) {
     console.error(`❌ Missing required env var: ${env}`);
     process.exit(1);
@@ -25,7 +25,7 @@ const app = express();
 
 // 🌍 CORS Setup (Frontend: Netlify)
 const corsOptions = {
-  origin: 'https://moritech-technologies.netlify.app', // ✅ Only allow production frontend
+  origin: 'https://moritech-technologies.netlify.app',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 };
@@ -46,7 +46,7 @@ if (process.env.NODE_ENV === 'production') {
 app.use((req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-  
+
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
       if (!err) {
@@ -70,10 +70,25 @@ app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 
 // ✅ Health Check
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     user: req.user ? req.user.id : 'unauthenticated'
   });
+});
+
+// 🆕 Session Check Route (Place before error handler)
+app.get('/api/auth/session', (req, res) => {
+  if (req.user) {
+    const safeUser = {
+      id: req.user.id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role
+    };
+    res.json({ user: safeUser });
+  } else {
+    res.status(401).json({ message: 'Unauthorized' });
+  }
 });
 
 // 🧯 Error Handler
