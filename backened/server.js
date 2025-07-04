@@ -79,12 +79,14 @@ app.use(session({
   store: sessionStore,
   proxy: process.env.NODE_ENV === 'production',
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // 🔐 Only send over HTTPS
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 1 week
-    // 🔥 Domain removed to allow auto-detection!
-  }
+  secure: process.env.NODE_ENV === 'production',
+  httpOnly: true,
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  domain: process.env.NODE_ENV === 'production'
+    ? '.moritech-technologies.netlify.app'
+    : undefined
+}
 }));
 
 // 🐞 Debug session info
