@@ -13,6 +13,7 @@ async function checkConnectivity() {
   try {
     const response = await fetch(`${API_BASE_URL}/health`);
     return response.ok;
+      credentials: 'include'
   } catch (error) {
     console.error('Connection error:', error);
     return false;
@@ -247,7 +248,8 @@ const productService = {
   async searchProducts(query) {
     try {
       const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        credentials: 'include'
       });
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
@@ -260,7 +262,8 @@ const productService = {
   async getProductsByCategory(category) {
     try {
       const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        credentials: 'include'
       });
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
