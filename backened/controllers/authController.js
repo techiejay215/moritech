@@ -27,9 +27,7 @@ exports.register = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'User already exists' });
   }
 
-  // Hash password before saving
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   const user = new User({ 
     name, 
@@ -39,7 +37,6 @@ exports.register = asyncHandler(async (req, res) => {
   
   await user.save();
 
-  // Generate token with user ID
   const token = jwt.sign(
     { id: user._id, email: user.email, role: user.role },
     process.env.JWT_SECRET,
@@ -47,50 +44,38 @@ exports.register = asyncHandler(async (req, res) => {
   );
 
   res.status(201).json({
+    token,
     user: {
       id: user._id,
       name: user.name,
       email: user.email,
       role: user.role
-    },
-    token
+    }
   });
 });
 
 // 🔐 Login user
 exports.login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  
-  // Debug logs
-  console.log('Login request for:', email);
-  
+
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password required' });
   }
 
   const normalizedEmail = email.toLowerCase().trim();
+
   const user = await User.findOne({ email: normalizedEmail }).collation({
     locale: 'en',
     strength: 2
   });
 
-  // Debug logs
-  console.log('Found user:', user ? user.email : 'none');
-  
-  if (!user) {
-    return res.status(401).json({ message: 'Invalid email or password' });
-  }
-  
-  const isMatch = await user.matchPassword(password);
-  
-  // Debug log
-  console.log('Password match:', isMatch);
-  
-  if (!isMatch) {
+  console.log('Login attempt:', email);
+  console.log('User found:', user ? user.email : 'None');
+
+  if (!user || !(await user.matchPassword(password))) {
     return res.status(401).json({ message: 'Invalid email or password' });
   }
 
-  // Generate token with user ID
   const token = jwt.sign(
     { id: user._id, email: user.email, role: user.role },
     process.env.JWT_SECRET,

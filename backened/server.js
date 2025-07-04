@@ -1,13 +1,13 @@
 require('dotenv').config();
 const express = require('express');
-const jwt = require('jsonwebtoken'); // 🔐 JWT module
+const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
-// 🔐 Validate required env vars
+// 🔐 Ensure required environment variables are present
 ['MONGODB_URI', 'JWT_SECRET'].forEach(env => {
   if (!process.env[env]) {
     console.error(`❌ Missing required env var: ${env}`);
@@ -15,7 +15,7 @@ const connectDB = require('./config/db');
   }
 });
 
-// 🔗 Connect MongoDB
+// 🔗 Connect to MongoDB
 connectDB();
 mongoose.connection.on('connected', () => {
   console.log('✅ MongoDB connected');
@@ -23,7 +23,7 @@ mongoose.connection.on('connected', () => {
 
 const app = express();
 
-// 🌍 CORS Setup (Frontend: Netlify)
+// 🌍 CORS Setup for frontend on Netlify
 const corsOptions = {
   origin: 'https://moritech-technologies.netlify.app',
   credentials: true,
@@ -42,26 +42,19 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// 🔐 UPDATED JWT Authentication Middleware (Header + Cookie)
+// 🔐 JWT Authentication Middleware
 app.use((req, res, next) => {
-  // 1. Check Authorization header
   const authHeader = req.headers['authorization'];
   const tokenFromHeader = authHeader && authHeader.split(' ')[1];
-  
-  // 2. Check cookies
   const tokenFromCookie = req.cookies.token;
-  
-  // Use whichever token is available
   const token = tokenFromHeader || tokenFromCookie;
-  
+
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
         console.log('❌ JWT verification failed:', err.message);
         return next();
       }
-      
-      // Attach decoded user data to request
       req.user = decoded;
       console.log('🔐 Authenticated user:', decoded);
       next();
@@ -81,16 +74,16 @@ app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    user: req.user ? req.user.id : 'unauthenticated'
+    user: req.user ? req.user.id : 'unauthenticated',
   });
 });
 
-// 🔄 UPDATED Session Check Route
+// 🔄 Session Check Route (must be before error handler)
 app.get('/api/auth/session', (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
-  
+
   res.json({
     user: {
       id: req.user.id,
@@ -101,7 +94,7 @@ app.get('/api/auth/session', (req, res) => {
   });
 });
 
-// 🧯 Error Handler
+// 🧯 Global Error Handler
 app.use((err, req, res, next) => {
   console.error('🔥 Server Error:', err.message);
   res.status(err.status || 500).json({ message: err.message || 'Server error' });
