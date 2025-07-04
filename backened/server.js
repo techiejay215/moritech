@@ -5,6 +5,7 @@ const MongoStore = require('connect-mongo');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
+const mongoose = require('mongoose'); // Added mongoose import
 const connectDB = require('./config/db');
 
 // 🔐 Validate required env vars
@@ -18,6 +19,11 @@ requiredEnvVars.forEach(env => {
 
 // 🔗 Connect to MongoDB
 connectDB();
+
+// ✅ Add connection verification
+mongoose.connection.on('connected', () => 
+  console.log('MongoDB connected for sessions')
+);
 
 // 🚀 Initialize app
 const app = express();
@@ -66,7 +72,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 🍪 Session config
+// 🍪 Updated session config (removed domain restriction)
 app.use(session({
   name: 'auth.sid',
   secret: process.env.SESSION_SECRET,
@@ -78,8 +84,8 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
-    domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 1 week
+    // Domain restriction removed as requested
   }
 }));
 
@@ -90,7 +96,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// 🔀 API routes
+// 🔀 API routes (session middleware comes before routes)
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));

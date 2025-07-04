@@ -93,8 +93,8 @@ const authService = {
       throw error;
     }
   },
-
-  async checkSession() {
+// Update checkSession function
+async checkSession() {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/session`, {
       method: 'GET',
@@ -102,16 +102,22 @@ const authService = {
       credentials: 'include'
     });
     
+    // Add debug logging
+    console.log('Session check status:', response.status);
+    
+    if (response.status === 401) {
+      console.warn('Session expired or invalid');
+      return null;
+    }
+    
     if (!response.ok) return null;
     
-    try {
-      return await response.json(); // Handle empty responses safely
-    } catch {
-      return null; // Return null if response isn't JSON
-    }
-  } catch {
+    return await response.json();
+  } catch (error) {
+    console.error('Session check error:', error);
     return null;
   }
+  
 },
   async logout() {
     try {

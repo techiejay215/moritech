@@ -107,9 +107,14 @@ const login = asyncHandler(async (req, res) => {
   });
 });
 
-// Check active session
+// Check active session (UPDATED)
 const checkSession = asyncHandler(async (req, res) => {
+  // Add debug logging
+  console.log('Session check - sessionID:', req.sessionID);
+  console.log('Session data:', req.session);
+  
   if (!req.session.user) {
+    console.log('No session found');
     return res.status(401).json({ message: 'No active session' });
   }
   
