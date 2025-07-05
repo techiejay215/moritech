@@ -73,37 +73,45 @@ async function handleResponseError(response) {
 
 const authService = {
   async login({ email, password }) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, password })
-    });
+    try {
+      console.log('🔐 Sending login request...');
+      
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      
-      // Handle specific error codes
-      if (errorData.code === 'USER_NOT_FOUND') {
-        throw new Error('No account found with this email');
+      const responseData = await response.json();
+      console.log('📥 Response data:', responseData);
+
+      if (!response.ok) {
+        if (responseData.code === 'USER_NOT_FOUND') {
+          throw new Error('No account found with this email');
+        }
+        if (responseData.code === 'INVALID_PASSWORD') {
+          throw new Error('Incorrect password');
+        }
+        throw new Error(responseData.message || 'Login failed');
       }
-      
-      if (errorData.code === 'INVALID_PASSWORD') {
-        throw new Error('Incorrect password');
+
+      const { token, user } = responseData;
+
+      if (!token) {
+        console.error('❌ No token received!');
+        throw new Error('Authentication failed: No token received');
       }
-      
-      throw new Error(errorData.message || 'Login failed');
+
+      localStorage.setItem('token', token);
+      console.log('✅ Token saved to localStorage:', token);
+
+      return user;
+    } catch (error) {
+      console.error('🔴 Login error:', error.message);
+      throw error;
     }
-
-    const { token, user } = await response.json();
-    localStorage.setItem('token', token);
-    return user;
-  } catch (error) {
-    console.error('🔴 Login error:', error.message);
-    throw error;
-  }
   },
 
   async register(userData) {
