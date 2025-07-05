@@ -1,7 +1,6 @@
-console.log("🟢 Loaded updated script.js (Mobile Fix + Admin Panel + Cloudinary)");
+console.log("🟢 Loaded updated script.js (Mobile Fix + Admin Panel)");
 const API_BASE_URL = 'https://moritech.onrender.com/api';
 let cartInstance = null;
-let adminPanelInitialized = false;
 
 function getAuthHeaders(contentType = 'application/json') {
   const headers = {
@@ -577,19 +576,13 @@ function initAuthModal() {
     try {
       const user = await authService.login({ email, password });
       closeModalHandler();
-      const updatedUser = await updateAuthUI();
+      await updateAuthUI();
       
       // Initialize cart
       if (!cartInstance) {
         cartInstance = initCart();
       }
       await cartInstance.fetchCart();
-      
-      // Initialize admin panel if user is admin
-      if (updatedUser?.role === 'admin') {
-        await initAdminPanel();
-        initProductForm();
-      }
       
     } catch (error) {
       console.error('Login error:', error);
@@ -615,13 +608,7 @@ function initAuthModal() {
       const user = await authService.register({ name, email, phone, password });
       alert('Registration successful! You are now logged in.');
       closeModalHandler();
-      const updatedUser = await updateAuthUI();
-      
-      // Initialize admin panel if user is admin
-      if (updatedUser?.role === 'admin') {
-        await initAdminPanel();
-        initProductForm();
-      }
+      await updateAuthUI();
     } catch (error) {
       alert(error.message || 'Registration failed. Please try again.');
     }
@@ -920,26 +907,6 @@ async function compressImage(file, maxWidth = 800, quality = 0.7) {
   });
 }
 
-async function uploadImageToCloudinary(file) {
-  try {
-    const formData = new FormData();
-    formData.append('image', file);
-
-    const response = await fetch(`${API_BASE_URL}/upload`, {
-      method: 'POST',
-      headers: getAuthHeaders(''),
-      body: formData,
-      credentials: 'include'
-    });
-
-    if (!response.ok) throw await handleResponseError(response);
-    return await response.json();
-  } catch (error) {
-    console.error('Upload error:', error);
-    throw error;
-  }
-}
-
 function inquire(productName) {
   const modal = document.createElement('div');
   modal.className = 'inquiry-modal';
@@ -1072,7 +1039,6 @@ async function initAdminPanel() {
     if (adminSection && user?.role === 'admin') {
       adminSection.style.display = 'block';
       await renderAdminProducts();
-      adminPanelInitialized = true;
       return true;
     }
     return false;
@@ -1146,63 +1112,51 @@ function initProductForm() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // Collect form data
-    const productData = {
-      name: document.getElementById('product-name').value,
-      description: document.getElementById('product-description').value,
-      price: parseFloat(document.getElementById('product-price').value),
-      category: document.getElementById('product-category').value
-    };
+    const formData = new FormData(form);
+    const categoryValue = formData.get('category');
+    const imageInput = document.getElementById('product-image');
     
-    // Handle new category
-    if (productData.category === 'new') {
-      const newCategory = document.getElementById('new-category-input').value.trim();
+    if (categoryValue === 'new') {
+      const newCategory = formData.get('newCategory').trim().toLowerCase();
       if (!newCategory) {
         alert('Please enter a new category name');
         return;
       }
-      productData.category = newCategory;
+      formData.set('category', newCategory);
     }
-
-    const imageInput = document.getElementById('product-image');
-    let imageUrl = '';
     
-    // Upload image if exists
-    if (imageInput.files.length > 0) {
+    formData.delete('newCategory');
+    
+    if (imageInput?.files.length > 0) {
       try {
         const originalFile = imageInput.files[0];
         const compressedFile = await compressImage(originalFile);
-        const uploadResult = await uploadImageToCloudinary(compressedFile);
-        imageUrl = uploadResult.secure_url;
+        formData.set('image', compressedFile);
       } catch (error) {
-        alert('Error uploading image: ' + error.message);
+        alert('Error processing image: ' + error.message);
         return;
       }
     }
     
-    // Add image URL to product data
-    if (imageUrl) {
-      productData.image = imageUrl;
-    }
-
     try {
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(productData),
+        headers: getAuthHeaders(''),
+        body: formData,
         credentials: 'include'
       });
 
-      if (!response.ok) throw await handleResponseError(response);
+      if (!response.ok) {
+        throw new Error('Failed to add product');
+      }
       
       alert('Product added successfully!');
       form.reset();
       
-      // Reset image preview
       const imagePreview = document.getElementById('image-preview');
       if (imagePreview) imagePreview.innerHTML = '';
-      
       toggleNewCategoryInput();
+      
       loadProducts();
       renderAdminProducts();
     } catch (error) {
@@ -1290,7 +1244,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initSearch();
     initSmoothScrolling();
     initAuthModal();
-    initMobileAuth();
+    initMobileAuth(); // Initialize mobile auth
     
     cartInstance = initCart();
     loadProducts();
