@@ -90,7 +90,7 @@ const authService = {
     console.error('Registration error:', error);
     throw error;
   }
-  };
+  },
 
   async register(userData) {
     try {

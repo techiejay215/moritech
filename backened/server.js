@@ -45,28 +45,31 @@ if (process.env.NODE_ENV === 'production') {
 // 🔐 JWT Authentication Middleware - UPDATED
 app.use((req, res, next) => {
   // Skip authentication for auth routes
-  if (req.path.startsWith('/api/auth/')) {
+  if (req.path.startsWith('/api/auth')) {
     return next();
   }
 
   const authHeader = req.headers['authorization'];
-  const tokenFromHeader = authHeader && authHeader.split(' ')[1];
+  const tokenFromHeader = authHeader?.startsWith('Bearer ') 
+    ? authHeader.split(' ')[1] 
+    : null;
+    
   const tokenFromCookie = req.cookies.token;
   const token = tokenFromHeader || tokenFromCookie;
 
-  if (token) {
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) {
-        console.log('❌ JWT verification failed:', err.message);
-      } else {
-        req.user = decoded;
-        console.log('🔐 Authenticated user:', decoded);
-      }
-      next();
-    });
-  } else {
+  if (!token) return next();
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      console.error('❌ JWT verification failed:', err.message);
+      // Clear invalid token
+      res.clearCookie('token');
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+    req.user = decoded;
+    console.log('🔐 Authenticated user:', decoded);
     next();
-  }
+  });
 });
 
 // 🔀 Routes
