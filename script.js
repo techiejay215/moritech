@@ -1,24 +1,3 @@
-// Debugging: Log all API requests
-const originalFetch = window.fetch;
-window.fetch = async (...args) => {
-  const [url, options] = args;
-  console.log('📡 Fetch Request:', {
-    url,
-    method: options?.method || 'GET',
-    headers: options?.headers,
-    body: options?.body
-  });
-  
-  const response = await originalFetch(...args);
-  
-  console.log('📡 Fetch Response:', {
-    status: response.status,
-    url: response.url,
-    headers: Object.fromEntries(response.headers.entries())
-  });
-  
-  return response;
-};
 console.log("🟢 Loaded latest script.js (JWT version)");
 const API_BASE_URL = 'https://moritech.onrender.com/api';
 let cartInstance = null;
@@ -39,7 +18,7 @@ function getAuthHeaders(contentType = 'application/json') {
 
 async function checkConnectivity() {
   try {
-    const response = await fetch(`${API_BASE_URL}/health`, { credentials: 'include' });
+    const response = await fetch(`${API_BASE_URL}/health`);
     return response.ok;
   } catch (error) {
     console.error('Connection error:', error);
@@ -72,45 +51,47 @@ async function handleResponseError(response) {
 }
 
 const authService = {
+  async login({ email, password }) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
+      }
+
+      const { user, token } = await response.json();
+      localStorage.setItem('token', token); // Store JWT token
+      return user;
+    } catch (error) {
+      console.error('🔴 Login error:', error.message);
+      throw error;
+    }
+  },
+
   async register(userData) {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify(userData),
-        credentials: 'include'
+        body: JSON.stringify(userData)
       });
 
       if (!response.ok) throw await handleResponseError(response);
       
-      const { user } = await response.json();
+      const { user, token } = await response.json();
+      localStorage.setItem('token', token); // Store JWT token
       return user;
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
     }
   },
-
-  // ADDED LOGIN FUNCTION
-  async login(credentials) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(credentials),
-        credentials: 'include'
-      });
-
-      if (!response.ok) throw await handleResponseError(response);
-
-      const { user } = await response.json();
-      return user;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
-  },
-
+  
   async requestPasswordReset(email) {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
@@ -131,8 +112,7 @@ const authService = {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/session`, {
         method: 'GET',
-        headers: getAuthHeaders(),
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       if (response.status === 401) {
@@ -154,11 +134,10 @@ const authService = {
       // Clear token first
       localStorage.removeItem('token');
       
-      // Call logout API
+      // Call logout API if needed
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
-        headers: getAuthHeaders(),
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       return true;
@@ -173,8 +152,7 @@ const cartService = {
   async getCart() {
     try {
       const response = await fetch(`${API_BASE_URL}/cart`, {
-        headers: getAuthHeaders(),
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
 
       if (response.status === 401) {
@@ -226,8 +204,7 @@ const cartService = {
     try {
       const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
         method: 'DELETE',
-        headers: getAuthHeaders(),
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -245,8 +222,7 @@ const inquiryService = {
       const response = await fetch(`${API_BASE_URL}/inquiries`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify(inquiryData),
-        credentials: 'include'
+        body: JSON.stringify(inquiryData)
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -263,8 +239,7 @@ const productService = {
     try {
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'GET',
-        headers: getAuthHeaders(),
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
 
       if (!response.ok) throw await handleResponseError(response);
@@ -273,13 +248,12 @@ const productService = {
       console.error('Product fetch error:', error);
       throw error;
     }
-  },
+},
 
   async searchProducts(query) {
     try {
       const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`, {
-        headers: getAuthHeaders(),
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
@@ -292,8 +266,7 @@ const productService = {
   async getProductsByCategory(category) {
     try {
       const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
-        headers: getAuthHeaders(),
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
@@ -307,8 +280,7 @@ const productService = {
     try {
       const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
         method: 'DELETE',
-        headers: getAuthHeaders(),
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -577,31 +549,31 @@ function initAuthModal() {
     btn.addEventListener('click', () => showTab(btn.dataset.tab));
   });
 
-  // UPDATED LOGIN HANDLER
   loginForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = loginForm.querySelector('input[type="email"]').value;
-    const password = loginForm.querySelector('input[type="password"]').value;
+  e.preventDefault();
+  const email = loginForm.querySelector('input[type="email"]').value;
+  const password = loginForm.querySelector('input[type="password"]').value;
+  
+  try {
+    const result = await authService.login({ email, password });
     
-    try {
-      const user = await authService.login({ email, password });
-      
-      // Store user data
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      closeModalHandler();
-      await updateAuthUI();
-      
-      // Initialize cart
-      if (!cartInstance) {
-        cartInstance = initCart();
-      }
-      await cartInstance.fetchCart();
-      
-    } catch (error) {
-      console.error('Login error:', error);
-      alert(error.message || 'Login failed. Please try again.');
+    // Store token and user data
+    localStorage.setItem('token', result.token);
+    localStorage.setItem('user', JSON.stringify(result.user));
+    
+    closeModalHandler();
+    await updateAuthUI();
+    
+    // Initialize cart
+    if (!cartInstance) {
+      cartInstance = initCart();
     }
+    await cartInstance.fetchCart();
+    
+  } catch (error) {
+    console.error('Login error:', error);
+    alert(error.message || 'Login failed. Please try again.');
+  }
   });
 
   registerForm?.addEventListener('submit', async (e) => {
@@ -620,7 +592,6 @@ function initAuthModal() {
 
     try {
       const user = await authService.register({ name, email, phone, password });
-      localStorage.setItem('user', JSON.stringify(user));
       alert('Registration successful! You are now logged in.');
       closeModalHandler();
       await updateAuthUI();
@@ -1008,7 +979,6 @@ function initLogout() {
   logoutBtn.addEventListener('click', async () => {
     try {
       await authService.logout();
-      localStorage.removeItem('user');
       await updateAuthUI();
       if (cartInstance) {
         await cartInstance.fetchCart();
@@ -1028,7 +998,6 @@ function initMobileLogout() {
     e.preventDefault();
     try {
       await authService.logout();
-      localStorage.removeItem('user');
       await updateAuthUI();
       if (cartInstance) {
         await cartInstance.fetchCart();
@@ -1147,8 +1116,7 @@ function initProductForm() {
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         headers: getAuthHeaders(''),
-        body: formData,
-        credentials: 'include'
+        body: formData
       });
 
       if (!response.ok) {
