@@ -73,49 +73,50 @@ async function handleResponseError(response) {
 
 const authService = {
   async register(userData) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      credentials: 'include', // ✅ fix position
-      body: JSON.stringify(userData)
-    });
-
-    if (!response.ok) throw await handleResponseError(response);
-
-    const { user, token } = await response.json();
-    localStorage.setItem('token', token);
-    return user;
-  } catch (error) {
-    console.error('Registration error:', error);
-    throw error;
-  }
-  },
-
-  async register(userData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(userData),
-         credentials: 'include'
-        });
+        credentials: 'include'
+      });
 
       if (!response.ok) throw await handleResponseError(response);
       
-      const { user, token } = await response.json();
-      localStorage.setItem('token', token); // Store JWT token
+      const { user } = await response.json();
       return user;
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
     }
   },
-  
+
+  // ADDED LOGIN FUNCTION
+  async login(credentials) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(credentials),
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw await handleResponseError(response);
+
+      const { user } = await response.json();
+      return user;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  },
+
   async requestPasswordReset(email) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ email, credentials: 'include'})
+        body: JSON.stringify({ email })
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -128,8 +129,11 @@ const authService = {
 
   async checkSession() {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/session`, {method: 'GET',
-        headers: getAuthHeaders(), credentials: 'include'});
+      const response = await fetch(`${API_BASE_URL}/auth/session`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
       
       if (response.status === 401) {
         localStorage.removeItem('token');
@@ -150,9 +154,12 @@ const authService = {
       // Clear token first
       localStorage.removeItem('token');
       
-      // Call logout API if needed
-      await fetch(`${API_BASE_URL}/auth/logout`, {method: 'POST',
-        headers: getAuthHeaders(), credentials: 'include'});
+      // Call logout API
+      await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
       
       return true;
     } catch (error) {
@@ -165,7 +172,10 @@ const authService = {
 const cartService = {
   async getCart() {
     try {
-      const response = await fetch(`${API_BASE_URL}/cart`, {headers: getAuthHeaders(), credentials: 'include'});
+      const response = await fetch(`${API_BASE_URL}/cart`, {
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
 
       if (response.status === 401) {
         localStorage.removeItem('token');
@@ -182,9 +192,10 @@ const cartService = {
   
   async addToCart(productId, quantity = 1) {
     try {
-      const response = await fetch(`${API_BASE_URL}/cart/items`, {method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/cart/items`, {
+        method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ productId, quantity, credentials: 'include'})
+        body: JSON.stringify({ productId, quantity })
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -197,9 +208,10 @@ const cartService = {
 
   async updateCartItem(itemId, quantity) {
     try {
-      const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {method: 'PUT',
+      const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
+        method: 'PUT',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ quantity, credentials: 'include'})
+        body: JSON.stringify({ quantity })
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -212,8 +224,11 @@ const cartService = {
 
   async removeCartItem(itemId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {method: 'DELETE',
-        headers: getAuthHeaders(), credentials: 'include'});
+      const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
       
       if (!response.ok) throw await handleResponseError(response);
       return true;
@@ -227,9 +242,12 @@ const cartService = {
 const inquiryService = {
   async submitInquiry(inquiryData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/inquiries`, {method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/inquiries`, {
+        method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify(inquiryData), credentials: 'include'});
+        body: JSON.stringify(inquiryData),
+        credentials: 'include'
+      });
       
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
@@ -243,8 +261,11 @@ const inquiryService = {
 const productService = {
   async getProducts() {
     try {
-      const response = await fetch(`${API_BASE_URL}/products`, {method: 'GET',
-        headers: getAuthHeaders(), credentials: 'include'});
+      const response = await fetch(`${API_BASE_URL}/products`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
 
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
@@ -252,12 +273,13 @@ const productService = {
       console.error('Product fetch error:', error);
       throw error;
     }
-},
+  },
 
   async searchProducts(query) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query, { credentials: 'include' })}`, {
-        headers: getAuthHeaders()
+      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`, {
+        headers: getAuthHeaders(),
+        credentials: 'include'
       });
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
@@ -269,8 +291,9 @@ const productService = {
 
   async getProductsByCategory(category) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category, { credentials: 'include' })}`, {
-        headers: getAuthHeaders()
+      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
+        headers: getAuthHeaders(),
+        credentials: 'include'
       });
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
@@ -282,8 +305,11 @@ const productService = {
   
   async deleteProduct(productId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/${productId}`, {method: 'DELETE',
-        headers: getAuthHeaders(), credentials: 'include'});
+      const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
       
       if (!response.ok) throw await handleResponseError(response);
       return true;
@@ -551,31 +577,31 @@ function initAuthModal() {
     btn.addEventListener('click', () => showTab(btn.dataset.tab));
   });
 
+  // UPDATED LOGIN HANDLER
   loginForm?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = loginForm.querySelector('input[type="email"]').value;
-  const password = loginForm.querySelector('input[type="password"]').value;
-  
-  try {
-    const result = await authService.login({ email, password });
+    e.preventDefault();
+    const email = loginForm.querySelector('input[type="email"]').value;
+    const password = loginForm.querySelector('input[type="password"]').value;
     
-    // Store token and user data
-    localStorage.setItem('token', result.token);
-    localStorage.setItem('user', JSON.stringify(result.user));
-    
-    closeModalHandler();
-    await updateAuthUI();
-    
-    // Initialize cart
-    if (!cartInstance) {
-      cartInstance = initCart();
+    try {
+      const user = await authService.login({ email, password });
+      
+      // Store user data
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      closeModalHandler();
+      await updateAuthUI();
+      
+      // Initialize cart
+      if (!cartInstance) {
+        cartInstance = initCart();
+      }
+      await cartInstance.fetchCart();
+      
+    } catch (error) {
+      console.error('Login error:', error);
+      alert(error.message || 'Login failed. Please try again.');
     }
-    await cartInstance.fetchCart();
-    
-  } catch (error) {
-    console.error('Login error:', error);
-    alert(error.message || 'Login failed. Please try again.');
-  }
   });
 
   registerForm?.addEventListener('submit', async (e) => {
@@ -594,6 +620,7 @@ function initAuthModal() {
 
     try {
       const user = await authService.register({ name, email, phone, password });
+      localStorage.setItem('user', JSON.stringify(user));
       alert('Registration successful! You are now logged in.');
       closeModalHandler();
       await updateAuthUI();
@@ -981,6 +1008,7 @@ function initLogout() {
   logoutBtn.addEventListener('click', async () => {
     try {
       await authService.logout();
+      localStorage.removeItem('user');
       await updateAuthUI();
       if (cartInstance) {
         await cartInstance.fetchCart();
@@ -1000,6 +1028,7 @@ function initMobileLogout() {
     e.preventDefault();
     try {
       await authService.logout();
+      localStorage.removeItem('user');
       await updateAuthUI();
       if (cartInstance) {
         await cartInstance.fetchCart();
@@ -1115,9 +1144,12 @@ function initProductForm() {
     }
     
     try {
-      const response = await fetch(`${API_BASE_URL}/products`, {method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/products`, {
+        method: 'POST',
         headers: getAuthHeaders(''),
-        body: formData, credentials: 'include'});
+        body: formData,
+        credentials: 'include'
+      });
 
       if (!response.ok) {
         throw new Error('Failed to add product');
