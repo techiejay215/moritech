@@ -39,7 +39,7 @@ function getAuthHeaders(contentType = 'application/json') {
 
 async function checkConnectivity() {
   try {
-    const response = await fetch(`${API_BASE_URL}/health`);
+    const response = await fetch(`${API_BASE_URL}/health`, { credentials: 'include' });
     return response.ok;
   } catch (error) {
     console.error('Connection error:', error);
@@ -81,7 +81,7 @@ const authService = {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({email, password, credentials: 'include'})
       });
 
       const responseData = await response.json();
@@ -116,11 +116,9 @@ const authService = {
 
   async register(userData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify(userData)
-      });
+        body: JSON.stringify(userData), credentials: 'include'});
 
       if (!response.ok) throw await handleResponseError(response);
       
@@ -135,10 +133,9 @@ const authService = {
   
   async requestPasswordReset(email) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, credentials: 'include'})
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -151,10 +148,8 @@ const authService = {
 
   async checkSession() {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/session`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      });
+      const response = await fetch(`${API_BASE_URL}/auth/session`, {method: 'GET',
+        headers: getAuthHeaders(), credentials: 'include'});
       
       if (response.status === 401) {
         localStorage.removeItem('token');
@@ -176,10 +171,8 @@ const authService = {
       localStorage.removeItem('token');
       
       // Call logout API if needed
-      await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: 'POST',
-        headers: getAuthHeaders()
-      });
+      await fetch(`${API_BASE_URL}/auth/logout`, {method: 'POST',
+        headers: getAuthHeaders(), credentials: 'include'});
       
       return true;
     } catch (error) {
@@ -192,9 +185,7 @@ const authService = {
 const cartService = {
   async getCart() {
     try {
-      const response = await fetch(`${API_BASE_URL}/cart`, {
-        headers: getAuthHeaders()
-      });
+      const response = await fetch(`${API_BASE_URL}/cart`, {headers: getAuthHeaders(), credentials: 'include'});
 
       if (response.status === 401) {
         localStorage.removeItem('token');
@@ -211,10 +202,9 @@ const cartService = {
   
   async addToCart(productId, quantity = 1) {
     try {
-      const response = await fetch(`${API_BASE_URL}/cart/items`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/cart/items`, {method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ productId, quantity })
+        body: JSON.stringify({ productId, quantity, credentials: 'include'})
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -227,10 +217,9 @@ const cartService = {
 
   async updateCartItem(itemId, quantity) {
     try {
-      const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
-        method: 'PUT',
+      const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {method: 'PUT',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ quantity })
+        body: JSON.stringify({ quantity, credentials: 'include'})
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -243,10 +232,8 @@ const cartService = {
 
   async removeCartItem(itemId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      });
+      const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {method: 'DELETE',
+        headers: getAuthHeaders(), credentials: 'include'});
       
       if (!response.ok) throw await handleResponseError(response);
       return true;
@@ -260,11 +247,9 @@ const cartService = {
 const inquiryService = {
   async submitInquiry(inquiryData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/inquiries`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/inquiries`, {method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify(inquiryData)
-      });
+        body: JSON.stringify(inquiryData), credentials: 'include'});
       
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
@@ -278,10 +263,8 @@ const inquiryService = {
 const productService = {
   async getProducts() {
     try {
-      const response = await fetch(`${API_BASE_URL}/products`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      });
+      const response = await fetch(`${API_BASE_URL}/products`, {method: 'GET',
+        headers: getAuthHeaders(), credentials: 'include'});
 
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
@@ -293,7 +276,7 @@ const productService = {
 
   async searchProducts(query) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`, {
+      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query, { credentials: 'include' })}`, {
         headers: getAuthHeaders()
       });
       if (!response.ok) throw await handleResponseError(response);
@@ -306,7 +289,7 @@ const productService = {
 
   async getProductsByCategory(category) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
+      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category, { credentials: 'include' })}`, {
         headers: getAuthHeaders()
       });
       if (!response.ok) throw await handleResponseError(response);
@@ -319,10 +302,8 @@ const productService = {
   
   async deleteProduct(productId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      });
+      const response = await fetch(`${API_BASE_URL}/products/${productId}`, {method: 'DELETE',
+        headers: getAuthHeaders(), credentials: 'include'});
       
       if (!response.ok) throw await handleResponseError(response);
       return true;
@@ -1154,11 +1135,9 @@ function initProductForm() {
     }
     
     try {
-      const response = await fetch(`${API_BASE_URL}/products`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/products`, {method: 'POST',
         headers: getAuthHeaders(''),
-        body: formData
-      });
+        body: formData, credentials: 'include'});
 
       if (!response.ok) {
         throw new Error('Failed to add product');

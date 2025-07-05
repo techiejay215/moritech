@@ -3,6 +3,15 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const asyncHandler = require('express-async-handler');
 
+// 📌 Helper to generate JWT
+const generateToken = (user) => {
+  return jwt.sign(
+    { id: user._id, email: user.email, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: '1d' }
+  );
+};
+
 // 🔐 Register a new user
 exports.register = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
@@ -37,24 +46,27 @@ exports.register = asyncHandler(async (req, res) => {
 
   await user.save();
 
-  const token = jwt.sign(
-    { id: user._id, email: user.email, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '1d' }
-  );
+  const token = generateToken(user);
 
-  res.status(201).json({
-    token,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    }
-  });
+  res
+    .cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'None',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    })
+    .status(201)
+    .json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
 });
 
-// 🔐 Login user (with improved validation, logging, and error codes)
+// 🔐 Login user
 exports.login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -63,51 +75,42 @@ exports.login = asyncHandler(async (req, res) => {
   }
 
   const normalizedEmail = email.toLowerCase().trim();
-
   const user = await User.findOne({ email: normalizedEmail }).collation({
     locale: 'en',
     strength: 2
   });
 
-  // Add detailed logging
   console.log(`Login attempt for: ${normalizedEmail}`);
   console.log(`User found: ${user ? user.email : 'None'}`);
 
-  if (!user) {
+  if (!user || !(await user.matchPassword(password))) {
     return res.status(401).json({
       message: 'Invalid credentials',
-      code: 'USER_NOT_FOUND'
+      code: 'AUTH_FAILED'
     });
   }
 
-  const isMatch = await user.matchPassword(password);
-  console.log(`Password match: ${isMatch}`);
+  const token = generateToken(user);
 
-  if (!isMatch) {
-    return res.status(401).json({
-      message: 'Invalid credentials',
-      code: 'INVALID_PASSWORD'
+  res
+    .cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'None',
+      maxAge: 24 * 60 * 60 * 1000
+    })
+    .status(200)
+    .json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
     });
-  }
-
-  const token = jwt.sign(
-    { id: user._id, email: user.email, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '1d' }
-  );
-
-  res.status(200).json({
-    token,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    }
-  });
 });
 
-// ✅ Check user session (requires authentication middleware to set req.user)
+// ✅ Check user session
 exports.checkSession = asyncHandler(async (req, res) => {
   if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
 
@@ -122,7 +125,14 @@ exports.checkSession = asyncHandler(async (req, res) => {
   });
 });
 
-// 🔓 Logout (stateless)
+// 🔓 Logout and clear token cookie
 exports.logout = asyncHandler(async (req, res) => {
-  res.status(200).json({ message: 'Logged out successfully' });
+  res
+    .clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'None'
+    })
+    .status(200)
+    .json({ message: 'Logged out successfully' });
 });
