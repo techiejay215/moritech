@@ -1,6 +1,7 @@
 console.log("🟢 Loaded updated script.js (Mobile Fix + Admin Panel + Cloudinary)");
 const API_BASE_URL = 'https://moritech.onrender.com/api';
 let cartInstance = null;
+let adminPanelInitialized = false;
 
 function getAuthHeaders(contentType = 'application/json') {
   const headers = {
@@ -576,13 +577,19 @@ function initAuthModal() {
     try {
       const user = await authService.login({ email, password });
       closeModalHandler();
-      await updateAuthUI();
+      const updatedUser = await updateAuthUI();
       
       // Initialize cart
       if (!cartInstance) {
         cartInstance = initCart();
       }
       await cartInstance.fetchCart();
+      
+      // Initialize admin panel if user is admin
+      if (updatedUser?.role === 'admin') {
+        await initAdminPanel();
+        initProductForm();
+      }
       
     } catch (error) {
       console.error('Login error:', error);
@@ -608,7 +615,13 @@ function initAuthModal() {
       const user = await authService.register({ name, email, phone, password });
       alert('Registration successful! You are now logged in.');
       closeModalHandler();
-      await updateAuthUI();
+      const updatedUser = await updateAuthUI();
+      
+      // Initialize admin panel if user is admin
+      if (updatedUser?.role === 'admin') {
+        await initAdminPanel();
+        initProductForm();
+      }
     } catch (error) {
       alert(error.message || 'Registration failed. Please try again.');
     }
@@ -1059,6 +1072,7 @@ async function initAdminPanel() {
     if (adminSection && user?.role === 'admin') {
       adminSection.style.display = 'block';
       await renderAdminProducts();
+      adminPanelInitialized = true;
       return true;
     }
     return false;
