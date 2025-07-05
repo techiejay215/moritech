@@ -29,12 +29,12 @@ exports.register = asyncHandler(async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const user = new User({ 
-    name, 
-    email: normalizedEmail, 
-    password: hashedPassword 
+  const user = new User({
+    name,
+    email: normalizedEmail,
+    password: hashedPassword
   });
-  
+
   await user.save();
 
   const token = jwt.sign(
@@ -54,7 +54,7 @@ exports.register = asyncHandler(async (req, res) => {
   });
 });
 
-// 🔐 Login user
+// 🔐 Login user (with improved validation, logging, and error codes)
 exports.login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -69,11 +69,25 @@ exports.login = asyncHandler(async (req, res) => {
     strength: 2
   });
 
-  console.log('Login attempt:', email);
-  console.log('User found:', user ? user.email : 'None');
+  // Add detailed logging
+  console.log(`Login attempt for: ${normalizedEmail}`);
+  console.log(`User found: ${user ? user.email : 'None'}`);
 
-  if (!user || !(await user.matchPassword(password))) {
-    return res.status(401).json({ message: 'Invalid email or password' });
+  if (!user) {
+    return res.status(401).json({
+      message: 'Invalid credentials',
+      code: 'USER_NOT_FOUND'
+    });
+  }
+
+  const isMatch = await user.matchPassword(password);
+  console.log(`Password match: ${isMatch}`);
+
+  if (!isMatch) {
+    return res.status(401).json({
+      message: 'Invalid credentials',
+      code: 'INVALID_PASSWORD'
+    });
   }
 
   const token = jwt.sign(
@@ -93,7 +107,7 @@ exports.login = asyncHandler(async (req, res) => {
   });
 });
 
-// ✅ Check user session
+// ✅ Check user session (requires authentication middleware to set req.user)
 exports.checkSession = asyncHandler(async (req, res) => {
   if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
 

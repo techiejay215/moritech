@@ -1,3 +1,24 @@
+// Debugging: Log all API requests
+const originalFetch = window.fetch;
+window.fetch = async (...args) => {
+  const [url, options] = args;
+  console.log('📡 Fetch Request:', {
+    url,
+    method: options?.method || 'GET',
+    headers: options?.headers,
+    body: options?.body
+  });
+  
+  const response = await originalFetch(...args);
+  
+  console.log('📡 Fetch Response:', {
+    status: response.status,
+    url: response.url,
+    headers: Object.fromEntries(response.headers.entries())
+  });
+  
+  return response;
+};
 console.log("🟢 Loaded latest script.js (JWT version)");
 const API_BASE_URL = 'https://moritech.onrender.com/api';
 let cartInstance = null;
@@ -52,25 +73,37 @@ async function handleResponseError(response) {
 
 const authService = {
   async login({ email, password }) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ email, password })
-      });
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
+    if (!response.ok) {
+      const errorData = await response.json();
+      
+      // Handle specific error codes
+      if (errorData.code === 'USER_NOT_FOUND') {
+        throw new Error('No account found with this email');
       }
-
-      const { user, token } = await response.json();
-      localStorage.setItem('token', token); // Store JWT token
-      return user;
-    } catch (error) {
-      console.error('🔴 Login error:', error.message);
-      throw error;
+      
+      if (errorData.code === 'INVALID_PASSWORD') {
+        throw new Error('Incorrect password');
+      }
+      
+      throw new Error(errorData.message || 'Login failed');
     }
+
+    const { token, user } = await response.json();
+    localStorage.setItem('token', token);
+    return user;
+  } catch (error) {
+    console.error('🔴 Login error:', error.message);
+    throw error;
+  }
   },
 
   async register(userData) {
