@@ -72,53 +72,33 @@ async function handleResponseError(response) {
 }
 
 const authService = {
-  async login({ email, password }) {
-    try {
-      console.log('🔐 Sending login request...');
-      
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({email, password, credentials: 'include'})
-      });
+  async register(userData) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include', // ✅ fix position
+      body: JSON.stringify(userData)
+    });
 
-      const responseData = await response.json();
-      console.log('📥 Response data:', responseData);
+    if (!response.ok) throw await handleResponseError(response);
 
-      if (!response.ok) {
-        if (responseData.code === 'USER_NOT_FOUND') {
-          throw new Error('No account found with this email');
-        }
-        if (responseData.code === 'INVALID_PASSWORD') {
-          throw new Error('Incorrect password');
-        }
-        throw new Error(responseData.message || 'Login failed');
-      }
-
-      const { token, user } = responseData;
-
-      if (!token) {
-        console.error('❌ No token received!');
-        throw new Error('Authentication failed: No token received');
-      }
-
-      localStorage.setItem('token', token);
-      console.log('✅ Token saved to localStorage:', token);
-
-      return user;
-    } catch (error) {
-      console.error('🔴 Login error:', error.message);
-      throw error;
-    }
-  },
+    const { user, token } = await response.json();
+    localStorage.setItem('token', token);
+    return user;
+  } catch (error) {
+    console.error('Registration error:', error);
+    throw error;
+  }
+  };
 
   async register(userData) {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify(userData), credentials: 'include'});
+        body: JSON.stringify(userData),
+         credentials: 'include'
+        });
 
       if (!response.ok) throw await handleResponseError(response);
       
