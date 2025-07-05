@@ -1,25 +1,4 @@
-// Debugging: Log all API requests
-const originalFetch = window.fetch;
-window.fetch = async (...args) => {
-  const [url, options] = args;
-  console.log('📡 Fetch Request:', {
-    url,
-    method: options?.method || 'GET',
-    headers: options?.headers,
-    body: options?.body
-  });
-  
-  const response = await originalFetch(...args);
-  
-  console.log('📡 Fetch Response:', {
-    status: response.status,
-    url: response.url,
-    headers: Object.fromEntries(response.headers.entries())
-  });
-  
-  return response;
-};
-console.log("🟢 Loaded latest script.js (JWT version)");
+console.log("🟢 Loaded updated script.js (Mobile Fix + Admin Panel)");
 const API_BASE_URL = 'https://moritech.onrender.com/api';
 let cartInstance = null;
 
@@ -65,6 +44,7 @@ async function handleResponseError(response) {
   // Handle token expiration
   if (response.status === 401) {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     await updateAuthUI();
   }
 
@@ -83,7 +63,9 @@ const authService = {
 
       if (!response.ok) throw await handleResponseError(response);
       
-      const { user } = await response.json();
+      const { user, token } = await response.json();
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
       return user;
     } catch (error) {
       console.error('Registration error:', error);
@@ -91,7 +73,6 @@ const authService = {
     }
   },
 
-  // ADDED LOGIN FUNCTION
   async login(credentials) {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -103,10 +84,17 @@ const authService = {
 
       if (!response.ok) throw await handleResponseError(response);
 
-      const { user } = await response.json();
+      const { user, token } = await response.json();
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
       return user;
     } catch (error) {
-      console.error('Login error:', error);
+      // Enhanced mobile error detection
+      if (error.message.includes('Failed to fetch')) {
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+          throw new Error('Network error. Please check your mobile connection and try again.');
+        }
+      }
       throw error;
     }
   },
@@ -137,6 +125,7 @@ const authService = {
       
       if (response.status === 401) {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         return null;
       }
       
@@ -153,6 +142,7 @@ const authService = {
     try {
       // Clear token first
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       
       // Call logout API
       await fetch(`${API_BASE_URL}/auth/logout`, {
@@ -179,6 +169,7 @@ const cartService = {
 
       if (response.status === 401) {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         return { items: [] };
       }
 
@@ -577,7 +568,6 @@ function initAuthModal() {
     btn.addEventListener('click', () => showTab(btn.dataset.tab));
   });
 
-  // UPDATED LOGIN HANDLER
   loginForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = loginForm.querySelector('input[type="email"]').value;
@@ -585,10 +575,6 @@ function initAuthModal() {
     
     try {
       const user = await authService.login({ email, password });
-      
-      // Store user data
-      localStorage.setItem('user', JSON.stringify(user));
-      
       closeModalHandler();
       await updateAuthUI();
       
@@ -620,7 +606,6 @@ function initAuthModal() {
 
     try {
       const user = await authService.register({ name, email, phone, password });
-      localStorage.setItem('user', JSON.stringify(user));
       alert('Registration successful! You are now logged in.');
       closeModalHandler();
       await updateAuthUI();
@@ -984,14 +969,22 @@ async function updateAuthUI() {
     // Update UI based on authentication status
     const authLinks = document.querySelector('.top-bar-user .auth-links');
     const userProfile = document.querySelector('.top-bar-user .user-profile');
+    const mobileUserProfile = document.querySelector('.mobile-user-profile');
     
     if (user) {
-      authLinks.style.display = 'none';
-      userProfile.style.display = 'flex';
-      userProfile.querySelector('span').textContent = `Welcome, ${user.name}`;
+      if (authLinks) authLinks.style.display = 'none';
+      if (userProfile) {
+        userProfile.style.display = 'flex';
+        userProfile.querySelector('span').textContent = `Welcome, ${user.name}`;
+      }
+      if (mobileUserProfile) {
+        mobileUserProfile.style.display = 'block';
+        document.getElementById('mobile-welcome').textContent = `Welcome, ${user.name}`;
+      }
     } else {
-      authLinks.style.display = 'flex';
-      userProfile.style.display = 'none';
+      if (authLinks) authLinks.style.display = 'flex';
+      if (userProfile) userProfile.style.display = 'none';
+      if (mobileUserProfile) mobileUserProfile.style.display = 'none';
     }
     
     return user;
@@ -1008,7 +1001,6 @@ function initLogout() {
   logoutBtn.addEventListener('click', async () => {
     try {
       await authService.logout();
-      localStorage.removeItem('user');
       await updateAuthUI();
       if (cartInstance) {
         await cartInstance.fetchCart();
@@ -1028,7 +1020,6 @@ function initMobileLogout() {
     e.preventDefault();
     try {
       await authService.logout();
-      localStorage.removeItem('user');
       await updateAuthUI();
       if (cartInstance) {
         await cartInstance.fetchCart();
@@ -1042,14 +1033,18 @@ function initMobileLogout() {
 
 async function initAdminPanel() {
   try {
-    const sessionData = await authService.checkSession();
+    const user = await updateAuthUI();
     const adminSection = document.getElementById('admin');
-    if (adminSection && sessionData?.user?.role === 'admin') {
+    
+    if (adminSection && user?.role === 'admin') {
       adminSection.style.display = 'block';
-      renderAdminProducts();
+      await renderAdminProducts();
+      return true;
     }
+    return false;
   } catch (error) {
     console.error('Admin panel init error:', error);
+    return false;
   }
 }
 
@@ -1202,59 +1197,72 @@ function initProductForm() {
   toggleNewCategoryInput();
 }
 
+// MOBILE AUTHENTICATION HANDLING
+function initMobileAuth() {
+  const mobileAccountBtn = document.getElementById('mobile-account-btn');
+  const mobileAuthModal = document.getElementById('mobile-auth-modal');
+  const closeMobileModal = document.querySelector('.close-mobile-modal');
+  const mobileLoginBtn = document.querySelector('.mobile-login-btn');
+  const mobileRegisterBtn = document.querySelector('.mobile-register-btn');
+  
+  if (!mobileAccountBtn) return;
+  
+  mobileAccountBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (mobileAuthModal) {
+      mobileAuthModal.style.display = 'flex';
+    }
+  });
+  
+  closeMobileModal?.addEventListener('click', () => {
+    if (mobileAuthModal) mobileAuthModal.style.display = 'none';
+  });
+  
+  mobileLoginBtn?.addEventListener('click', () => {
+    if (mobileAuthModal) mobileAuthModal.style.display = 'none';
+    document.getElementById('login-link')?.click();
+  });
+  
+  mobileRegisterBtn?.addEventListener('click', () => {
+    if (mobileAuthModal) mobileAuthModal.style.display = 'none';
+    document.getElementById('register-link')?.click();
+  });
+  
+  window.addEventListener('click', (e) => {
+    if (e.target === mobileAuthModal) {
+      mobileAuthModal.style.display = 'none';
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
   try {
-    const sessionData = await updateAuthUI();
+    const user = await updateAuthUI();
     
     initSlider();
     initCategoryFilter();
     initSearch();
     initSmoothScrolling();
     initAuthModal();
+    initMobileAuth(); // Initialize mobile auth
     
     cartInstance = initCart();
     loadProducts();
     initLogout();
     initMobileLogout();
     
-    if (sessionData?.user?.role === 'admin') {
-      initAdminPanel();
+    if (user?.role === 'admin') {
+      await initAdminPanel();
       initProductForm();
     }
     
+    // Mobile cart button
     document.getElementById('mobile-cart-btn')?.addEventListener('click', () => {
       cartInstance?.openCart();
     });
     
-    document.getElementById('mobile-account-btn')?.addEventListener('click', () => {
-      const mobileModal = document.getElementById('mobile-auth-modal');
-      if (mobileModal) {
-        mobileModal.style.display = 'flex';
-      }
-    });
-
-    document.querySelector('.close-mobile-modal')?.addEventListener('click', () => {
-      document.getElementById('mobile-auth-modal').style.display = 'none';
-    });
-
-    document.querySelector('.mobile-login-btn')?.addEventListener('click', () => {
-      document.getElementById('mobile-auth-modal').style.display = 'none';
-      document.getElementById('login-link')?.click();
-    });
-
-    document.querySelector('.mobile-register-btn')?.addEventListener('click', () => {
-      document.getElementById('mobile-auth-modal').style.display = 'none';
-      document.getElementById('register-link')?.click();
-    });
-
-    window.addEventListener('click', (e) => {
-      const mobileModal = document.getElementById('mobile-auth-modal');
-      if (e.target === mobileModal) {
-        mobileModal.style.display = 'none';
-      }
-    });
-    
   } catch (error) {
     console.error('Initialization error:', error);
+    alert(`Initialization failed: ${error.message}`);
   }
 });
