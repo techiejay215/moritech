@@ -42,13 +42,21 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
+// 🔀 Routes (mount auth routes BEFORE authentication middleware)
+app.use('/api/auth', require('./routes/authRoutes'));
+
 // 🔐 Authentication Exclusions
-const authExclusions = ['/api/auth/login', '/api/auth/register'];
+const authExclusions = [
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/health'
+];
 
 // 🔐 JWT Authentication Middleware (with exclusions)
 app.use((req, res, next) => {
+  // Skip authentication for excluded routes
   if (authExclusions.includes(req.path)) {
-    return next(); // Skip authentication for excluded routes
+    return next();
   }
 
   const authHeader = req.headers['authorization'];
@@ -60,19 +68,18 @@ app.use((req, res, next) => {
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
         console.log('❌ JWT verification failed:', err.message);
-        return next();
+        return res.status(401).json({ message: 'Unauthorized' });
       }
       req.user = decoded;
       console.log('🔐 Authenticated user:', decoded);
       next();
     });
   } else {
-    next();
+    res.status(401).json({ message: 'Authentication required' });
   }
 });
 
-// 🔀 Routes
-app.use('/api/auth', require('./routes/authRoutes'));
+// 🔀 Protected Routes
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
@@ -85,7 +92,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 🔄 Session Check Route (must be before error handler)
+// 🔄 Session Check Route
 app.get('/api/auth/session', (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Unauthorized' });
