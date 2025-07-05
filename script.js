@@ -1,4 +1,4 @@
-console.log("🟢 Loaded updated script.js (Mobile Fix + Admin Panel)");
+console.log("🟢 Loaded updated script.js (Mobile Fix + Admin Panel + Cloudinary)");
 const API_BASE_URL = 'https://moritech.onrender.com/api';
 let cartInstance = null;
 
@@ -907,6 +907,26 @@ async function compressImage(file, maxWidth = 800, quality = 0.7) {
   });
 }
 
+async function uploadImageToCloudinary(file) {
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await fetch(`${API_BASE_URL}/upload`, {
+      method: 'POST',
+      headers: getAuthHeaders(''),
+      body: formData,
+      credentials: 'include'
+    });
+
+    if (!response.ok) throw await handleResponseError(response);
+    return await response.json();
+  } catch (error) {
+    console.error('Upload error:', error);
+    throw error;
+  }
+}
+
 function inquire(productName) {
   const modal = document.createElement('div');
   modal.className = 'inquiry-modal';
@@ -1112,51 +1132,63 @@ function initProductForm() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const formData = new FormData(form);
-    const categoryValue = formData.get('category');
-    const imageInput = document.getElementById('product-image');
+    // Collect form data
+    const productData = {
+      name: document.getElementById('product-name').value,
+      description: document.getElementById('product-description').value,
+      price: parseFloat(document.getElementById('product-price').value),
+      category: document.getElementById('product-category').value
+    };
     
-    if (categoryValue === 'new') {
-      const newCategory = formData.get('newCategory').trim().toLowerCase();
+    // Handle new category
+    if (productData.category === 'new') {
+      const newCategory = document.getElementById('new-category-input').value.trim();
       if (!newCategory) {
         alert('Please enter a new category name');
         return;
       }
-      formData.set('category', newCategory);
+      productData.category = newCategory;
     }
+
+    const imageInput = document.getElementById('product-image');
+    let imageUrl = '';
     
-    formData.delete('newCategory');
-    
-    if (imageInput?.files.length > 0) {
+    // Upload image if exists
+    if (imageInput.files.length > 0) {
       try {
         const originalFile = imageInput.files[0];
         const compressedFile = await compressImage(originalFile);
-        formData.set('image', compressedFile);
+        const uploadResult = await uploadImageToCloudinary(compressedFile);
+        imageUrl = uploadResult.secure_url;
       } catch (error) {
-        alert('Error processing image: ' + error.message);
+        alert('Error uploading image: ' + error.message);
         return;
       }
     }
     
+    // Add image URL to product data
+    if (imageUrl) {
+      productData.image = imageUrl;
+    }
+
     try {
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
-        headers: getAuthHeaders(''),
-        body: formData,
+        headers: getAuthHeaders(),
+        body: JSON.stringify(productData),
         credentials: 'include'
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to add product');
-      }
+      if (!response.ok) throw await handleResponseError(response);
       
       alert('Product added successfully!');
       form.reset();
       
+      // Reset image preview
       const imagePreview = document.getElementById('image-preview');
       if (imagePreview) imagePreview.innerHTML = '';
-      toggleNewCategoryInput();
       
+      toggleNewCategoryInput();
       loadProducts();
       renderAdminProducts();
     } catch (error) {
@@ -1244,7 +1276,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initSearch();
     initSmoothScrolling();
     initAuthModal();
-    initMobileAuth(); // Initialize mobile auth
+    initMobileAuth();
     
     cartInstance = initCart();
     loadProducts();
