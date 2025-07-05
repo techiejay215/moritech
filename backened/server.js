@@ -23,9 +23,13 @@ mongoose.connection.on('connected', () => {
 
 const app = express();
 
-// 🌍 CORS Setup for frontend on Netlify
+// 🌍 CORS Setup
 const corsOptions = {
-  origin: 'https://moritech-technologies.netlify.app',
+  origin: [
+    'https://moritech-technologies.netlify.app',
+    'http://localhost:3000',
+    'http://127.0.0.1:5500'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 };
@@ -42,7 +46,7 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// 🔐 JWT Authentication Middleware - UPDATED
+// 🔐 JWT Authentication Middleware
 app.use((req, res, next) => {
   // Skip authentication for auth routes
   if (req.path.startsWith('/api/auth')) {
