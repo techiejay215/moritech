@@ -42,8 +42,15 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// 🔐 JWT Authentication Middleware
+// 🔐 Authentication Exclusions
+const authExclusions = ['/api/auth/login', '/api/auth/register'];
+
+// 🔐 JWT Authentication Middleware (with exclusions)
 app.use((req, res, next) => {
+  if (authExclusions.includes(req.path)) {
+    return next(); // Skip authentication for excluded routes
+  }
+
   const authHeader = req.headers['authorization'];
   const tokenFromHeader = authHeader && authHeader.split(' ')[1];
   const tokenFromCookie = req.cookies.token;
