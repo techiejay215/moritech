@@ -1,14 +1,30 @@
+// 📦 Load environment variables
 require('dotenv').config();
+
+// 🧩 Core dependencies
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
 const mongoose = require('mongoose');
+
+// 🔌 Database connection
 const connectDB = require('./config/db');
 
-// 🔐 Ensure required environment variables are present
-['MONGODB_URI', 'JWT_SECRET'].forEach(env => {
+// ☁️ Cloudinary and file upload
+const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+// ✅ Check required environment variables
+[
+  'MONGODB_URI',
+  'JWT_SECRET',
+  'CLOUDINARY_CLOUD_NAME',
+  'CLOUDINARY_API_KEY',
+  'CLOUDINARY_API_SECRET'
+].forEach(env => {
   if (!process.env[env]) {
     console.error(`❌ Missing required env var: ${env}`);
     process.exit(1);
@@ -21,6 +37,24 @@ mongoose.connection.on('connected', () => {
   console.log('✅ MongoDB connected');
 });
 
+// ☁️ Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// 📁 Configure Multer for Cloudinary uploads
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'moritech/products',
+    allowed_formats: ['jpg', 'jpeg', 'png'],
+    transformation: [{ width: 800, height: 600, crop: 'limit' }]
+  }
+});
+const upload = multer({ storage });
+
 const app = express();
 
 // 🌍 CORS Setup
@@ -31,42 +65,37 @@ const corsOptions = {
     'http://127.0.0.1:5500'
   ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE']
 };
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
-// 🧩 Middleware
+// 🧩 Middlewares
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 🛡 Trust proxy for secure cookies
+// 🛡 Trust proxy (for secure cookies in production)
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
 // 🔐 JWT Authentication Middleware
 app.use((req, res, next) => {
-  // Skip authentication for auth routes
-  if (req.path.startsWith('/api/auth')) {
-    return next();
-  }
+  if (req.path.startsWith('/api/auth')) return next();
 
   const authHeader = req.headers['authorization'];
-  const tokenFromHeader = authHeader?.startsWith('Bearer ') 
-    ? authHeader.split(' ')[1] 
+  const tokenFromHeader = authHeader?.startsWith('Bearer ')
+    ? authHeader.split(' ')[1]
     : null;
-    
-  const tokenFromCookie = req.cookies.token;
-  const token = tokenFromHeader || tokenFromCookie;
+
+  const token = tokenFromHeader || req.cookies.token;
 
   if (!token) return next();
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
       console.error('❌ JWT verification failed:', err.message);
-      // Clear invalid token
       res.clearCookie('token');
       return res.status(401).json({ message: 'Invalid token' });
     }
@@ -75,9 +104,6 @@ app.use((req, res, next) => {
     next();
   });
 });
-
-// 🔀 Routes
-app.use('/api/auth', require('./routes/authRoutes'));
 
 // 🔐 Route Protection Middleware
 const protectedPaths = ['/api/cart', '/api/products', '/api/inquiries'];
@@ -88,20 +114,23 @@ app.use(protectedPaths, (req, res, next) => {
   next();
 });
 
-// 🔀 Protected Routes
+// 🔀 Routes
+app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
-app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
+
+// 📦 Product route with image upload
+app.use('/api/products', upload.single('image'), require('./routes/productRoutes'));
 
 // ✅ Health Check
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    user: req.user ? req.user.id : 'unauthenticated',
+    user: req.user ? req.user.id : 'unauthenticated'
   });
 });
 
-// 🔄 Session Check Route
+// 🔄 Session Check
 app.get('/api/auth/session', (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Unauthorized' });
