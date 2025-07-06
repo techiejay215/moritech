@@ -23,13 +23,15 @@ const createProduct = async (req, res) => {
 
   try {
     const { name, description, price, category } = req.body;
+    const image = req.file; // Multer puts file here
 
-    if (!req.file) {
+    if (!image) {
       return res.status(400).json({ message: 'Product image is required' });
     }
 
-    const uploadResult = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
-
+    // Upload to Cloudinary
+    const uploadResult = await uploadToCloudinary(image.buffer, image.mimetype);
+    
     const newProduct = new Product({
       name,
       description,

@@ -1194,50 +1194,50 @@ function initProductForm() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // Collect form data
-    const productData = {
-      name: document.getElementById('product-name').value,
-      description: document.getElementById('product-description').value,
-      price: parseFloat(document.getElementById('product-price').value),
-      category: document.getElementById('product-category').value
-    };
+    // Create FormData object
+    const formData = new FormData();
     
-    // Handle new category
-    if (productData.category === 'new') {
-      const newCategory = document.getElementById('new-category-input').value.trim();
-      if (!newCategory) {
+    // Append basic fields
+    formData.append('name', document.getElementById('product-name').value);
+    formData.append('description', document.getElementById('product-description').value);
+    formData.append('price', document.getElementById('product-price').value);
+    
+    // Handle category
+    let category = document.getElementById('product-category').value;
+    if (category === 'new') {
+      category = document.getElementById('new-category-input').value.trim();
+      if (!category) {
         alert('Please enter a new category name');
         return;
       }
-      productData.category = newCategory;
     }
+    formData.append('category', category);
 
+    // Handle image
     const imageInput = document.getElementById('product-image');
-    let imageUrl = '';
-    
-    // Upload image if exists
     if (imageInput.files.length > 0) {
       try {
         const originalFile = imageInput.files[0];
         const compressedFile = await compressImage(originalFile);
-        const uploadResult = await uploadImageToCloudinary(compressedFile);
-        imageUrl = uploadResult.secure_url;
+        formData.append('image', compressedFile);
       } catch (error) {
-        alert('Error uploading image: ' + error.message);
+        alert('Error processing image: ' + error.message);
         return;
       }
     }
-    
-    // Add image URL to product data
-    if (imageUrl) {
-      productData.image = imageUrl;
-    }
 
     try {
+      // Create headers without Content-Type (handled automatically by FormData)
+      const headers = {};
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(productData),
+        headers: headers,
+        body: formData,
         credentials: 'include'
       });
 
@@ -1252,7 +1252,11 @@ function initProductForm() {
       
       toggleNewCategoryInput();
       loadProducts();
-      renderAdminProducts();
+      
+      // Refresh admin products if panel is initialized
+      if (adminPanelInitialized) {
+        await renderAdminProducts();
+      }
     } catch (error) {
       alert(error.message || 'Failed to add product');
     }

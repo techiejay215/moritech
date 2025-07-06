@@ -40,24 +40,7 @@ connectDB();
 mongoose.connection.on('connected', () => {
   console.log('✅ MongoDB connected');
 });
-
-// ☁️ Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-// 📁 Configure Multer for Cloudinary uploads
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'moritech/products',
-    allowed_formats: ['jpg', 'jpeg', 'png'],
-    transformation: [{ width: 800, height: 600, crop: 'limit' }]
-  }
-});
-const upload = multer({ storage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 const app = express();
 
