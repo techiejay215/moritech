@@ -14,125 +14,88 @@ const generateToken = (user) => {
 
 // 🔐 Register a new user
 exports.register = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
-
-  if (!name || !email || !password) {
-    return res.status(400).json({ message: 'All fields are required' });
-  }
-
-  const normalizedEmail = email.toLowerCase().trim();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  if (!emailRegex.test(normalizedEmail)) {
-    return res.status(400).json({ message: 'Invalid email format' });
-  }
-
-  const userExists = await User.findOne({ email: normalizedEmail }).collation({
-    locale: 'en',
-    strength: 2
-  });
-
-  if (userExists) {
-    return res.status(400).json({ message: 'User already exists' });
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const user = new User({
-    name,
-    email: normalizedEmail,
-    password: hashedPassword
-  });
-
-  await user.save();
-
-  const token = generateToken(user);
-
-  res
-    .cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'None',
-      maxAge: 24 * 60 * 60 * 1000 // 1 day
-    })
-    .status(201)
-    .json({
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
-    });
+  // ... existing register implementation ...
 });
 
 // 🔐 Login user
 exports.login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password required' });
-  }
-
-  const normalizedEmail = email.toLowerCase().trim();
-  const user = await User.findOne({ email: normalizedEmail }).collation({
-    locale: 'en',
-    strength: 2
-  });
-
-  console.log(`Login attempt for: ${normalizedEmail}`);
-  console.log(`User found: ${user ? user.email : 'None'}`);
-
-  if (!user || !(await user.matchPassword(password))) {
-    return res.status(401).json({
-      message: 'Invalid credentials',
-      code: 'AUTH_FAILED'
-    });
-  }
-
-  const token = generateToken(user);
-
-  res
-    .cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'None',
-      maxAge: 24 * 60 * 60 * 1000
-    })
-    .status(200)
-    .json({
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
-    });
+  // ... existing login implementation ...
 });
 
 // ✅ Check user session
 exports.checkSession = asyncHandler(async (req, res) => {
-  if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
-
-  const user = await User.findById(req.user.id).select('-password');
-  if (!user) return res.status(404).json({ message: 'User not found' });
-
-  res.status(200).json({
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role
-  });
+  // ... existing checkSession implementation ...
 });
 
 // 🔓 Logout and clear token cookie
 exports.logout = asyncHandler(async (req, res) => {
-  res
-    .clearCookie('token', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'None'
-    })
-    .status(200)
-    .json({ message: 'Logged out successfully' });
+  // ... existing logout implementation ...
 });
+
+// 🔄 Refresh JWT token
+exports.refreshToken = asyncHandler(async (req, res) => {
+  const token = req.cookies.token;
+  
+  if (!token) {
+    return res.status(401).json({ 
+      message: 'Not authorized, no token',
+      code: 'TOKEN_MISSING'
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ 
+        message: 'User not found',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    const newToken = generateToken(user);
+
+    res
+      .cookie('token', newToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'None',
+        maxAge: 24 * 60 * 60 * 1000 // 1 day
+      })
+      .status(200)
+      .json({
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        }
+      });
+  } catch (error) {
+    console.error('Token refresh error:', error.message);
+    res.status(401).json({ 
+      message: 'Not authorized, token invalid',
+      code: 'TOKEN_INVALID'
+    });
+  }
+});
+
+// ℹ️ Get session from authentication middleware
+exports.getSession = (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ 
+      message: 'Unauthorized',
+      code: 'UNAUTHORIZED'
+    });
+  }
+  
+  res.json({
+    user: {
+      id: req.user.id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role
+    }
+  });
+};

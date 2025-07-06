@@ -6,17 +6,10 @@ const { protect } = require('../middleware/authMiddleware'); // ✅ Destructured
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/logout', authController.logout);
+// 🆕 Add token refresh endpoint
+router.post('/refresh-token', authController.refreshToken);
 
-// 🔄 Secure session check
-router.get('/session', protect, (req, res) => {
-  res.json({
-    user: {
-      id: req.user.id,
-      name: req.user.name,
-      email: req.user.email,
-      role: req.user.role
-    }
-  });
-});
+// 🔄 Secure session check (refactored to use controller)
+router.get('/session', protect, authController.getSession);
 
 module.exports = router;
