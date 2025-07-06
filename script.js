@@ -1,3 +1,4 @@
+let adminProducts = []; // Store products for client-side filtering
 console.log("🟢 Loaded updated script.js (Mobile Fix + Admin Panel + Cloudinary)");
 const API_BASE_URL = 'https://moritech.onrender.com/api';
 let cartInstance = null;
@@ -1121,7 +1122,14 @@ async function initAdminPanel() {
     
     if (adminSection && user?.role === 'admin') {
       adminSection.style.display = 'block';
-      await renderAdminProducts();
+      
+      // Load products and store them
+      adminProducts = await productService.getProducts();
+      await renderAdminProducts(adminProducts);
+      
+      // Initialize search functionality
+      initAdminSearch();
+      
       adminPanelInitialized = true;
       return true;
     }
@@ -1131,16 +1139,34 @@ async function initAdminPanel() {
     return false;
   }
 }
+function initAdminSearch() {
+  const searchInput = document.getElementById('admin-search-input');
+  if (!searchInput) return;
+  
+  searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase().trim();
+    
+    if (!searchTerm) {
+      renderAdminProducts(adminProducts);
+      return;
+    }
+    
+    const filteredProducts = adminProducts.filter(product => 
+      product.name.toLowerCase().includes(searchTerm) || 
+      product.category.toLowerCase().includes(searchTerm) ||
+      (product.description && product.description.toLowerCase().includes(searchTerm))
+    );
+    
+    renderAdminProducts(filteredProducts);
+  });
+}
 
-async function renderAdminProducts() {
+async function renderAdminProducts(products) {
   const container = document.querySelector('.products-list-container');
   if (!container) return;
 
   try {
-    container.innerHTML = '<div class="loading">Loading products...</div>';
-    const products = await productService.getProducts();
-    
-    if (!products.length) {
+    if (!products || !products.length) {
       container.innerHTML = '<p>No products found</p>';
       return;
     }
@@ -1169,7 +1195,9 @@ async function renderAdminProducts() {
         if (confirm('Delete this product?')) {
           try {
             await productService.deleteProduct(productId);
-            this.closest('.admin-product-item').remove();
+            // Update local product list
+            adminProducts = adminProducts.filter(p => p._id !== productId);
+            renderAdminProducts(adminProducts);
             loadProducts();
             alert('Product deleted');
           } catch {
@@ -1256,10 +1284,10 @@ function initProductForm() {
     toggleNewCategoryInput();
     loadProducts();
     
-    // Refresh admin products
     if (adminPanelInitialized) {
-      await renderAdminProducts();
-    }
+  adminProducts = await productService.getProducts();
+  renderAdminProducts(adminProducts);
+}
   } catch (error) {
     alert(error.message || 'Failed to add product');
   }
