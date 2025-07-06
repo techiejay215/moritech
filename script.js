@@ -1193,14 +1193,13 @@ function initProductForm() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // Create FormData object
-    const formData = new FormData();
-    
-    // Append basic fields
-    formData.append('name', document.getElementById('product-name').value);
-    formData.append('description', document.getElementById('product-description').value);
-    formData.append('price', document.getElementById('product-price').value);
-    
+    // Create product data object
+    const productData = {
+      name: document.getElementById('product-name').value,
+      description: document.getElementById('product-description').value,
+      price: document.getElementById('product-price').value,
+    };
+
     // Handle category
     let category = document.getElementById('product-category').value;
     if (category === 'new') {
@@ -1210,33 +1209,26 @@ function initProductForm() {
         return;
       }
     }
-    formData.append('category', category);
+    productData.category = category;
 
-    // Handle image
+    // Handle image upload
     const imageInput = document.getElementById('product-image');
     if (imageInput.files.length > 0) {
       try {
         const originalFile = imageInput.files[0];
         const compressedFile = await compressImage(originalFile);
-        formData.append('image', compressedFile);
+        productData.image = await uploadImageToCloudinary(compressedFile);
       } catch (error) {
-        alert('Error processing image: ' + error.message);
+        alert('Error uploading image: ' + error.message);
         return;
       }
     }
 
     try {
-      // Create headers without Content-Type (handled automatically by FormData)
-      const headers = {};
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
-        headers: headers,
-        body: formData,
+        headers: getAuthHeaders(), // Will set Content-Type to application/json
+        body: JSON.stringify(productData),
         credentials: 'include'
       });
 
@@ -1260,7 +1252,6 @@ function initProductForm() {
       alert(error.message || 'Failed to add product');
     }
   });
-
   const imageInput = document.getElementById('product-image');
   const imagePreview = document.getElementById('image-preview');
   
