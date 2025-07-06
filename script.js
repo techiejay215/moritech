@@ -2,6 +2,7 @@ console.log("🟢 Loaded updated script.js (Mobile Fix + Admin Panel + Cloudinar
 const API_BASE_URL = 'https://moritech.onrender.com/api';
 let cartInstance = null;
 let adminPanelInitialized = false;
+let refreshingToken = null; // For handling concurrent refresh requests
 
 function getAuthHeaders(contentType = 'application/json') {
   const headers = {
@@ -15,16 +16,6 @@ function getAuthHeaders(contentType = 'application/json') {
   }
   
   return headers;
-}
-
-async function checkConnectivity() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/health`, { credentials: 'include' });
-    return response.ok;
-  } catch (error) {
-    console.error('Connection error:', error);
-    return false;
-  }
 }
 
 async function handleResponseError(response) {
@@ -42,14 +33,37 @@ async function handleResponseError(response) {
     }
   }
 
-  // Handle token expiration
+  // Handle token expiration - don't remove tokens for all 401 errors
   if (response.status === 401) {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        // Attempt token refresh
+        const newToken = await authService.refreshToken();
+        localStorage.setItem('token', newToken);
+        return; // Return after successful refresh
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
+      }
+    }
+    
+    // Only remove tokens if refresh fails
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     await updateAuthUI();
   }
 
   throw new Error(`${errorMessage} (Status: ${response.status})`);
+}
+
+async function checkConnectivity() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/health`, { credentials: 'include' });
+    return response.ok;
+  } catch (error) {
+    console.error('Connection error:', error);
+    return false;
+  }
 }
 
 const authService = {
@@ -157,6 +171,41 @@ const authService = {
       console.error('Logout error:', error);
       throw error;
     }
+  },
+
+  async refreshToken() {
+    // If a refresh is already in progress, return that promise
+    if (refreshingToken) {
+      return refreshingToken;
+    }
+    
+    try {
+      refreshingToken = new Promise(async (resolve, reject) => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include'
+          });
+          
+          if (!response.ok) {
+            throw new Error('Token refresh failed');
+          }
+          
+          const { token } = await response.json();
+          localStorage.setItem('token', token);
+          resolve(token);
+        } catch (error) {
+          reject(error);
+        } finally {
+          refreshingToken = null;
+        }
+      });
+      
+      return await refreshingToken;
+    } catch (error) {
+      refreshingToken = null;
+      throw error;
+    }
   }
 };
 
@@ -187,7 +236,8 @@ const cartService = {
       const response = await fetch(`${API_BASE_URL}/cart/items`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ productId, quantity })
+        body: JSON.stringify({ productId, quantity }),
+        credentials: 'include'
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -203,7 +253,8 @@ const cartService = {
       const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ quantity })
+        body: JSON.stringify({ quantity }),
+        credentials: 'include'
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -579,18 +630,17 @@ function initAuthModal() {
       closeModalHandler();
       const updatedUser = await updateAuthUI();
       
-      // Initialize cart
-      if (!cartInstance) {
-        cartInstance = initCart();
-      }
-      await cartInstance.fetchCart();
-      
-      // Initialize admin panel if user is admin
+      // Add this check for admin role
       if (updatedUser?.role === 'admin') {
         await initAdminPanel();
         initProductForm();
       }
       
+      // Initialize cart
+      if (!cartInstance) {
+        cartInstance = initCart();
+      }
+      await cartInstance.fetchCart();
     } catch (error) {
       console.error('Login error:', error);
       alert(error.message || 'Login failed. Please try again.');
@@ -1283,17 +1333,22 @@ function initMobileAuth() {
 
 document.addEventListener('DOMContentLoaded', async function() {
   try {
+    // First check auth state
     const user = await updateAuthUI();
     
+    // Then initialize cart
+    cartInstance = initCart();
+    
+    // Then load products
+    await loadProducts();
+
+    // Then other initializations
     initSlider();
     initCategoryFilter();
     initSearch();
     initSmoothScrolling();
     initAuthModal();
     initMobileAuth();
-    
-    cartInstance = initCart();
-    loadProducts();
     initLogout();
     initMobileLogout();
     

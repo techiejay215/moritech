@@ -21,6 +21,7 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 [
   'MONGODB_URI',
   'JWT_SECRET',
+  'REFRESH_SECRET', // Added for refresh token functionality
   'CLOUDINARY_CLOUD_NAME',
   'CLOUDINARY_API_KEY',
   'CLOUDINARY_API_SECRET'
@@ -80,24 +81,26 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// 🔐 JWT Authentication Middleware
+// 🔐 Updated JWT Authentication Middleware
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/auth')) return next();
 
+  // Get token from both header and cookie
   const authHeader = req.headers['authorization'];
-  const tokenFromHeader = authHeader?.startsWith('Bearer ')
-    ? authHeader.split(' ')[1]
+  const tokenFromHeader = authHeader?.startsWith('Bearer ') 
+    ? authHeader.split(' ')[1] 
     : null;
-
-  const token = tokenFromHeader || req.cookies.token;
+  const tokenFromCookie = req.cookies.token;
+  const token = tokenFromHeader || tokenFromCookie;
 
   if (!token) return next();
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
       console.error('❌ JWT verification failed:', err.message);
-      res.clearCookie('token');
-      return res.status(401).json({ message: 'Invalid token' });
+      // Only clear cookie if token came from cookie
+      if (tokenFromCookie) res.clearCookie('token');
+      return next(); // Continue instead of returning 401
     }
     req.user = decoded;
     console.log('🔐 Authenticated user:', decoded);
@@ -144,6 +147,37 @@ app.get('/api/auth/session', (req, res) => {
       role: req.user.role
     }
   });
+});
+
+// 🔄 Refresh Token Endpoint
+app.post('/api/auth/refresh', async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+  if (!refreshToken) {
+    return res.status(401).json({ message: 'Refresh token missing' });
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
+    
+    // User model needs to be imported
+    const User = require('./models/User');
+    const user = await User.findById(decoded.id);
+    
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid user' });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    res.json({ token });
+  } catch (error) {
+    console.error('❌ Refresh token error:', error.message);
+    res.status(401).json({ message: 'Invalid refresh token' });
+  }
 });
 
 // 🧯 Global Error Handler
