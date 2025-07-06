@@ -974,16 +974,16 @@ async function uploadImageToCloudinary(file) {
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await fetch(`${API_BASE_URL}/upload`, {
+    const response = await fetch(`${API_BASE_URL}/upload`, { // ✅ Correct endpoint
       method: 'POST',
-      headers: getAuthHeaders(''), // Empty content-type for FormData
+      headers: getAuthHeaders(''), 
       body: formData,
       credentials: 'include'
     });
 
     if (!response.ok) throw await handleResponseError(response);
     const data = await response.json();
-    return data.url; // Return just the URL
+    return data.url;
   } catch (error) {
     console.error('Upload error:', error);
     throw error;
