@@ -1779,32 +1779,96 @@ footer {
     overflow-y: auto;
   }
 }
-/* Add to your style.css */
-.admin-search-container {
-  position: relative;
+/* Admin Panel Section */
+#admin .container {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.admin-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
-  max-width: 400px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.admin-top-bar h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #2c3e50;
+}
+
+/* Admin Search Container */
+.admin-search-container {
+  display: flex;
+  align-items: center;
+  background: #f5f5f5;
+  padding: 8px 15px;
+  border-radius: 30px;
+  width: 300px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.admin-search-container:focus-within {
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
 }
 
 .admin-search-container i {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #777;
+  margin-right: 10px;
+  color: #7f8c8d;
 }
 
 #admin-search-input {
-  width: 100%;
-  padding: 12px 20px 12px 40px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
   font-size: 16px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  outline: none;
 }
 
-#admin-search-input:focus {
-  outline: none;
-  border-color: #4CAF50;
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+/* Admin Content Layout */
+.admin-content {
+  display: flex;
+  gap: 30px;
+}
+
+.admin-form {
+  flex: 1;
+  background: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.admin-products-list {
+  flex: 2;
+  background: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.admin-products-list h3 {
+  margin-top: 0;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  color: #2c3e50;
+  font-size: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .admin-content {
+    flex-direction: column;
+  }
+  
+  .admin-search-container {
+    width: 100%;
+  }
 }
