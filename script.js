@@ -974,9 +974,11 @@ async function uploadImageToCloudinary(file) {
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await fetch(`${API_BASE_URL}/upload`, { // ✅ Correct endpoint
+    const response = await fetch(`${API_BASE_URL}/upload`, {
       method: 'POST',
-      headers: getAuthHeaders(''), 
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      },
       body: formData,
       credentials: 'include'
     });
@@ -989,6 +991,7 @@ async function uploadImageToCloudinary(file) {
     throw error;
   }
 }
+
 function inquire(productName) {
   const modal = document.createElement('div');
   modal.className = 'inquiry-modal';
