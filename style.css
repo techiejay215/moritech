@@ -1779,25 +1779,32 @@ footer {
     overflow-y: auto;
   }
 }
-/* Admin Search Container */
+/* Add to your style.css */
 .admin-search-container {
-  display: flex;
-  align-items: center;
-  background: #f5f5f5;
-  padding: 10px;
-  border-radius: 5px;
+  position: relative;
   margin-bottom: 20px;
+  max-width: 400px;
 }
 
 .admin-search-container i {
-  margin-right: 10px;
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   color: #777;
 }
 
 #admin-search-input {
-  flex: 1;
-  padding: 8px;
+  width: 100%;
+  padding: 12px 20px 12px 40px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 16px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#admin-search-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
 }
