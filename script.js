@@ -971,17 +971,17 @@ async function compressImage(file, maxWidth = 800, quality = 0.7) {
 }
 async function uploadImageToCloudinary(file) {
   try {
-    // Validate file exists
-    if (!file) {
-      throw new Error('No image selected for upload');
-    }
+    if (!file) throw new Error('No image selected for upload');
 
     const formData = new FormData();
     formData.append('image', file);
 
     const response = await fetch(`${API_BASE_URL}/upload`, {
       method: 'POST',
-      headers: getAuthHeaders(''), 
+      // ✅ Do NOT set Content-Type manually when using FormData
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      },
       body: formData,
       credentials: 'include'
     });
@@ -994,6 +994,7 @@ async function uploadImageToCloudinary(file) {
     throw error;
   }
 }
+
 
 function inquire(productName) {
   const modal = document.createElement('div');
