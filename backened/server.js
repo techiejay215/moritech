@@ -35,6 +35,13 @@ const User = require('./models/User');
   }
 });
 
+// ☁️ Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 // 🔗 Connect to MongoDB
 connectDB();
 mongoose.connection.on('connected', () => {
@@ -98,8 +105,13 @@ app.use((req, res, next) => {
   });
 });
 
-// 🔐 Route Protection Middleware
-const protectedPaths = ['/api/cart', '/api/products', '/api/inquiries'];
+// 🔐 Route Protection Middleware - UPDATED WITH UPLOAD PATH
+const protectedPaths = [
+  '/api/cart', 
+  '/api/products', 
+  '/api/inquiries',
+  '/api/upload'  // 👈 ADDED UPLOAD PATH
+];
 app.use(protectedPaths, (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Authentication required' });
@@ -113,6 +125,32 @@ app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 app.use('/api/products', upload.single('image'), require('./routes/productRoutes'));
 
+// ☁️ Image Upload Endpoint (PROTECTED)
+app.post('/api/upload', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image uploaded' });
+    }
+
+    // Upload to Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'moritech-uploads' },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      stream.end(req.file.buffer);
+    });
+
+    res.json({ url: result.secure_url });
+  } catch (error) {
+    console.error('❌ Upload error:', error);
+    res.status(500).json({ message: 'Image upload failed' });
+  }
+});
+
 // ✅ Health Check
 app.get('/api/health', (req, res) => {
   res.json({
@@ -121,7 +159,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 🔄 Session Check (Updated)
+// 🔄 Session Check
 app.get('/api/auth/session', async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Unauthorized' });

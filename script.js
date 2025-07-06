@@ -969,7 +969,6 @@ async function compressImage(file, maxWidth = 800, quality = 0.7) {
     reader.readAsDataURL(file);
   });
 }
-
 async function uploadImageToCloudinary(file) {
   try {
     const formData = new FormData();
@@ -977,19 +976,19 @@ async function uploadImageToCloudinary(file) {
 
     const response = await fetch(`${API_BASE_URL}/upload`, {
       method: 'POST',
-      headers: getAuthHeaders(''),
+      headers: getAuthHeaders(''), // Empty content-type for FormData
       body: formData,
       credentials: 'include'
     });
 
     if (!response.ok) throw await handleResponseError(response);
-    return await response.json();
+    const data = await response.json();
+    return data.url; // Return just the URL
   } catch (error) {
     console.error('Upload error:', error);
     throw error;
   }
 }
-
 function inquire(productName) {
   const modal = document.createElement('div');
   modal.className = 'inquiry-modal';
