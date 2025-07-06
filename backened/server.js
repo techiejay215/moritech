@@ -123,8 +123,7 @@ app.use(protectedPaths, (req, res, next) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
-app.use('/api/products', upload.single('image'), require('./routes/productRoutes'));
-
+app.use('/api/products', require('./routes/productRoutes'));
 // ☁️ Image Upload Endpoint (PROTECTED)
 app.post('/api/upload', upload.single('image'), async (req, res) => {
   try {
