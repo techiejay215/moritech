@@ -369,67 +369,81 @@
   </div>
   
   <!-- Admin Panel -->
-  <section id="admin" class="section" style="display: none;">
-    <div class="container">
-      <h2>Admin Panel</h2>
-       <div class="admin-search-container">
+<section id="admin" class="section" style="display: none;">
+  <div class="container">
+    <h2>Admin Panel</h2>
+
+    <!-- 🔍 Search Products -->
+    <div class="admin-search-container">
       <i class="fas fa-search"></i>
       <input type="text" id="admin-search-input" placeholder="Search products...">
     </div>
-      <div class="admin-form">
-        <h3>Add New Product</h3>
-        <form id="add-product-form" enctype="multipart/form-data">
-          <div class="form-group">
-            <label for="product-name">Product Name</label>
-            <input type="text" id="product-name" name="name" placeholder="Product Name" required>
-          </div>
-          
-          <div class="form-group">
-            <label for="product-description">Description</label>
-            <textarea id="product-description" name="description" placeholder="Description" required></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label for="product-price">Price</label>
-            <input type="number" id="product-price" name="price" placeholder="Price" step="0.01" required>
-          </div>
-          
-          <div class="form-group">
-            <label for="product-category">Category</label>
-            <select id="product-category" name="category" required>
-              <option value="">Select Category</option>
-              <option value="laptops">Laptops</option>
-              <option value="desktops">Desktops</option>
-              <option value="monitors">Monitors</option>
-              <option value="accessories">Accessories</option>
-              <option value="storage">Storage</option>
-              <option value="printers">Printers</option>
-              <option value="ram">RAM</option>
-              <option value="new">Add New Category...</option>
-            </select>
-            <input type="text" id="new-category-input" name="newCategory" 
-             placeholder="Enter new category name" style="display: none; margin-top: 10px;">
-          </div>
-          
-          <div class="form-group">
-            <label for="product-image">Product Image</label>
-            <input type="file" id="product-image" name="image" accept="image/*" required>
-            <div id="image-preview"></div>
-          </div>
-          
-          <button type="submit">Add Product</button>
-        </form>
-      </div>
-      
-      <!-- Product Management Section -->
-      <div class="admin-products-list">
-        <h3>Manage Products</h3>
-        <div class="products-list-container">
-          <!-- Products will be listed here -->
+
+    <!-- 📦 Add New Product -->
+    <div class="admin-form">
+      <h3>Add New Product</h3>
+      <form id="add-product-form" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="product-name">Product Name</label>
+          <input type="text" id="product-name" name="name" placeholder="Product Name" required>
         </div>
+
+        <div class="form-group">
+          <label for="product-description">Description</label>
+          <textarea id="product-description" name="description" placeholder="Description" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="product-price">Price</label>
+          <input type="number" id="product-price" name="price" placeholder="Price" step="0.01" required>
+        </div>
+
+        <div class="form-group">
+          <label for="product-category">Category</label>
+          <select id="product-category" name="category" required>
+            <option value="">Select Category</option>
+            <option value="laptops">Laptops</option>
+            <option value="desktops">Desktops</option>
+            <option value="monitors">Monitors</option>
+            <option value="accessories">Accessories</option>
+            <option value="storage">Storage</option>
+            <option value="printers">Printers</option>
+            <option value="ram">RAM</option>
+            <option value="new">Add New Category...</option>
+          </select>
+          <input 
+            type="text" 
+            id="new-category-input" 
+            name="newCategory" 
+            placeholder="Enter new category name" 
+            style="display: none; margin-top: 10px;">
+        </div>
+
+        <div class="form-group">
+          <label for="product-image">Product Image</label>
+          <input 
+            type="file" 
+            id="product-image" 
+            name="image" 
+            accept="image/*" 
+            required>
+          <div id="image-preview"></div>
+        </div>
+
+        <button type="submit">Add Product</button>
+      </form>
+    </div>
+
+    <!-- 🧾 Product List -->
+    <div class="admin-products-list">
+      <h3>Manage Products</h3>
+      <div class="products-list-container">
+        <!-- Products will be listed here -->
       </div>
     </div>
-  </section>
+  </div>
+</section>
+
   <script src="script.js"></script>
 </body>
 </html>
