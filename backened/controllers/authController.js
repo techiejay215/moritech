@@ -3,10 +3,15 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const asyncHandler = require('express-async-handler');
 
-// 📌 Helper to generate JWT
+// 📌 Helper to generate access token
 const generateToken = (user) => {
   return jwt.sign(
-    { id: user._id, email: user.email, role: user.role },
+    {
+      id: user._id.toString(), // ✅ Consistent payload
+      name: user.name,
+      email: user.email,
+      role: user.role
+    },
     process.env.JWT_SECRET,
     { expiresIn: '1d' }
   );
@@ -14,18 +19,28 @@ const generateToken = (user) => {
 
 // 🔐 Register a new user
 exports.register = asyncHandler(async (req, res) => {
-  // ... existing register implementation ...
-});
+  const { name, email, password, phone } = req.body;
 
-// 🔐 Login user
-exports.login = asyncHandler(async (req, res) => {
-  // ... existing login implementation ...
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    return res.status(400).json({ message: 'User already exists' });
+  }
 
-  // ⚠️ UPDATE: Return user details + token in response
-  res.json({
+  const user = await User.create({ name, email, password, phone });
+
+  const token = generateToken(user);
+
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'Lax',
+    maxAge: 24 * 60 * 60 * 1000 // 1 day
+  });
+
+  res.status(201).json({
     user: {
-      id: user._id,
-      name: user.name,  // Ensure this exists
+      id: user._id.toString(),
+      name: user.name,
       email: user.email,
       role: user.role
     },
@@ -33,23 +48,63 @@ exports.login = asyncHandler(async (req, res) => {
   });
 });
 
-// ✅ Check user session
-exports.checkSession = asyncHandler(async (req, res) => {
-  // ... existing checkSession implementation ...
+// 🔐 Login user
+exports.login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    return res.status(401).json({ message: 'Invalid email or password' });
+  }
+
+  const token = generateToken(user);
+
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'Lax',
+    maxAge: 24 * 60 * 60 * 1000
+  });
+
+  res.json({
+    user: {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role
+    },
+    token
+  });
 });
 
-// 🔓 Logout and clear token cookie
+// ✅ Check session from auth middleware
+exports.checkSession = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  const user = await User.findById(req.user.id).select('-password');
+  if (!user) return res.status(404).json({ message: 'User not found' });
+
+  res.json({
+    user: {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role
+    }
+  });
+});
+
+// 🔓 Logout user by clearing cookies
 exports.logout = asyncHandler(async (req, res) => {
-  // ⚠️ UPDATE: Added complete logout implementation
-  // Clear token cookie
   res.cookie('token', '', {
     httpOnly: true,
-    expires: new Date(0), // Expire immediately
+    expires: new Date(0),
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'None'
   });
 
-  // Clear refresh token cookie
   res.cookie('refreshToken', '', {
     httpOnly: true,
     expires: new Date(0),
@@ -60,12 +115,24 @@ exports.logout = asyncHandler(async (req, res) => {
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
-// 🔄 Refresh JWT token
+// 🔁 Refresh JWT token (optional, placeholder)
 exports.refreshToken = asyncHandler(async (req, res) => {
-  // ... existing refreshToken implementation ...
+  // You can implement this if you use refresh tokens
+  res.status(501).json({ message: 'Not implemented' });
 });
 
-// ℹ️ Get session from authentication middleware
+// ℹ️ Get session details from middleware
 exports.getSession = (req, res) => {
-  // ... existing getSession implementation ...
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  res.json({
+    user: {
+      id: req.user.id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role
+    }
+  });
 };

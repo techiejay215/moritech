@@ -24,7 +24,7 @@ const User = require('./models/User');
 [
   'MONGODB_URI',
   'JWT_SECRET',
-  'REFRESH_SECRET', // Added for refresh token functionality
+  'REFRESH_SECRET',
   'CLOUDINARY_CLOUD_NAME',
   'CLOUDINARY_API_KEY',
   'CLOUDINARY_API_SECRET'
@@ -84,14 +84,13 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// 🔐 Updated JWT Authentication Middleware
+// 🔐 JWT Authentication Middleware
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/auth')) return next();
 
-  // Get token from both header and cookie
   const authHeader = req.headers['authorization'];
-  const tokenFromHeader = authHeader?.startsWith('Bearer ') 
-    ? authHeader.split(' ')[1] 
+  const tokenFromHeader = authHeader?.startsWith('Bearer ')
+    ? authHeader.split(' ')[1]
     : null;
   const tokenFromCookie = req.cookies.token;
   const token = tokenFromHeader || tokenFromCookie;
@@ -100,13 +99,18 @@ app.use((req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
-      console.error('❌ JWT verification failed:', err.message);
-      // Only clear cookie if token came from cookie
       if (tokenFromCookie) res.clearCookie('token');
-      return next(); // Continue instead of returning 401
+      if (err.name === 'TokenExpiredError') {
+        console.warn('⚠️ Token expired');
+      } else {
+        console.error('❌ JWT verification failed:', err.message);
+      }
+      return next(); // Don't block; let route middleware handle protection
     }
     req.user = decoded;
-    console.log('🔐 Authenticated user:', decoded);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔐 Authenticated user:', decoded);
+    }
     next();
   });
 });
@@ -124,8 +128,6 @@ app.use(protectedPaths, (req, res, next) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
-
-// 📦 Product route with image upload
 app.use('/api/products', upload.single('image'), require('./routes/productRoutes'));
 
 // ✅ Health Check
@@ -136,29 +138,30 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 🔄 Session Check (Updated to fetch from DB)
-app.get('/api/auth/session', (req, res) => {
+// 🔄 Session Check (Updated)
+app.get('/api/auth/session', async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  User.findById(req.user.id).then(user => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
     if (!user) return res.status(404).json({ message: 'User not found' });
-    
+
     res.json({
       user: {
-        id: user._id,
-        name: user.name,  // Ensure name is included
+        id: user._id.toString(),
+        name: user.name,
         email: user.email,
         role: user.role
       }
     });
-  }).catch(err => {
+  } catch (err) {
     res.status(500).json({ message: 'Server error' });
-  });
+  }
 });
 
-// 🔄 Refresh Token Endpoint (Updated with name)
+// 🔄 Refresh Token Endpoint
 app.post('/api/auth/refresh', async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
@@ -167,23 +170,29 @@ app.post('/api/auth/refresh', async (req, res) => {
 
   try {
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
-    
     const user = await User.findById(decoded.id);
-    
+
     if (!user) {
       return res.status(401).json({ message: 'Invalid user' });
     }
 
     const token = jwt.sign(
-      { 
-        id: user._id, 
-        name: user.name,  // Add name to token
-        email: user.email, 
-        role: user.role 
+      {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        role: user.role
       },
       process.env.JWT_SECRET,
       { expiresIn: '15m' }
     );
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      maxAge: 15 * 60 * 1000 // 15 minutes
+    });
 
     res.json({ token });
   } catch (error) {
