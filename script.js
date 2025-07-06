@@ -40,7 +40,7 @@ async function handleResponseError(response) {
       try {
         // Attempt token refresh
         const newToken = await authService.refreshToken();
-        localStorage.setItem('token', newToken);
+        localStorage.setItem('token', token);
         return; // Return after successful refresh
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
