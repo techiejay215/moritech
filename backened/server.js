@@ -17,6 +17,9 @@ const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
+// 👤 User Model
+const User = require('./models/User');
+
 // ✅ Check required environment variables
 [
   'MONGODB_URI',
@@ -133,23 +136,29 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 🔄 Session Check
+// 🔄 Session Check (Updated to fetch from DB)
 app.get('/api/auth/session', (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  res.json({
-    user: {
-      id: req.user.id,
-      name: req.user.name,
-      email: req.user.email,
-      role: req.user.role
-    }
+  User.findById(req.user.id).then(user => {
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,  // Ensure name is included
+        email: user.email,
+        role: user.role
+      }
+    });
+  }).catch(err => {
+    res.status(500).json({ message: 'Server error' });
   });
 });
 
-// 🔄 Refresh Token Endpoint
+// 🔄 Refresh Token Endpoint (Updated with name)
 app.post('/api/auth/refresh', async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
@@ -159,8 +168,6 @@ app.post('/api/auth/refresh', async (req, res) => {
   try {
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
     
-    // User model needs to be imported
-    const User = require('./models/User');
     const user = await User.findById(decoded.id);
     
     if (!user) {
@@ -168,7 +175,12 @@ app.post('/api/auth/refresh', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
+      { 
+        id: user._id, 
+        name: user.name,  // Add name to token
+        email: user.email, 
+        role: user.role 
+      },
       process.env.JWT_SECRET,
       { expiresIn: '15m' }
     );

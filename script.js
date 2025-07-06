@@ -1035,19 +1035,14 @@ function inquire(productName) {
   });
 }
 
+// Replace updateAuthUI function with this:
 async function updateAuthUI() {
   try {
     let user = null;
     
-    // Check if we have user data in localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      user = JSON.parse(storedUser);
-    } else {
-      // Fallback to session check
-      const sessionData = await authService.checkSession();
-      user = sessionData?.user || null;
-    }
+    // Always use session check to get user data
+    const sessionData = await authService.checkSession();
+    user = sessionData?.user || null;
     
     // Update UI based on authentication status
     const authLinks = document.querySelector('.top-bar-user .auth-links');
@@ -1058,11 +1053,14 @@ async function updateAuthUI() {
       if (authLinks) authLinks.style.display = 'none';
       if (userProfile) {
         userProfile.style.display = 'flex';
-        userProfile.querySelector('span').textContent = `Welcome, ${user.name}`;
+        // Use user.name if available, otherwise use email
+        const displayName = user.name || user.email.split('@')[0];
+        userProfile.querySelector('span').textContent = `Welcome, ${displayName}`;
       }
       if (mobileUserProfile) {
         mobileUserProfile.style.display = 'block';
-        document.getElementById('mobile-welcome').textContent = `Welcome, ${user.name}`;
+        const displayName = user.name || user.email.split('@')[0];
+        document.getElementById('mobile-welcome').textContent = `Welcome, ${displayName}`;
       }
     } else {
       if (authLinks) authLinks.style.display = 'flex';

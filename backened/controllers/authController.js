@@ -20,6 +20,17 @@ exports.register = asyncHandler(async (req, res) => {
 // 🔐 Login user
 exports.login = asyncHandler(async (req, res) => {
   // ... existing login implementation ...
+
+  // ⚠️ UPDATE: Return user details + token in response
+  res.json({
+    user: {
+      id: user._id,
+      name: user.name,  // Ensure this exists
+      email: user.email,
+      role: user.role
+    },
+    token
+  });
 });
 
 // ✅ Check user session
@@ -29,73 +40,32 @@ exports.checkSession = asyncHandler(async (req, res) => {
 
 // 🔓 Logout and clear token cookie
 exports.logout = asyncHandler(async (req, res) => {
-  // ... existing logout implementation ...
+  // ⚠️ UPDATE: Added complete logout implementation
+  // Clear token cookie
+  res.cookie('token', '', {
+    httpOnly: true,
+    expires: new Date(0), // Expire immediately
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'None'
+  });
+
+  // Clear refresh token cookie
+  res.cookie('refreshToken', '', {
+    httpOnly: true,
+    expires: new Date(0),
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'None'
+  });
+
+  res.status(200).json({ message: 'Logged out successfully' });
 });
 
 // 🔄 Refresh JWT token
 exports.refreshToken = asyncHandler(async (req, res) => {
-  const token = req.cookies.token;
-  
-  if (!token) {
-    return res.status(401).json({ 
-      message: 'Not authorized, no token',
-      code: 'TOKEN_MISSING'
-    });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password');
-    
-    if (!user) {
-      return res.status(404).json({ 
-        message: 'User not found',
-        code: 'USER_NOT_FOUND'
-      });
-    }
-
-    const newToken = generateToken(user);
-
-    res
-      .cookie('token', newToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'None',
-        maxAge: 24 * 60 * 60 * 1000 // 1 day
-      })
-      .status(200)
-      .json({
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role
-        }
-      });
-  } catch (error) {
-    console.error('Token refresh error:', error.message);
-    res.status(401).json({ 
-      message: 'Not authorized, token invalid',
-      code: 'TOKEN_INVALID'
-    });
-  }
+  // ... existing refreshToken implementation ...
 });
 
 // ℹ️ Get session from authentication middleware
 exports.getSession = (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ 
-      message: 'Unauthorized',
-      code: 'UNAUTHORIZED'
-    });
-  }
-  
-  res.json({
-    user: {
-      id: req.user.id,
-      name: req.user.name,
-      email: req.user.email,
-      role: req.user.role
-    }
-  });
+  // ... existing getSession implementation ...
 };
