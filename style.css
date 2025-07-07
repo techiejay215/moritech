@@ -1779,58 +1779,7 @@ footer {
     overflow-y: auto;
   }
 }
-/* Admin Panel Section */
-#admin .container {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
 
-.admin-top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #ddd;
-}
-
-.admin-top-bar h2 {
-  margin: 0;
-  font-size: 24px;
-  color: #2c3e50;
-}
-
-/* Admin Search Container */
-.admin-search-container {
-  display: flex;
-  align-items: center;
-  background: #f5f5f5;
-  padding: 8px 15px;
-  border-radius: 30px;
-  width: 300px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
-}
-
-.admin-search-container:focus-within {
-  background: #fff;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-}
-
-.admin-search-container i {
-  margin-right: 10px;
-  color: #7f8c8d;
-}
-
-#admin-search-input {
-  flex: 1;
-  padding: 8px 0;
-  border: none;
-  background: transparent;
-  font-size: 16px;
-  outline: none;
-}
 
 /* Admin Content Layout */
 .admin-content {
@@ -1871,4 +1820,32 @@ footer {
   .admin-search-container {
     width: 100%;
   }
+}/* Add to your style.css */
+.admin-search-container {
+  position: relative;
+  margin-bottom: 20px;
+  max-width: 400px;
+}
+
+.admin-search-container i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #777;
+}
+
+#admin-search-input {
+  width: 100%;
+  padding: 12px 20px 12px 40px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#admin-search-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
 }
