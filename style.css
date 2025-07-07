@@ -1363,13 +1363,14 @@ footer {
 
   .mobile-header-bottom {
     display: flex;
-    padding: 10px 15px;
-    gap: 15px;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
   }
 
   .mobile-search {
     flex: 1;
-    position: relative;
+  min-width: 200px;
   }
 
   .mobile-search input {
@@ -1390,8 +1391,10 @@ footer {
 
   .mobile-header-icons {
     display: flex;
-    gap: 15px;
-    align-items: center;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   }
 
   .mobile-user-profile,
@@ -1400,8 +1403,14 @@ footer {
   }
 
   .mobile-user-profile i {
-    font-size: 20px;
-    color: #333;
+    display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  background: #f5f7fa;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
   }
 
   .mobile-cart i {
@@ -2204,27 +2213,35 @@ footer {
 }
 
 .mobile-header .mobile-user-profile a {
-  color: #e74c3c;
+  color: #e53e3e;
   text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .mobile-header .mobile-user-profile a:hover {
   text-decoration: underline;
 }
-
+.mobile-user-profile span:nth-child(2) {
+  display: none;
+}
 @media (max-width: 480px) {
-  .mobile-header .mobile-user-profile {
-    font-size: 11px;
-    gap: 4px;
+  .mobile-header-bottom {
+    flex-direction: column;
+    align-items: stretch;
   }
   
-  .mobile-header .mobile-user-profile span {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100px;
+  .mobile-search {
+    min-width: 100%;
+  }
+  
+  .mobile-header-icons {
+    justify-content: space-between;
+    width: 100%;
   }
 }
+
+
 /* WhatsApp glow effect */
 .bottom-nav .whatsapp-nav {
   color: #25D366 !important; /* WhatsApp green */
