@@ -385,18 +385,13 @@ nav a:hover::after {
 }
 
 .categories-container {
- overflow-x: auto;
-  white-space: nowrap;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
-  padding-bottom: 15px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
-.categories-container::-webkit-scrollbar {
-  display: none;
-}
+
 .category-btn {
-  display: inline-block;
-  white-space: nowrap;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.25);
   color: var(--white);
@@ -1784,7 +1779,57 @@ footer {
     overflow-y: auto;
   }
 }
+/* Admin Panel Section */
+#admin .container {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
 
+.admin-top-bar {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.admin-top-bar h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #2c3e50;
+}
+
+/* Admin Search Container */
+.admin-search-container {
+  display: flex;
+  align-items: center;
+  background: #f5f5f5;
+  padding: 8px 15px;
+  border-radius: 30px;
+  width: 300px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.admin-search-container:focus-within {
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+
+.admin-search-container i {
+  margin-right: 10px;
+  color: #7f8c8d;
+}
+
+#admin-search-input {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  outline: none;
+}
 
 /* Admin Content Layout */
 .admin-content {
