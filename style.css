@@ -2247,28 +2247,23 @@ footer {
     text-shadow: 0 0 5px rgba(37, 211, 102, 0.8);
   }
 }
-/* Hide desktop header on mobile */
+/* Add this at the end of your style.css file */
 @media (max-width: 768px) {
-  .desktop-header {
+  .top-bar {
     display: none !important;
   }
   
-  .mobile-header {
-    display: block;
+  .categories {
+    display: none !important;
   }
   
-  /* Hide other desktop-specific elements if needed */
-  .categories {
-    display: none;
+  .desktop-header {
+    display: none !important;
   }
 }
 
-/* Hide mobile elements on desktop */
 @media (min-width: 769px) {
-  .mobile-header,
-  .mobile-nav,
-  .bottom-nav,
-  .mobile-modal {
+  .mobile-header {
     display: none !important;
   }
 }
