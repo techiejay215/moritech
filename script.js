@@ -1050,7 +1050,8 @@ async function updateAuthUI() {
     // Update UI based on authentication status
     const authLinks = document.querySelector('.top-bar-user .auth-links');
     const userProfile = document.querySelector('.top-bar-user .user-profile');
-    const mobileUserProfile = document.querySelector('.mobile-user-profile');
+    const mobileUserProfile = document.querySelector('.mobile-nav .mobile-user-profile');
+    const mobileHeaderProfile = document.querySelector('.mobile-header .mobile-user-profile');
     
     if (user) {
       if (authLinks) authLinks.style.display = 'none';
@@ -1065,10 +1066,16 @@ async function updateAuthUI() {
         const displayName = user.name || user.email.split('@')[0];
         document.getElementById('mobile-welcome').textContent = `Welcome, ${displayName}`;
       }
+      if (mobileHeaderProfile) {
+        mobileHeaderProfile.style.display = 'flex';
+        const displayName = user.name || user.email.split('@')[0];
+        document.getElementById('mobile-welcome-header').textContent = `Welcome, ${displayName}`;
+      }
     } else {
       if (authLinks) authLinks.style.display = 'flex';
       if (userProfile) userProfile.style.display = 'none';
       if (mobileUserProfile) mobileUserProfile.style.display = 'none';
+      if (mobileHeaderProfile) mobileHeaderProfile.style.display = 'none';
     }
     
     return user;
@@ -1077,7 +1084,6 @@ async function updateAuthUI() {
     return null;
   }
 }
-
 function initLogout() {
   const logoutBtn = document.getElementById('logout-btn');
   if (!logoutBtn) return;
@@ -1098,9 +1104,9 @@ function initLogout() {
 
 function initMobileLogout() {
   const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
-  if (!mobileLogoutBtn) return;
+  const mobileLogoutHeader = document.getElementById('mobile-logout-header');
   
-  mobileLogoutBtn.addEventListener('click', async (e) => {
+  const logoutHandler = async (e) => {
     e.preventDefault();
     try {
       await authService.logout();
@@ -1112,7 +1118,15 @@ function initMobileLogout() {
     } catch {
       alert('Logout failed. Please try again.');
     }
-  });
+  };
+
+  if (mobileLogoutBtn) {
+    mobileLogoutBtn.addEventListener('click', logoutHandler);
+  }
+
+  if (mobileLogoutHeader) {
+    mobileLogoutHeader.addEventListener('click', logoutHandler);
+  }
 }
 
 async function initAdminPanel() {
