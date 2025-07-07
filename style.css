@@ -2461,3 +2461,47 @@ footer {
     font-size: 12px;
   }
 }
+@media (max-width: 768px) {
+  .mobile-header-bottom {
+    display: flex;
+    align-items: center; /* Ensure vertical alignment */
+    gap: 8px;
+    padding: 10px 15px;
+  }
+
+  .mobile-search {
+    flex: 1 1 auto; /* Allow to grow/shrink as needed */
+    min-width: 0; /* Crucial for text truncation */
+  }
+
+  .mobile-header-icons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0; /* Prevent icons from shrinking */
+  }
+
+  .mobile-user-profile {
+    max-width: 100px; /* Reduced from 120px */
+    padding: 4px 6px; /* Smaller padding */
+    font-size: 11px;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: rgba(255,255,255,0.1); /* Optional: improve readability */
+    border-radius: 4px; /* Optional: visual enhancement */
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-user-profile {
+    max-width: 80px; /* Further reduced */
+    font-size: 10px;
+    padding: 3px 5px;
+  }
+  
+  .mobile-header-icons {
+    gap: 6px; /* Reduce spacing between icons */
+  }
+}
