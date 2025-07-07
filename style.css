@@ -2194,34 +2194,3 @@ footer {
     display: block;
   }
 }
-/* Mobile Header User Profile */
-.mobile-header .mobile-user-profile {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #333;
-}
-
-.mobile-header .mobile-user-profile a {
-  color: #e74c3c;
-  text-decoration: none;
-}
-
-.mobile-header .mobile-user-profile a:hover {
-  text-decoration: underline;
-}
-
-@media (max-width: 480px) {
-  .mobile-header .mobile-user-profile {
-    font-size: 11px;
-    gap: 4px;
-  }
-  
-  .mobile-header .mobile-user-profile span {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100px;
-  }
-}
