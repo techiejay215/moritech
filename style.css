@@ -2293,8 +2293,6 @@ footer {
     display: none !important;
   }
 }
-
-/* Add to style.css */
 /* Mobile Header Styling */
 .mobile-header-bottom {
   display: flex;
@@ -2352,7 +2350,7 @@ footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: auto;
+  margin-left: auto; /* Push to the right */
 }
 
 .mobile-cart i {
@@ -2387,6 +2385,11 @@ footer {
   padding: 6px 10px;
   border-radius: 20px;
   color: white;
+  min-width: 100px; /* Ensure minimum width */
+  max-width: 150px; /* Prevent excessive width */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mobile-user-profile #mobile-welcome-header {
@@ -2394,7 +2397,7 @@ footer {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 120px;
+  max-width: 100%;
 }
 
 .mobile-user-profile #mobile-logout-header {
@@ -2417,20 +2420,11 @@ footer {
 
   .mobile-user-profile {
     padding: 4px 8px;
+    min-width: 80px;
   }
 
   .mobile-cart {
     width: 36px;
     height: 36px;
-  }
-
-  .mobile-header-icons .mobile-cart {
-    order: 1;
-    /* Cart comes first */
-  }
-
-  .mobile-header-icons .mobile-user-profile {
-    order: 2;
-    /* User profile comes second */
   }
 }
