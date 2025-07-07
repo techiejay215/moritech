@@ -2292,11 +2292,14 @@ footer {
   gap: 12px;
   padding: 10px 15px;
   background: #f8f9fa;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .mobile-search {
   flex: 1;
   position: relative;
+  min-width: 0;
 }
 
 .mobile-search input {
@@ -2329,6 +2332,7 @@ footer {
   display: flex;
   gap: 15px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .mobile-cart {
@@ -2393,6 +2397,7 @@ footer {
 /* Adjustments for smaller screens */
 @media (max-width: 480px) {
   .mobile-header-bottom {
+    gap: 8px;
     padding: 8px 12px;
   }
   
@@ -2408,5 +2413,14 @@ footer {
   .mobile-cart {
     width: 36px;
     height: 36px;
+    margin-left: auto;
   }
+}
+.mobile-header-icons {
+  order: 2;
+  gap: 10px; 
+}
+
+.mobile-search {
+  order: 1; 
 }
