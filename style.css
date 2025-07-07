@@ -2306,11 +2306,14 @@ footer {
 
 .mobile-search {
   flex: 1;
-  position: relative;
-  min-width: 0;
+  min-width: 0; /* Allows shrinking */
 }
 
-.mobile-search input {
+.mobile-search-container {
+  position: relative;
+}
+
+.mobile-search-container input {
   width: 100%;
   padding: 10px 15px 10px 40px;
   border-radius: 30px;
@@ -2321,14 +2324,14 @@ footer {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
-.mobile-search input:focus {
+.mobile-search-container input:focus {
   outline: none;
   border-color: var(--primary);
   background-color: white;
   box-shadow: 0 0 0 3px rgba(20, 104, 223, 0.15);
 }
 
-.mobile-search i {
+.mobile-search-container i {
   position: absolute;
   left: 15px;
   top: 50%;
@@ -2336,15 +2339,12 @@ footer {
   color: var(--primary);
 }
 
-.mobile-header-icons {
-  display: flex;
-  gap: 10px;
-  align-items: center;
+.mobile-cart-container {
   flex-shrink: 0;
+  position: relative;
 }
 
 .mobile-cart {
-  position: relative;
   background: var(--primary);
   width: 40px;
   height: 40px;
@@ -2377,15 +2377,15 @@ footer {
 }
 
 .mobile-user-profile {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  font-size: 12px;
-  line-height: 1.4;
-  background: var(--primary);
   padding: 6px 10px;
   border-radius: 20px;
+  background: var(--primary);
   color: white;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .mobile-user-profile #mobile-welcome-header {
@@ -2402,20 +2402,20 @@ footer {
   text-decoration: none;
 }
 
-/* Adjustments for smaller screens */
+/* Smaller screens adjustments */
 @media (max-width: 480px) {
   .mobile-header-bottom {
     gap: 8px;
     padding: 8px 12px;
   }
 
-  .mobile-search input {
+  .mobile-search-container input {
     padding: 8px 12px 8px 36px;
     font-size: 14px;
   }
 
-  .mobile-user-profile {
-    padding: 4px 8px;
+  .mobile-search-container i {
+    left: 12px;
   }
 
   .mobile-cart {
@@ -2423,13 +2423,11 @@ footer {
     height: 36px;
   }
 
-  .mobile-header-icons .mobile-cart {
-    order: 1;
-    /* Cart comes first */
+  .mobile-user-profile {
+    padding: 4px 8px;
   }
 
-  .mobile-header-icons .mobile-user-profile {
-    order: 2;
-    /* User profile comes second */
+  .mobile-user-profile #mobile-welcome-header {
+    max-width: 90px;
   }
 }
