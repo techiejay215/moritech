@@ -2225,6 +2225,7 @@ footer {
     max-width: 100px;
   }
 }
+/* Hide desktop header on mobile */
 @media (max-width: 768px) {
   .desktop-header {
     display: none !important;
@@ -2232,5 +2233,20 @@ footer {
   
   .mobile-header {
     display: block;
+  }
+  
+  /* Hide other desktop-specific elements if needed */
+  .categories {
+    display: none;
+  }
+}
+
+/* Hide mobile elements on desktop */
+@media (min-width: 769px) {
+  .mobile-header,
+  .mobile-nav,
+  .bottom-nav,
+  .mobile-modal {
+    display: none !important;
   }
 }
