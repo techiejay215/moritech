@@ -2178,3 +2178,28 @@ footer {
   background: white;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
+@media (min-width: 769px) {
+
+  .mobile-header,
+  .mobile-nav,
+  .bottom-nav,
+  .mobile-modal {
+    display: none !important;
+  }
+}
+
+/* Hide desktop header on mobile */
+@media (max-width: 768px) {
+  .desktop-header {
+    display: none;
+  }
+
+  .top-bar-content {
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .mobile-header {
+    display: block;
+  }
+}
