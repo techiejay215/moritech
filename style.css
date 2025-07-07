@@ -2225,6 +2225,28 @@ footer {
     max-width: 100px;
   }
 }
+/* WhatsApp glow effect */
+.bottom-nav .whatsapp-nav {
+  color: #25D366 !important; /* WhatsApp green */
+}
+
+.bottom-nav .whatsapp-nav i {
+  color: #25D366;
+  text-shadow: 0 0 10px rgba(37, 211, 102, 0.8);
+  animation: whatsapp-glow 1.5s infinite;
+}
+
+@keyframes whatsapp-glow {
+  0% {
+    text-shadow: 0 0 5px rgba(37, 211, 102, 0.8);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(37, 211, 102, 1);
+  }
+  100% {
+    text-shadow: 0 0 5px rgba(37, 211, 102, 0.8);
+  }
+}
 /* Hide desktop header on mobile */
 @media (max-width: 768px) {
   .desktop-header {
