@@ -1315,15 +1315,6 @@ footer {
   border-radius: 5px;
   text-align: center;
 }
-
-/* New mobile-specific styles */
-@media (max-width: 768px) {
-
-  .desktop-header,
-  .top-bar {
-    display: none;
-  }
-
   /* Mobile Header Styling */
   .mobile-header {
     background: white;
