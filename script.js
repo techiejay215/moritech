@@ -1407,24 +1407,24 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('mobile-cart-btn')?.addEventListener('click', () => {
       cartInstance?.openCart();
     });
-    // Mobile menu toggle
-    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-    const mobileNav = document.querySelector('.mobile-nav');
+   // Mobile menu toggle
+const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+const mobileNav = document.querySelector('.mobile-nav');
 
-    if (mobileNav) {
-      const mobileNavClose = document.createElement('span');
-      mobileNavClose.className = 'mobile-nav-close';
-      mobileNavClose.innerHTML = '&times;';
-      mobileNav.appendChild(mobileNavClose);
+if (mobileNav) {
+  const mobileNavClose = document.createElement('span');
+  mobileNavClose.className = 'mobile-nav-close';
+  mobileNavClose.innerHTML = '&times;';
+  mobileNav.appendChild(mobileNavClose);
 
-      mobileMenuToggle?.addEventListener('click', () => {
-        mobileNav.classList.add('active');
-      });
+  mobileMenuToggle?.addEventListener('click', () => {
+    mobileNav.classList.add('active');
+  });
 
-      mobileNavClose.addEventListener('click', () => {
-        mobileNav.classList.remove('active');
-      });
-    }
+  mobileNavClose.addEventListener('click', () => {
+    mobileNav.classList.remove('active');
+  });
+}
     
   } catch (error) {
     console.error('Initialization error:', error);
