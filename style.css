@@ -385,13 +385,19 @@ nav a:hover::after {
 }
 
 .categories-container {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  padding-bottom: 15px;
+}
+.categories-container::-webkit-scrollbar {
+  display: none;
 }
 
 .category-btn {
+  display: inline-block;
+  white-space: nowrap;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.25);
   color: var(--white);
@@ -1898,4 +1904,62 @@ footer {
   outline: none;
   border-color: #4CAF50;
   box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #333;
+  margin-right: 15px;
+  cursor: pointer;
+}
+
+/* Mobile Navigation */
+.mobile-nav {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 80%;
+  height: 100vh;
+  background: white;
+  z-index: 1100;
+  transition: left 0.3s ease;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  overflow-y: auto;
+}
+
+.mobile-nav.active {
+  left: 0;
+}
+
+.mobile-nav ul {
+  list-style: none;
+  padding: 70px 20px 20px;
+}
+
+.mobile-nav ul li {
+  margin-bottom: 15px;
+}
+
+.mobile-nav ul li a {
+  display: block;
+  padding: 12px;
+  background: #f5f7fa;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #2d3748;
+  font-weight: 500;
+}
+
+.mobile-nav ul li a:hover {
+  background: #e2e8f0;
+}
+
+/* Mobile Nav Close Button */
+.mobile-nav-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 1.5rem;
+  cursor: pointer;
 }
