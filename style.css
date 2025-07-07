@@ -2279,10 +2279,6 @@ footer {
     display: none !important;
   }
 
-  .categories {
-    display: none !important;
-  }
-
   .desktop-header {
     display: none !important;
   }
@@ -2426,5 +2422,29 @@ footer {
   .mobile-cart {
     width: 36px;
     height: 36px;
+  }
+}
+@media (max-width: 768px) {
+  .categories {
+    padding: 8px 0;
+  }
+  
+  .categories-container {
+    padding: 0 15px 10px;
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  
+  .categories-container::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .category-btn {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    font-size: 12px;
   }
 }
