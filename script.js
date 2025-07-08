@@ -477,28 +477,30 @@ async function initSlider() {
 
 // Add new functions for offers
 async function initOffersSlider() {
-  const offersContainer = document.querySelector('.offers-container');
-  if (!offersContainer) return;
+  const offersSection = document.querySelector('.offers-section');
+  if (!offersSection) return;
   
   try {
     const offers = await offerService.getOffers();
+    
+    // Hide section if no offers
+    if (!offers.length) {
+      offersSection.style.display = 'none';
+      return;
+    }
+    
     renderOffers(offers);
     initOffersControls();
   } catch (error) {
-    offersContainer.innerHTML = `<p class="error">Failed to load offers. Please try again later.</p>`;
+    console.error('Failed to load offers:', error);
+    offersSection.style.display = 'none';
   }
 }
-
 function renderOffers(offers) {
   const container = document.querySelector('.offers-container');
   if (!container) return;
   
   container.innerHTML = '';
-  
-  if (!offers.length) {
-    container.innerHTML = '<p class="no-offers">No special offers available at the moment.</p>';
-    return;
-  }
   
   offers.forEach(offer => {
     const offerEl = document.createElement('div');
@@ -528,8 +530,36 @@ function initOffersControls() {
   const offerCards = container.querySelectorAll('.offer-card');
   if (!offerCards.length) return;
   
+  // Hide controls if only one card
+  if (offerCards.length <= 1) {
+    prevBtn.style.display = 'none';
+    nextBtn.style.display = 'none';
+    return;
+  }
+  
   let currentIndex = 0;
-  const cardWidth = offerCards[0].offsetWidth + 20; // Width + margin
+  const cardWidth = offerCards[0].offsetWidth + 20;
+  
+  function updatePosition() {
+    container.style.transform = `translateX(-${currentIndex * cardWidth}px)`;
+  }
+  
+  prevBtn.addEventListener('click', () => {
+    if (currentIndex > 0) {
+      currentIndex--;
+      updatePosition();
+    }
+  });
+  
+  nextBtn.addEventListener('click', () => {
+    if (currentIndex < offerCards.length - 1) {
+      currentIndex++;
+      updatePosition();
+    }
+  });
+  
+  updatePosition();
+}
   
   function updatePosition() {
     container.style.transform = `translateX(-${currentIndex * cardWidth}px)`;
@@ -1686,6 +1716,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initLogout();
     initMobileLogout();
     setupBackButton();
+    await initOffersSlider();
     
     if (user?.role === 'admin') {
       await initAdminPanel();

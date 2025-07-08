@@ -2877,3 +2877,11 @@ footer {
   font-weight: bold;
   color: #ff9f43;
 }
+.offers-section {
+  transition: all 0.3s ease;
+}
+
+/* Hide controls when no offers */
+.offers-section:not([style*="display: none"]) ~ #products {
+  margin-top: 0;
+}
