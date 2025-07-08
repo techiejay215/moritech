@@ -165,6 +165,26 @@
     </div>
   </section>
   
+  <!-- Special Offers Section -->
+  <section class="offers-section">
+    <div class="container">
+      <div class="section-title">
+        <h2>Special Offers</h2>
+      </div>
+      
+      <div class="offers-slider">
+        <div class="offers-container">
+          <!-- Offers will be loaded by JavaScript -->
+        </div>
+        
+        <div class="offers-controls">
+          <button class="offers-prev"><i class="fas fa-chevron-left"></i></button>
+          <button class="offers-next"><i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </section>
+  
   <!-- Products Section -->
   <section id="products" class="section">
     <div class="container">
@@ -507,6 +527,46 @@
       <h3>Manage Products</h3>
       <div class="products-list-container">
         <!-- Products will be listed here -->
+      </div>
+    </div>
+
+    <!-- Admin Offers Section -->
+    <div class="admin-offers">
+      <h3>Manage Offers</h3>
+      
+      <div class="admin-form">
+        <h4>Add New Offer</h4>
+        <form id="add-offer-form">
+          <div class="form-group">
+            <label for="offer-name">Product Name</label>
+            <input type="text" id="offer-name" name="name" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="offer-old-price">Original Price (Ksh)</label>
+            <input type="number" id="offer-old-price" name="oldPrice" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="offer-price">Offer Price (Ksh)</label>
+            <input type="number" id="offer-price" name="price" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="offer-image">Image</label>
+            <input type="file" id="offer-image" name="image" accept="image/*">
+            <div id="offer-image-preview"></div>
+          </div>
+          
+          <button type="submit">Add Offer</button>
+        </form>
+      </div>
+      
+      <div class="admin-offers-list">
+        <h4>Current Offers</h4>
+        <div class="offers-list-container">
+          <!-- Offers will be listed here -->
+        </div>
       </div>
     </div>
   </div>

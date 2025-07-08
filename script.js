@@ -360,8 +360,61 @@ const productService = {
     }
   }
 };
+const offerService = {
+  async getOffers() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/offers`, {
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to load offers');
+      return await response.json();
+    } catch (error) {
+      console.error('Offer load error:', error);
+      return [];
+    }
+  },
 
-function initSlider() {
+  async addOffer(offerData) {
+    try {
+      const formData = new FormData();
+      for (const key in offerData) {
+        formData.append(key, offerData[key]);
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/offers`, {
+        method: 'POST',
+        headers: getAuthHeaders('multipart/form-data'),
+        body: formData,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) throw await handleResponseError(response);
+      return await response.json();
+    } catch (error) {
+      console.error('Add offer error:', error);
+      throw error;
+    }
+  },
+
+  async deleteOffer(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/offers/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) throw await handleResponseError(response);
+      return true;
+    } catch (error) {
+      console.error('Delete offer error:', error);
+      throw error;
+    }
+  }
+};
+
+async function initSlider() {
   const slides = document.querySelectorAll('.slide');
   if (!slides.length) return;
   
@@ -420,6 +473,176 @@ function initSlider() {
   
   showSlide(0);
   startSlideShow();
+}
+
+// Add new functions for offers
+async function initOffersSlider() {
+  const offersContainer = document.querySelector('.offers-container');
+  if (!offersContainer) return;
+  
+  try {
+    const offers = await offerService.getOffers();
+    renderOffers(offers);
+    initOffersControls();
+  } catch (error) {
+    offersContainer.innerHTML = `<p class="error">Failed to load offers. Please try again later.</p>`;
+  }
+}
+
+function renderOffers(offers) {
+  const container = document.querySelector('.offers-container');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  if (!offers.length) {
+    container.innerHTML = '<p class="no-offers">No special offers available at the moment.</p>';
+    return;
+  }
+  
+  offers.forEach(offer => {
+    const offerEl = document.createElement('div');
+    offerEl.className = 'offer-card';
+    offerEl.innerHTML = `
+      <div class="offer-image" style="background-image: url(${offer.image || 'https://via.placeholder.com/300?text=Offer+Image'})"></div>
+      <div class="offer-content">
+        <h3>${offer.name}</h3>
+        <div class="offer-prices">
+          <span class="old-price">Ksh ${offer.oldPrice.toLocaleString()}</span>
+          <span class="new-price">Ksh ${offer.price.toLocaleString()}</span>
+        </div>
+        <div class="offer-save">Save Ksh ${(offer.oldPrice - offer.price).toLocaleString()}</div>
+      </div>
+    `;
+    container.appendChild(offerEl);
+  });
+}
+
+function initOffersControls() {
+  const container = document.querySelector('.offers-container');
+  const prevBtn = document.querySelector('.offers-prev');
+  const nextBtn = document.querySelector('.offers-next');
+  
+  if (!container || !prevBtn || !nextBtn) return;
+  
+  const offerCards = container.querySelectorAll('.offer-card');
+  if (!offerCards.length) return;
+  
+  let currentIndex = 0;
+  const cardWidth = offerCards[0].offsetWidth + 20; // Width + margin
+  
+  function updatePosition() {
+    container.style.transform = `translateX(-${currentIndex * cardWidth}px)`;
+  }
+  
+  prevBtn.addEventListener('click', () => {
+    if (currentIndex > 0) {
+      currentIndex--;
+      updatePosition();
+    }
+  });
+  
+  nextBtn.addEventListener('click', () => {
+    if (currentIndex < offerCards.length - 1) {
+      currentIndex++;
+      updatePosition();
+    }
+  });
+  
+  // Initialize position
+  updatePosition();
+}
+
+// Admin offer management
+function initOfferForm() {
+  const form = document.getElementById('add-offer-form');
+  if (!form) return;
+  
+  const imageInput = document.getElementById('offer-image');
+  const imagePreview = document.getElementById('offer-image-preview');
+  
+  // Image preview
+  imageInput?.addEventListener('change', function() {
+    imagePreview.innerHTML = '';
+    
+    if (this.files && this.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.style.maxWidth = '200px';
+        imagePreview.appendChild(img);
+      }
+      reader.readAsDataURL(this.files[0]);
+    }
+  });
+  
+  // Form submission
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const offerData = {
+      name: form.elements['name'].value,
+      oldPrice: parseFloat(form.elements['oldPrice'].value),
+      price: parseFloat(form.elements['price'].value),
+      image: imageInput.files[0] || null
+    };
+    
+    try {
+      await offerService.addOffer(offerData);
+      alert('Offer added successfully!');
+      form.reset();
+      imagePreview.innerHTML = '';
+      loadAdminOffers();
+      initOffersSlider(); // Refresh frontend display
+    } catch (error) {
+      alert(error.message || 'Failed to add offer');
+    }
+  });
+}
+
+async function loadAdminOffers() {
+  const container = document.querySelector('.offers-list-container');
+  if (!container) return;
+  
+  try {
+    const offers = await offerService.getOffers();
+    container.innerHTML = '';
+    
+    if (!offers.length) {
+      container.innerHTML = '<p>No offers found</p>';
+      return;
+    }
+    
+    offers.forEach(offer => {
+      const item = document.createElement('div');
+      item.className = 'admin-offer-item';
+      item.innerHTML = `
+        <div class="admin-offer-info">
+          <strong>${offer.name}</strong>
+          <div>Ksh ${offer.oldPrice.toLocaleString()} → Ksh ${offer.price.toLocaleString()}</div>
+        </div>
+        <div class="admin-offer-actions">
+          <button class="delete-offer-btn" data-id="${offer._id}">Delete</button>
+        </div>
+      `;
+      container.appendChild(item);
+      
+      item.querySelector('.delete-offer-btn').addEventListener('click', async () => {
+        if (confirm('Delete this offer?')) {
+          try {
+            await offerService.deleteOffer(offer._id);
+            item.remove();
+            initOffersSlider(); // Refresh frontend display
+          } catch {
+            alert('Failed to delete offer');
+          }
+        }
+      });
+    });
+  } catch (error) {
+    container.innerHTML = `<div class="error">Error loading offers</div>`;
+  }
 }
 
 function initCategoryFilter() {
