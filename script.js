@@ -489,8 +489,6 @@ async function initOffersSlider() {
       return;
     }
     
-    renderOffers(offers);
-    initOffersControls();
   } catch (error) {
     console.error('Failed to load offers:', error);
     offersSection.style.display = 'none';
@@ -558,32 +556,10 @@ function initOffersControls() {
     }
   });
   
-  updatePosition();
-}
-  
-  function updatePosition() {
-    container.style.transform = `translateX(-${currentIndex * cardWidth}px)`;
-  }
-  
-  prevBtn.addEventListener('click', () => {
-    if (currentIndex > 0) {
-      currentIndex--;
-      updatePosition();
-    }
-  });
-  
-  nextBtn.addEventListener('click', () => {
-    if (currentIndex < offerCards.length - 1) {
-      currentIndex++;
-      updatePosition();
-    }
-  });
-  
   // Initialize position
   updatePosition();
 }
-
-// Admin offer management
+  
 function initOfferForm() {
   const form = document.getElementById('add-offer-form');
   if (!form) return;
@@ -1694,6 +1670,23 @@ function initMobileAuth() {
     }
   });
 }
+async function loadProducts() {
+  try {
+    const products = await productService.getProducts();
+    renderProducts(products);
+  } catch (error) {
+    console.error('Failed to load products:', error);
+    const productGrid = document.querySelector('.product-grid');
+    if (productGrid) {
+      productGrid.innerHTML = `
+        <div class="error">
+          <p>Failed to load products. Please try again later.</p>
+          <button onclick="loadProducts()">Retry</button>
+        </div>
+      `;
+    }
+  }
+}
 
 document.addEventListener('DOMContentLoaded', async function() {
   try {
@@ -1722,23 +1715,6 @@ document.addEventListener('DOMContentLoaded', async function() {
       await initAdminPanel();
       initProductForm();
     }
-    async function loadProducts() {
-  try {
-    const products = await productService.getProducts();
-    renderProducts(products);
-  } catch (error) {
-    console.error('Failed to load products:', error);
-    const productGrid = document.querySelector('.product-grid');
-    if (productGrid) {
-      productGrid.innerHTML = `
-        <div class="error">
-          <p>Failed to load products. Please try again later.</p>
-          <button onclick="loadProducts()">Retry</button>
-        </div>
-      `;
-    }
-  }
-}
     
     // Mobile cart button
     document.getElementById('mobile-cart-btn')?.addEventListener('click', () => {
