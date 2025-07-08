@@ -992,7 +992,6 @@ async function uploadImageToCloudinary(file) {
     throw error;
   }
 }
-
 function inquire(productName) {
   const modal = document.createElement('div');
   modal.className = 'inquiry-modal';
@@ -1235,42 +1234,52 @@ function initProductForm() {
     categorySelect.addEventListener('change', toggleNewCategoryInput);
   }
   
- form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  // Create JSON data instead of FormData
-  const productData = {
-    name: document.getElementById('product-name').value,
-    description: document.getElementById('product-description').value,
-    price: document.getElementById('product-price').value,
-    category: category // from category handling
-  };
-
-  // Handle image upload separately
-  if (imageInput.files.length > 0) {
-    try {
-      const originalFile = imageInput.files[0];
-      const compressedFile = await compressImage(originalFile);
-      productData.image = await uploadImageToCloudinary(compressedFile);
-    } catch (error) {
-      alert('Error uploading image: ' + error.message);
-      return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Handle category
+    let category = document.getElementById('product-category').value;
+    if (category === 'new') {
+      category = document.getElementById('new-category-input').value.trim();
+      if (!category) {
+        alert('Please enter a new category name');
+        return;
+      }
     }
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/products`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(productData),
-      credentials: 'include'
-    });
-
-    if (!response.ok) throw await handleResponseError(response);
     
-    alert('Product added successfully!');
-    form.reset();
-    
+    // Create product data object
+    const productData = {
+      name: document.getElementById('product-name').value,
+      description: document.getElementById('product-description').value,
+      price: document.getElementById('product-price').value,
+      category: category
+    };
+
+    // Handle image upload separately
+    const imageInput = document.getElementById('product-image');
+    if (imageInput.files.length > 0) {
+      try {
+        const originalFile = imageInput.files[0];
+        const compressedFile = await compressImage(originalFile);
+        productData.image = await uploadImageToCloudinary(compressedFile);
+      } catch (error) {
+        alert('Error uploading image: ' + error.message);
+        return;
+      }
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/products`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(productData),
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw await handleResponseError(response);
+      
+      alert('Product added successfully!');
+      form.reset();
       
       // Reset image preview
       const imagePreview = document.getElementById('image-preview');
