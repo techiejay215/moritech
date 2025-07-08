@@ -1,55 +1,72 @@
-console.log("🟢 Loaded optimized script.js (Performance + Security + Mobile Fix)");
+let adminProducts = []; // Store products for client-side filtering
+console.log("🟢 Loaded updated script.js (Mobile Fix + Admin Panel + Cloudinary)");
 const API_BASE_URL = 'https://moritech.onrender.com/api';
 let cartInstance = null;
-let adminProducts = [];
 let adminPanelInitialized = false;
-let refreshingToken = null;
+let refreshingToken = null; // For handling concurrent refresh requests
 
-// ========================
-// UTILITY FUNCTIONS
-// ========================
 function getAuthHeaders(contentType = 'application/json') {
-  const headers = { 'Content-Type': contentType };
+  const headers = {
+    'Content-Type': contentType
+  };
+  
+  // Add JWT token to headers if available
   const token = localStorage.getItem('token');
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
   return headers;
 }
 
 async function handleResponseError(response) {
-  const errorMessage = await response.text().catch(() => `Request failed with status ${response.status}`);
-  console.error(`API Error: ${response.status} - ${errorMessage}`);
-  
-  if (response.status === 401) {
+  const responseClone = response.clone();
+  let errorMessage = 'Request failed';
+
+  try {
+    const errorData = await responseClone.json();
+    errorMessage = errorData.message || errorMessage;
+  } catch {
     try {
-      await authService.refreshToken();
-      return;
-    } catch (refreshError) {
-      console.error('Token refresh failed:', refreshError);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      await updateAuthUI();
+      errorMessage = await response.text() || errorMessage;
+    } catch {
+      errorMessage = `Request failed with status ${response.status}`;
     }
   }
-  
+
+  // Handle token expiration - don't remove tokens for all 401 errors
+  if (response.status === 401) {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        // Attempt token refresh
+        const newToken = await authService.refreshToken();
+        localStorage.setItem('token', token);
+        return; // Return after successful refresh
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
+      }
+    }
+    
+    // Only remove tokens if refresh fails
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    await updateAuthUI();
+  }
+
   throw new Error(`${errorMessage} (Status: ${response.status})`);
 }
 
-function getProductIcon(category) {
-  const icons = {
-    laptops: 'fas fa-laptop',
-    desktops: 'fas fa-desktop',
-    monitors: 'fas fa-tv',
-    accessories: 'fas fa-keyboard',
-    storage: 'fas fa-hdd',
-    printers: 'fas fa-print',
-    ram: 'fas fa-memory'
-  };
-  return icons[category] || 'fas fa-microchip';
+async function checkConnectivity() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/health`, { credentials: 'include' });
+    return response.ok;
+  } catch (error) {
+    console.error('Connection error:', error);
+    return false;
+  }
 }
 
-// ========================
-// API SERVICES
-// ========================
 const authService = {
   async register(userData) {
     try {
@@ -88,18 +105,21 @@ const authService = {
       localStorage.setItem('user', JSON.stringify(user));
       return user;
     } catch (error) {
-      throw new Error(/Android|iPhone|iPad/i.test(navigator.userAgent) 
-        ? 'Network error. Please check your connection.'
-        : error.message || 'Login failed');
+      // Enhanced mobile error detection
+      if (error.message.includes('Failed to fetch')) {
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+          throw new Error('Network error. Please check your mobile connection and try again.');
+        }
+      }
+      throw error;
     }
   },
 
   async requestPasswordReset(email) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, credentials: 'include'})
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -113,6 +133,7 @@ const authService = {
   async checkSession() {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/session`, {
+        method: 'GET',
         headers: getAuthHeaders(),
         credentials: 'include'
       });
@@ -124,6 +145,7 @@ const authService = {
       }
       
       if (!response.ok) return null;
+      
       return await response.json();
     } catch (error) {
       console.error('Session check error:', error);
@@ -133,9 +155,11 @@ const authService = {
 
   async logout() {
     try {
+      // Clear token first
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       
+      // Call logout API
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -150,7 +174,10 @@ const authService = {
   },
 
   async refreshToken() {
-    if (refreshingToken) return refreshingToken;
+    // If a refresh is already in progress, return that promise
+    if (refreshingToken) {
+      return refreshingToken;
+    }
     
     try {
       refreshingToken = new Promise(async (resolve, reject) => {
@@ -160,7 +187,9 @@ const authService = {
             credentials: 'include'
           });
           
-          if (!response.ok) throw new Error('Token refresh failed');
+          if (!response.ok) {
+            throw new Error('Token refresh failed');
+          }
           
           const { token } = await response.json();
           localStorage.setItem('token', token);
@@ -195,6 +224,7 @@ const cartService = {
       }
 
       if (!response.ok) return { items: [] };
+
       return await response.json();
     } catch {
       return { items: [] };
@@ -203,10 +233,9 @@ const cartService = {
   
   async addToCart(productId, quantity = 1) {
     try {
-      const response = await fetch(`${API_BASE_URL}/cart/items`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/cart/items`, {method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ productId, quantity }),
+        body: JSON.stringify({ productId, quantity, credentials: 'include'}),
         credentials: 'include'
       });
       
@@ -220,10 +249,9 @@ const cartService = {
 
   async updateCartItem(itemId, quantity) {
     try {
-      const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
-        method: 'PUT',
+      const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {method: 'PUT',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ quantity }),
+        body: JSON.stringify({ quantity, credentials: 'include'}),
         credentials: 'include'
       });
       
@@ -275,6 +303,7 @@ const productService = {
   async getProducts() {
     try {
       const response = await fetch(`${API_BASE_URL}/products`, {
+        method: 'GET',
         headers: getAuthHeaders(),
         credentials: 'include'
       });
@@ -289,7 +318,7 @@ const productService = {
 
   async searchProducts(query) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`, {
+      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query, { credentials: 'include' })}`, {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
@@ -303,7 +332,7 @@ const productService = {
 
   async getProductsByCategory(category) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
+      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category, { credentials: 'include' })}`, {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
@@ -331,7 +360,6 @@ const productService = {
     }
   }
 };
-
 const offerService = {
   async getOffers() {
     try {
@@ -386,438 +414,269 @@ const offerService = {
   }
 };
 
-// ========================
-// UI COMPONENTS
-// ========================
-async function updateAuthUI() {
-  try {
-    const sessionData = await authService.checkSession();
-    const user = sessionData?.user || null;
-    
-    // Update desktop UI
-    const authLinks = document.querySelector('.top-bar-user .auth-links');
-    const userProfile = document.querySelector('.top-bar-user .user-profile');
-    if (user) {
-      if (authLinks) authLinks.style.display = 'none';
-      if (userProfile) {
-        userProfile.style.display = 'flex';
-        userProfile.querySelector('span').textContent = `Welcome, ${user.name || user.email.split('@')[0]}`;
-      }
-    } else {
-      if (authLinks) authLinks.style.display = 'flex';
-      if (userProfile) userProfile.style.display = 'none';
-    }
-    
-    // Update mobile UI
-    const mobileUserProfile = document.querySelector('.mobile-nav .mobile-user-profile');
-    const mobileHeaderProfile = document.querySelector('.mobile-header .mobile-user-profile');
-    if (user) {
-      if (mobileUserProfile) {
-        mobileUserProfile.style.display = 'block';
-        document.getElementById('mobile-welcome').textContent = `Welcome, ${user.name || user.email.split('@')[0]}`;
-      }
-      if (mobileHeaderProfile) {
-        mobileHeaderProfile.style.display = 'flex';
-        document.getElementById('mobile-welcome-header').textContent = `Welcome, ${user.name || user.email.split('@')[0]}`;
-      }
-    } else {
-      if (mobileUserProfile) mobileUserProfile.style.display = 'none';
-      if (mobileHeaderProfile) mobileHeaderProfile.style.display = 'none';
-    }
-    
-    return user;
-  } catch (error) {
-    console.error('Auth UI update error:', error);
-    return null;
-  }
-}
-
-function renderProducts(products) {
-  const productGrid = document.querySelector('.product-grid');
-  if (!productGrid) return;
-
-  productGrid.innerHTML = products?.length 
-    ? products.map(product => `
-        <div class="product-card" data-id="${product._id}">
-          <div class="product-img" onclick="showProductDetails('${product._id}')">
-            ${product.image 
-              ? `<img src="${product.image}" alt="${product.name}">` 
-              : `<div class="product-icon"><i class="${getProductIcon(product.category)}"></i></div>`}
-          </div>
-          <div class="product-content">
-            <p onclick="showProductDetails('${product._id}')">${product.description}</p>
-            <span class="price" onclick="showProductDetails('${product._id}')">Ksh ${product.price.toLocaleString()}</span>
-            <div class="button-group">
-              <button class="inquire-btn" onclick="inquire('${product.name}')">Inquire</button>
-              <button class="add-to-cart-btn" onclick="cartInstance?.addToCart('${product._id}')">Add to Cart</button>
-            </div>
-          </div>
-        </div>
-      `).join('')
-    : '<p class="no-products">No products available</p>';
-}
-
-async function showProductDetails(productId) {
-  try {
-    const productDetailsSection = document.getElementById('product-details');
-    const productDetailsContainer = productDetailsSection.querySelector('.product-details-container');
-    productDetailsSection.style.display = 'block';
-    productDetailsContainer.innerHTML = '<div class="loading">Loading product details...</div>';
-
-    // Hide other sections
-    document.querySelectorAll('section').forEach(section => {
-      if (section.id !== 'product-details') section.style.display = 'none';
-    });
-
-    // Fetch product details
-    const response = await fetch(`${API_BASE_URL}/products/${productId}`, { 
-      headers: getAuthHeaders(),
-      credentials: 'include' 
-    });
-    
-    if (!response.ok) throw await handleResponseError(response);
-    const product = await response.json();
-
-    // Render product details
-    productDetailsContainer.innerHTML = `
-      <div class="product-gallery">
-        <div class="main-image">
-          <img id="main-product-image" src="${product.image || 'https://via.placeholder.com/500?text=Product+Image'}" alt="${product.name}">
-        </div>
-        <div class="thumbnail-container">
-          ${product.image 
-            ? `<div class="thumbnail active"><img src="${product.image}" alt="${product.name} thumbnail"></div>` 
-            : ''}
-        </div>
-      </div>
-      <div class="product-info">
-        <h2 id="product-detail-name">${product.name}</h2>
-        <div class="price-category">
-          <span id="product-detail-price" class="price">Ksh ${product.price.toLocaleString()}</span>
-          <span id="product-detail-category" class="category">${product.category}</span>
-        </div>
-        <p id="product-detail-description" class="description">${product.description}</p>
-        <div class="action-buttons">
-          <button id="add-to-cart-detail" class="btn cart-btn">
-            <i class="fas fa-shopping-cart"></i> Add to Cart
-          </button>
-          <a id="whatsapp-order" class="btn whatsapp-btn" 
-             href="https://wa.me/254719362202?text=${encodeURIComponent(`Hi, I'm interested in ${product.name} (Ksh ${product.price.toLocaleString()}). Product ID: ${product._id}`)}" 
-             target="_blank">
-            <i class="fab fa-whatsapp"></i> Order on WhatsApp
-          </a>
-        </div>
-      </div>
-    `;
-
-    // Setup add to cart button
-    document.getElementById('add-to-cart-detail').addEventListener('click', () => {
-      cartInstance?.addToCart(product._id);
-      alert(`${product.name} added to cart!`);
-    });
-    
-  } catch (error) {
-    document.getElementById('product-details').innerHTML = `
-      <div class="error-message">
-        <h3>Error Loading Product</h3>
-        <p>${error.message || 'Could not load product details'}</p>
-        <button onclick="location.reload()">Go Back</button>
-      </div>
-    `;
-  }
-}
-
-function initCart() {
-  if (cartInstance) return cartInstance;
+async function initSlider() {
+  const slides = document.querySelectorAll('.slide');
+  if (!slides.length) return;
   
-  const cartSidebar = document.getElementById('cart-sidebar');
-  if (!cartSidebar) return null;
-
-  const openCart = () => {
-    cartSidebar.classList.add('active');
-    document.querySelector('.cart-overlay').style.display = 'block';
-  };
-
-  const closeCartHandler = () => {
-    cartSidebar.classList.remove('active');
-    document.querySelector('.cart-overlay').style.display = 'none';
-  };
-
-  async function updateCartUI(cart) {
-    const items = cart.items || [];
-    const totalItems = items.reduce((total, item) => total + item.quantity, 0);
-    
-    // Update cart counts
-    document.querySelectorAll('.cart-count, .mobile-cart-count').forEach(el => {
-      el.textContent = totalItems;
-    });
-    
-    const cartItemsContainer = document.querySelector('.cart-items');
-    if (!cartItemsContainer) return;
-    
-    cartItemsContainer.innerHTML = items.length 
-      ? items.map(item => {
-          const itemTotal = item.product.price * item.quantity;
-          return `
-            <div class="cart-item">
-              <div class="cart-item-img">
-                <i class="${getProductIcon(item.product.category)}"></i>
-              </div>
-              <div class="cart-item-details">
-                <div class="cart-item-title">${item.product.name}</div>
-                <div class="cart-item-price">Ksh ${item.product.price.toLocaleString()} × ${item.quantity}</div>
-              </div>
-              <div class="cart-item-actions">
-                <button class="decrease-quantity" data-id="${item._id}">-</button>
-                <span class="cart-item-quantity">${item.quantity}</span>
-                <button class="increase-quantity" data-id="${item._id}">+</button>
-                <button class="remove-item" data-id="${item._id}"><i class="fas fa-trash"></i></button>
-              </div>
-            </div>
-          `;
-        }).join('')
-      : '<p class="empty-cart">Your cart is empty</p>';
-    
-    // Calculate total
-    const total = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-    document.querySelector('.total-amount').textContent = `Ksh ${total.toLocaleString()}`;
-    
-    // Add event listeners
-    items.forEach(item => {
-      document.querySelector(`.decrease-quantity[data-id="${item._id}"]`).addEventListener('click', async () => {
-        await cartService.updateCartItem(item._id, item.quantity - 1);
-        await fetchCart();
-      });
-      
-      document.querySelector(`.increase-quantity[data-id="${item._id}"]`).addEventListener('click', async () => {
-        await cartService.updateCartItem(item._id, item.quantity + 1);
-        await fetchCart();
-      });
-      
-      document.querySelector(`.remove-item[data-id="${item._id}"]`).addEventListener('click', async () => {
-        await cartService.removeCartItem(item._id);
-        await fetchCart();
-      });
-    });
-  }
-
-  async function fetchCart() {
-    try {
-      const cartData = await cartService.getCart();
-      updateCartUI(cartData);
-      return cartData;
-    } catch {
-      updateCartUI({ items: [] });
-      return { items: [] };
-    }
-  }
-
-  // Add to cart function
-  async function addToCart(productId) {
-    try {
-      if (!localStorage.getItem('token')) {
-        document.getElementById('login-link')?.click();
-        alert('Please login to add items to your cart');
-        return;
-      }
-      
-      await cartService.addToCart(productId);
-      await fetchCart();
-      openCart();
-    } catch (error) {
-      alert(error.message || 'Failed to add to cart');
-    }
-  }
-
-  // Initialize cart UI
-  fetchCart();
+  const dots = document.querySelectorAll('.slider-dot');
+  const prevBtn = document.querySelector('.prev-btn');
+  const nextBtn = document.querySelector('.next-btn');
   
-  // Setup event listeners
-  document.querySelector('.cart-icon')?.addEventListener('click', openCart);
-  document.querySelector('.close-cart')?.addEventListener('click', closeCartHandler);
-  document.querySelector('.cart-overlay')?.addEventListener('click', closeCartHandler);
-  document.querySelector('.checkout-btn')?.addEventListener('click', () => {
-    alert('Proceeding to checkout');
-    closeCartHandler();
-  });
-
-  cartInstance = { addToCart, fetchCart, openCart };
-  return cartInstance;
-}
-
-// ========================
-// INITIALIZATION FUNCTIONS
-// ========================
-async function loadProducts() {
-  try {
-    const products = await productService.getProducts();
-    renderProducts(products);
-  } catch (error) {
-    const productGrid = document.querySelector('.product-grid');
-    if (productGrid) {
-      productGrid.innerHTML = `
-        <div class="error">
-          <p>Failed to load products. Please try again later.</p>
-          <button onclick="loadProducts()">Retry</button>
-        </div>
-      `;
-    }
-  }
-}
-
-function initAuthModal() {
-  const authModal = document.getElementById('auth-modal');
-  if (!authModal) return;
-
-  const openModal = (tab) => {
-    authModal.style.display = 'block';
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    document.getElementById(`${tab}-tab`).classList.add('active');
-    document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
-  };
-
-  const closeModalHandler = () => {
-    authModal.style.display = 'none';
-    document.getElementById('login-form').style.display = 'block';
-    document.getElementById('resetPasswordForm').style.display = 'none';
-  };
-
-  // Login Form
-  document.getElementById('login-form')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = e.target.elements.email.value;
-    const password = e.target.elements.password.value;
+  let currentSlide = 0;
+  let slideInterval;
+  
+  function showSlide(index) {
+    slides.forEach(slide => slide.classList.remove('active'));
+    dots.forEach(dot => dot.classList.remove('active'));
     
-    try {
-      const user = await authService.login({ email, password });
-      closeModalHandler();
-      const updatedUser = await updateAuthUI();
-      
-      if (updatedUser?.role === 'admin') {
-        await initAdminPanel();
-        initProductForm();
-      }
-      
-      if (!cartInstance) cartInstance = initCart();
-      await cartInstance.fetchCart();
-    } catch (error) {
-      alert(error.message || 'Login failed. Please try again.');
-    }
+    slides[index].classList.add('active');
+    dots[index].classList.add('active');
+    currentSlide = index;
+  }
+  
+  function nextSlide() {
+    showSlide((currentSlide + 1) % slides.length);
+  }
+  
+  function prevSlide() {
+    showSlide((currentSlide - 1 + slides.length) % slides.length);
+  }
+  
+  function startSlideShow() {
+    slideInterval = setInterval(nextSlide, 5000);
+  }
+  
+  function stopSlideShow() {
+    clearInterval(slideInterval);
+  }
+  
+  prevBtn?.addEventListener('click', () => {
+    stopSlideShow();
+    prevSlide();
+    startSlideShow();
   });
+  
+  nextBtn?.addEventListener('click', () => {
+    stopSlideShow();
+    nextSlide();
+    startSlideShow();
+  });
+  
+  dots.forEach(dot => {
+    dot.addEventListener('click', function() {
+      const slideIndex = parseInt(this.dataset.slide);
+      stopSlideShow();
+      showSlide(slideIndex);
+      startSlideShow();
+    });
+  });
+  
+  showSlide(0);
+  startSlideShow();
+}
 
-  // Registration Form
-  document.getElementById('register-form')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = e.target.elements.name.value;
-    const email = e.target.elements.email.value;
-    const phone = e.target.elements.phone.value;
-    const password = e.target.elements.password.value;
-    const confirmPassword = e.target.elements.confirmPassword.value;
-
-    if (password !== confirmPassword) {
-      alert('Passwords do not match');
+// Add new functions for offers
+async function initOffersSlider() {
+  const offersSection = document.querySelector('.offers-section');
+  if (!offersSection) return;
+  
+  try {
+    const offers = await offerService.getOffers();
+    
+    // Hide section if no offers
+    if (!offers.length) {
+      offersSection.style.display = 'none';
       return;
     }
+    
+  } catch (error) {
+    console.error('Failed to load offers:', error);
+    offersSection.style.display = 'none';
+  }
+}
+function renderOffers(offers) {
+  const container = document.querySelector('.offers-container');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  offers.forEach(offer => {
+    const offerEl = document.createElement('div');
+    offerEl.className = 'offer-card';
+    offerEl.innerHTML = `
+      <div class="offer-image" style="background-image: url(${offer.image || 'https://via.placeholder.com/300?text=Offer+Image'})"></div>
+      <div class="offer-content">
+        <h3>${offer.name}</h3>
+        <div class="offer-prices">
+          <span class="old-price">Ksh ${offer.oldPrice.toLocaleString()}</span>
+          <span class="new-price">Ksh ${offer.price.toLocaleString()}</span>
+        </div>
+        <div class="offer-save">Save Ksh ${(offer.oldPrice - offer.price).toLocaleString()}</div>
+      </div>
+    `;
+    container.appendChild(offerEl);
+  });
+}
 
-    try {
-      const user = await authService.register({ name, email, phone, password });
-      alert('Registration successful! You are now logged in.');
-      closeModalHandler();
-      await updateAuthUI();
-      
-      if (user?.role === 'admin') {
-        await initAdminPanel();
-        initProductForm();
-      }
-    } catch (error) {
-      alert(error.message || 'Registration failed. Please try again.');
+function initOffersControls() {
+  const container = document.querySelector('.offers-container');
+  const prevBtn = document.querySelector('.offers-prev');
+  const nextBtn = document.querySelector('.offers-next');
+  
+  if (!container || !prevBtn || !nextBtn) return;
+  
+  const offerCards = container.querySelectorAll('.offer-card');
+  if (!offerCards.length) return;
+  
+  // Hide controls if only one card
+  if (offerCards.length <= 1) {
+    prevBtn.style.display = 'none';
+    nextBtn.style.display = 'none';
+    return;
+  }
+  
+  let currentIndex = 0;
+  const cardWidth = offerCards[0].offsetWidth + 20;
+  
+  function updatePosition() {
+    container.style.transform = `translateX(-${currentIndex * cardWidth}px)`;
+  }
+  
+  prevBtn.addEventListener('click', () => {
+    if (currentIndex > 0) {
+      currentIndex--;
+      updatePosition();
     }
   });
-
-  // Password Reset
-  document.getElementById('resetPasswordForm')?.addEventListener('submit', async (e) => {
+  
+  nextBtn.addEventListener('click', () => {
+    if (currentIndex < offerCards.length - 1) {
+      currentIndex++;
+      updatePosition();
+    }
+  });
+  
+  // Initialize position
+  updatePosition();
+}
+  
+function initOfferForm() {
+  const form = document.getElementById('add-offer-form');
+  if (!form) return;
+  
+  const imageInput = document.getElementById('offer-image');
+  const imagePreview = document.getElementById('offer-image-preview');
+  
+  // Image preview
+  imageInput?.addEventListener('change', function() {
+    imagePreview.innerHTML = '';
+    
+    if (this.files && this.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.style.maxWidth = '200px';
+        imagePreview.appendChild(img);
+      }
+      reader.readAsDataURL(this.files[0]);
+    }
+  });
+  
+  // Form submission
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = e.target.elements.email.value;
+    
+    const offerData = {
+      name: form.elements['name'].value,
+      oldPrice: parseFloat(form.elements['oldPrice'].value),
+      price: parseFloat(form.elements['price'].value),
+      image: imageInput.files[0] || null
+    };
     
     try {
-      await authService.requestPasswordReset(email);
-      alert('Password reset link sent! Check your email.');
-      e.target.reset();
-      document.getElementById('login-form').style.display = 'block';
-      e.target.style.display = 'none';
+      await offerService.addOffer(offerData);
+      alert('Offer added successfully!');
+      form.reset();
+      imagePreview.innerHTML = '';
+      loadAdminOffers();
+      initOffersSlider(); // Refresh frontend display
     } catch (error) {
-      alert(error.message || 'Failed to send reset link');
+      alert(error.message || 'Failed to add offer');
     }
-  });
-
-  // Event listeners
-  document.getElementById('login-link')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    openModal('login');
-  });
-
-  document.getElementById('register-link')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    openModal('register');
-  });
-
-  document.querySelector('.close-modal')?.addEventListener('click', closeModalHandler);
-  document.getElementById('forgotPasswordLink')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    document.getElementById('login-form').style.display = 'none';
-    document.getElementById('resetPasswordForm').style.display = 'block';
-  });
-
-  document.getElementById('backToLogin')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    document.getElementById('resetPasswordForm').style.display = 'none';
-    document.getElementById('login-form').style.display = 'block';
   });
 }
 
-function initLogout() {
-  const logoutHandler = async () => {
-    try {
-      await authService.logout();
-      await updateAuthUI();
-      if (cartInstance) await cartInstance.fetchCart();
-      alert('You have been logged out');
-    } catch {
-      alert('Logout failed. Please try again.');
+async function loadAdminOffers() {
+  const container = document.querySelector('.offers-list-container');
+  if (!container) return;
+  
+  try {
+    const offers = await offerService.getOffers();
+    container.innerHTML = '';
+    
+    if (!offers.length) {
+      container.innerHTML = '<p>No offers found</p>';
+      return;
     }
-  };
-
-  document.getElementById('logout-btn')?.addEventListener('click', logoutHandler);
-  document.getElementById('mobile-logout-btn')?.addEventListener('click', logoutHandler);
-  document.getElementById('mobile-logout-header')?.addEventListener('click', logoutHandler);
-}
-
-function initMobileMenu() {
-  const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-  const mobileNav = document.querySelector('.mobile-nav');
-  const mobileNavClose = document.querySelector('.mobile-nav-close');
-
-  mobileMenuToggle?.addEventListener('click', () => {
-    mobileNav.classList.add('active');
-  });
-
-  mobileNavClose?.addEventListener('click', () => {
-    mobileNav.classList.remove('active');
-  });
+    
+    offers.forEach(offer => {
+      const item = document.createElement('div');
+      item.className = 'admin-offer-item';
+      item.innerHTML = `
+        <div class="admin-offer-info">
+          <strong>${offer.name}</strong>
+          <div>Ksh ${offer.oldPrice.toLocaleString()} → Ksh ${offer.price.toLocaleString()}</div>
+        </div>
+        <div class="admin-offer-actions">
+          <button class="delete-offer-btn" data-id="${offer._id}">Delete</button>
+        </div>
+      `;
+      container.appendChild(item);
+      
+      item.querySelector('.delete-offer-btn').addEventListener('click', async () => {
+        if (confirm('Delete this offer?')) {
+          try {
+            await offerService.deleteOffer(offer._id);
+            item.remove();
+            initOffersSlider(); // Refresh frontend display
+          } catch {
+            alert('Failed to delete offer');
+          }
+        }
+      });
+    });
+  } catch (error) {
+    container.innerHTML = `<div class="error">Error loading offers</div>`;
+  }
 }
 
 function initCategoryFilter() {
-  document.querySelectorAll('.category-btn').forEach(button => {
+  const categoryButtons = document.querySelectorAll('.category-btn');
+  if (!categoryButtons.length) return;
+  
+  categoryButtons.forEach(button => {
     button.addEventListener('click', async function() {
-      document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+      categoryButtons.forEach(btn => btn.classList.remove('active'));
       this.classList.add('active');
       
       const category = this.dataset.category;
+      
+      if (window.innerWidth <= 768) {
+        const productsSection = document.getElementById('products');
+        if (productsSection) {
+          window.scrollTo({
+            top: productsSection.offsetTop - 100,
+            behavior: 'smooth'
+          });
+        }
+      }
+      
       try {
         const products = category === 'all' 
           ? await productService.getProducts()
           : await productService.getProductsByCategory(category);
+        
         renderProducts(products);
       } catch {
         alert('Failed to load products. Please try again.');
@@ -833,8 +692,8 @@ function initSearch() {
   let searchTimeout;
   
   searchInput.addEventListener('input', function() {
-    clearTimeout(searchTimeout);
     const searchTerm = this.value.trim();
+    clearTimeout(searchTimeout);
     
     if (searchTerm.length < 2) {
       loadProducts();
@@ -852,6 +711,725 @@ function initSearch() {
   });
 }
 
+function initSmoothScrolling() {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetId = this.getAttribute('href');
+      const targetElement = document.querySelector(targetId);
+      
+      if (targetElement) {
+        window.scrollTo({
+          top: targetElement.offsetTop - 100,
+          behavior: 'smooth'
+        });
+      }
+    });
+  });
+  
+  const sections = document.querySelectorAll('section');
+  const navLinks = document.querySelectorAll('nav ul li a');
+  
+  window.addEventListener('scroll', function() {
+    let current = '';
+    
+    sections.forEach(section => {
+      const sectionTop = section.offsetTop;
+      if (pageYOffset >= (sectionTop - 150)) {
+        current = section.getAttribute('id');
+      }
+    });
+    
+    navLinks.forEach(link => {
+      const href = link.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        link.classList.toggle('active', href.substring(1) === current);
+      }
+    });
+  });
+}
+
+function initAuthModal() {
+  const authModal = document.getElementById('auth-modal');
+  if (!authModal) return;
+
+  const loginLink = document.getElementById('login-link');
+  const registerLink = document.getElementById('register-link');
+  const closeModal = document.querySelector('.modal .close-modal');
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+  const resetPasswordForm = document.getElementById('resetPasswordForm');
+  const backToLogin = document.getElementById('backToLogin');
+
+  const openModal = (tab) => {
+    authModal.style.display = 'block';
+    showTab(tab);
+  };
+
+  const closeModalHandler = () => {
+    authModal.style.display = 'none';
+    if (loginForm) loginForm.style.display = 'block';
+    if (resetPasswordForm) resetPasswordForm.style.display = 'none';
+  };
+
+  function showTab(tabName) {
+    tabBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tabName);
+    });
+    
+    tabContents.forEach(content => {
+      content.classList.toggle('active', content.id === `${tabName}-tab`);
+    });
+  }
+
+  forgotPasswordLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (loginForm) loginForm.style.display = 'none';
+    if (resetPasswordForm) resetPasswordForm.style.display = 'block';
+  });
+
+  backToLogin?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (resetPasswordForm) resetPasswordForm.style.display = 'none';
+    if (loginForm) loginForm.style.display = 'block';
+  });
+
+  resetPasswordForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = resetPasswordForm.querySelector('input[type="email"]').value;
+    
+    try {
+      const messageEl = document.getElementById('reset-message') || document.createElement('div');
+      messageEl.id = 'reset-message';
+      messageEl.style.marginTop = '10px';
+      resetPasswordForm.appendChild(messageEl);
+      
+      messageEl.textContent = 'Sending reset link...';
+      messageEl.style.display = 'block';
+      messageEl.style.color = '#333';
+      
+      await authService.requestPasswordReset(email);
+      
+      messageEl.textContent = 'Password reset link sent! Check your email.';
+      messageEl.style.color = 'green';
+      
+      setTimeout(() => {
+        resetPasswordForm.reset();
+        messageEl.style.display = 'none';
+        if (resetPasswordForm) resetPasswordForm.style.display = 'none';
+        if (loginForm) loginForm.style.display = 'block';
+      }, 3000);
+    } catch (error) {
+      const messageEl = document.getElementById('reset-message');
+      messageEl.textContent = error.message || 'Failed to send reset link';
+      messageEl.style.color = 'red';
+      messageEl.style.display = 'block';
+    }
+  });
+
+  loginLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal('login');
+  });
+
+  registerLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal('register');
+  });
+
+  closeModal?.addEventListener('click', closeModalHandler);
+  window.addEventListener('click', (e) => e.target === authModal && closeModalHandler());
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => showTab(btn.dataset.tab));
+  });
+
+  loginForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = loginForm.querySelector('input[type="email"]').value;
+    const password = loginForm.querySelector('input[type="password"]').value;
+    
+    try {
+      const user = await authService.login({ email, password });
+      closeModalHandler();
+      const updatedUser = await updateAuthUI();
+      
+      // Add this check for admin role
+      if (updatedUser?.role === 'admin') {
+        await initAdminPanel();
+        initProductForm();
+      }
+      
+      // Initialize cart
+      if (!cartInstance) {
+        cartInstance = initCart();
+      }
+      await cartInstance.fetchCart();
+    } catch (error) {
+      console.error('Login error:', error);
+      alert(error.message || 'Login failed. Please try again.');
+    }
+  });
+
+  registerForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const name = registerForm.querySelector('input[type="text"]').value;
+    const email = registerForm.querySelector('input[type="email"]').value;
+    const phone = registerForm.querySelector('input[type="tel"]').value;
+    const password = registerForm.querySelector('input[type="password"]').value;
+    const confirmPassword = registerForm.querySelectorAll('input[type="password"]')[1].value;
+
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    try {
+      const user = await authService.register({ name, email, phone, password });
+      alert('Registration successful! You are now logged in.');
+      closeModalHandler();
+      const updatedUser = await updateAuthUI();
+      
+      // Initialize admin panel if user is admin
+      if (updatedUser?.role === 'admin') {
+        await initAdminPanel();
+        initProductForm();
+      }
+    } catch (error) {
+      alert(error.message || 'Registration failed. Please try again.');
+    }
+  });
+}
+
+function initCart() {
+  if (cartInstance) return cartInstance;
+  
+  const cartIcon = document.querySelector('.cart-icon');
+  const cartSidebar = document.getElementById('cart-sidebar');
+  if (!cartSidebar) return null;
+
+  const closeCart = document.querySelector('.close-cart');
+  const cartItemsContainer = document.querySelector('.cart-items');
+  const cartCount = document.querySelector('.cart-count');
+  const cartTotal = document.querySelector('.total-amount');
+  const checkoutBtn = document.querySelector('.checkout-btn');
+  const cartOverlay = document.createElement('div');
+  cartOverlay.className = 'cart-overlay';
+  document.body.appendChild(cartOverlay);
+
+  const openCart = () => {
+    cartSidebar.classList.add('active');
+    cartOverlay.style.display = 'block';
+  };
+
+  const closeCartHandler = () => {
+    cartSidebar.classList.remove('active');
+    cartOverlay.style.display = 'none';
+  };
+
+  cartOverlay.addEventListener('click', closeCartHandler);
+  cartIcon?.addEventListener('click', openCart);
+  closeCart?.addEventListener('click', closeCartHandler);
+
+  async function fetchCart() {
+    try {
+      const cartData = await cartService.getCart();
+      updateCartUI(cartData);
+      return cartData;
+    } catch {
+      updateCartUI({ items: [] });
+      return { items: [] };
+    }
+  }
+
+  function updateCartUI(cart) {
+    const items = cart.items || [];
+    const totalItems = items.reduce((total, item) => total + item.quantity, 0);
+    
+    // Update both desktop and mobile cart counts
+    document.querySelectorAll('.cart-count, .mobile-cart-count').forEach(el => {
+      el.textContent = totalItems;
+    });
+    
+    if (cartItemsContainer) {
+      cartItemsContainer.innerHTML = '';
+      
+      if (items.length === 0) {
+        cartItemsContainer.innerHTML = '<p class="empty-cart">Your cart is empty</p>';
+        if (cartTotal) cartTotal.textContent = 'Ksh 0';
+        return;
+      }
+      
+      let total = 0;
+      
+      items.forEach(item => {
+        const itemTotal = item.product.price * item.quantity;
+        total += itemTotal;
+        
+        const cartItem = document.createElement('div');
+        cartItem.className = 'cart-item';
+        cartItem.innerHTML = `
+          <div class="cart-item-img">
+            <i class="${getProductIcon(item.product.category)}"></i>
+          </div>
+          <div class="cart-item-details">
+            <div class="cart-item-title">${item.product.name}</div>
+            <div class="cart-item-price">Ksh ${item.product.price.toLocaleString()} × ${item.quantity}</div>
+          </div>
+          <div class="cart-item-actions">
+            <button class="decrease-quantity" data-id="${item._id}">-</button>
+            <span class="cart-item-quantity">${item.quantity}</span>
+            <button class="increase-quantity" data-id="${item._id}">+</button>
+            <button class="remove-item" data-id="${item._id}"><i class="fas fa-trash"></i></button>
+          </div>
+        `;
+        
+        cartItemsContainer.appendChild(cartItem);
+        
+        cartItem.querySelector('.decrease-quantity').addEventListener('click', async () => {
+          await updateQuantity(item._id, item.quantity - 1);
+        });
+        
+        cartItem.querySelector('.increase-quantity').addEventListener('click', async () => {
+          await updateQuantity(item._id, item.quantity + 1);
+        });
+        
+        cartItem.querySelector('.remove-item').addEventListener('click', async () => {
+          await removeItem(item._id);
+        });
+      });
+      
+      if (cartTotal) cartTotal.textContent = `Ksh ${total.toLocaleString()}`;
+    }
+  }
+
+  async function updateQuantity(itemId, quantity) {
+    try {
+      if (quantity < 1) {
+        await removeItem(itemId);
+        return;
+      }
+      
+      await cartService.updateCartItem(itemId, quantity);
+      await fetchCart();
+    } catch (error) {
+      alert(error.message || 'Failed to update item quantity');
+    }
+  }
+
+  async function removeItem(itemId) {
+    try {
+      await cartService.removeCartItem(itemId);
+      await fetchCart();
+    } catch (error) {
+      alert(error.message || 'Failed to remove item');
+    }
+  }
+
+  checkoutBtn?.addEventListener('click', async () => {
+    try {
+      const cart = await fetchCart();
+      if (cart.items.length === 0) {
+        alert('Your cart is empty');
+        return;
+      }
+      
+      alert('Proceeding to checkout');
+      await fetchCart();
+    } catch {
+      alert('Checkout failed. Please try again.');
+    }
+  });
+
+  async function addToCart(productId) {
+    try {
+      // Check if user is authenticated
+      const token = localStorage.getItem('token');
+      if (!token) {
+        document.getElementById('login-link')?.click();
+        alert('Please login to add items to your cart');
+        return;
+      }
+      
+      await cartService.addToCart(productId);
+      await fetchCart();
+      openCart();
+    } catch (error) {
+      alert(error.message || 'Failed to add to cart');
+    }
+  }
+
+  fetchCart();
+
+  cartInstance = {
+    addToCart,
+    fetchCart,
+    openCart
+  };
+  return cartInstance;
+}
+
+function toggleNewCategoryInput() {
+  const categorySelect = document.getElementById('product-category');
+  const newCategoryInput = document.getElementById('new-category-input');
+  
+  if (!categorySelect || !newCategoryInput) return;
+  
+  if (categorySelect.value === 'new') {
+    newCategoryInput.style.display = 'block';
+    newCategoryInput.required = true;
+  } else {
+    newCategoryInput.style.display = 'none';
+    newCategoryInput.required = false;
+  }
+}
+function renderProducts(products) {
+  const productGrid = document.querySelector('.product-grid');
+  if (!productGrid) return;
+
+  productGrid.innerHTML = '';
+
+  if (!products || !products.length) {
+    productGrid.innerHTML = '<p class="no-products">No products available</p>';
+    return;
+  }
+
+  products.forEach(product => {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.dataset.id = product._id;
+    
+    card.innerHTML = `
+      <div class="product-img">
+        ${getProductImageHTML(product)}
+      </div>
+      <div class="product-content">
+        <p>${product.description}</p>
+        <span class="price">Ksh ${product.price.toLocaleString()}</span>
+        <div class="button-group">
+          <button class="inquire-btn">Inquire</button>
+          <button class="add-to-cart-btn">Add to Cart</button>
+        </div>
+      </div>
+    `;
+    
+    // Add event listeners
+    card.querySelector('.inquire-btn').addEventListener('click', () => inquire(product.name));
+    card.querySelector('.add-to-cart-btn').addEventListener('click', () => {
+      cartInstance?.addToCart(product._id);
+    });
+    
+    // Click to show details
+    card.querySelector('.product-img, .product-content p, .price').addEventListener('click', () => {
+      showProductDetails(product._id);
+    });
+    
+    productGrid.appendChild(card);
+  });
+}
+
+// Helper function for product image
+function getProductImageHTML(product) {
+  if (product.image) {
+    return `<img src="${product.image}" alt="${product.name}">`;
+  }
+  return `<div class="product-icon"><i class="${getProductIcon(product.category)}"></i></div>`;
+}
+async function compressImage(file, maxWidth = 800, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Image loading failed'));
+      img.src = event.target.result;
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(maxWidth / img.width, 1);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        canvas.toBlob(
+          blob => resolve(new File([blob], file.name, { type: 'image/jpeg' })),
+          'image/jpeg',
+          quality
+        );
+      };
+    };
+    reader.readAsDataURL(file);
+  });
+}
+async function uploadImageToCloudinary(file) {
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await fetch(`${API_BASE_URL}/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      },
+      body: formData,
+      credentials: 'include'
+    });
+
+    if (!response.ok) throw await handleResponseError(response);
+    const data = await response.json();
+    return data.url;
+  } catch (error) {
+    console.error('Upload error:', error);
+    throw error;
+  }
+}
+function inquire(productName) {
+  const modal = document.createElement('div');
+  modal.className = 'inquiry-modal';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h3>Inquire about ${productName}</h3>
+      <form id="inquiry-form">
+        <input type="text" placeholder="Your Name" required>
+        <input type="email" placeholder="Your Email" required>
+        <input type="tel" placeholder="Your Phone">
+        <textarea placeholder="Your Message" required></textarea>
+        <button type="submit">Submit Inquiry</button>
+      </form>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  modal.querySelector('.close-modal').addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  const form = modal.querySelector('#inquiry-form');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+      name: form.querySelector('input[type="text"]').value,
+      email: form.querySelector('input[type="email"]').value,
+      phone: form.querySelector('input[type="tel"]').value || '',
+      message: form.querySelector('textarea').value,
+      product: productName
+    };
+    
+    try {
+      await inquiryService.submitInquiry(formData);
+      alert('Thank you for your inquiry! We will contact you shortly.');
+      document.body.removeChild(modal);
+    } catch {
+      alert('Failed to submit inquiry');
+    }
+  });
+}
+
+// Replace updateAuthUI function with this:
+async function updateAuthUI() {
+  try {
+    let user = null;
+    
+    // Always use session check to get user data
+    const sessionData = await authService.checkSession();
+    user = sessionData?.user || null;
+    
+    // Update UI based on authentication status
+    const authLinks = document.querySelector('.top-bar-user .auth-links');
+    const userProfile = document.querySelector('.top-bar-user .user-profile');
+    const mobileUserProfile = document.querySelector('.mobile-nav .mobile-user-profile');
+    const mobileHeaderProfile = document.querySelector('.mobile-header .mobile-user-profile');
+    
+    if (user) {
+      if (authLinks) authLinks.style.display = 'none';
+      if (userProfile) {
+        userProfile.style.display = 'flex';
+        // Use user.name if available, otherwise use email
+        const displayName = user.name || user.email.split('@')[0];
+        userProfile.querySelector('span').textContent = `Welcome, ${displayName}`;
+      }
+      if (mobileUserProfile) {
+        mobileUserProfile.style.display = 'block';
+        const displayName = user.name || user.email.split('@')[0];
+        document.getElementById('mobile-welcome').textContent = `Welcome, ${displayName}`;
+      }
+      if (mobileHeaderProfile) {
+        mobileHeaderProfile.style.display = 'flex';
+        const displayName = user.name || user.email.split('@')[0];
+        document.getElementById('mobile-welcome-header').textContent = `Welcome, ${displayName}`;
+      }
+    } else {
+      if (authLinks) authLinks.style.display = 'flex';
+      if (userProfile) userProfile.style.display = 'none';
+      if (mobileUserProfile) mobileUserProfile.style.display = 'none';
+      if (mobileHeaderProfile) mobileHeaderProfile.style.display = 'none';
+    }
+    
+    return user;
+  } catch (error) {
+    console.error('Auth UI update error:', error);
+    return null;
+  }
+}
+function initLogout() {
+  const logoutBtn = document.getElementById('logout-btn');
+  if (!logoutBtn) return;
+  
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await authService.logout();
+      await updateAuthUI();
+      if (cartInstance) {
+        await cartInstance.fetchCart();
+      }
+      alert('You have been logged out');
+    } catch {
+      alert('Logout failed. Please try again.');
+    }
+  });
+}
+
+function initMobileLogout() {
+  const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+  const mobileLogoutHeader = document.getElementById('mobile-logout-header');
+  
+  const logoutHandler = async (e) => {
+    e.preventDefault();
+    try {
+      await authService.logout();
+      await updateAuthUI();
+      if (cartInstance) {
+        await cartInstance.fetchCart();
+      }
+      alert('You have been logged out');
+    } catch {
+      alert('Logout failed. Please try again.');
+    }
+  };
+
+  if (mobileLogoutBtn) {
+    mobileLogoutBtn.addEventListener('click', logoutHandler);
+  }
+
+  if (mobileLogoutHeader) {
+    mobileLogoutHeader.addEventListener('click', logoutHandler);
+  }
+}
+
+async function showProductDetails(productId) {
+  try {
+    // Get the product details section and container
+    const productDetailsSection = document.getElementById('product-details');
+    const productDetailsContainer = productDetailsSection.querySelector('.product-details-container');
+    const loadingElement = document.createElement('div');
+    loadingElement.className = 'loading-overlay';
+    loadingElement.innerHTML = '<div class="loading">Loading product details...</div>';
+    
+    // Show loading overlay
+    productDetailsSection.appendChild(loadingElement);
+    productDetailsContainer.style.display = 'none';
+    productDetailsSection.style.display = 'block';
+
+    // Hide other sections
+    document.querySelectorAll('section').forEach(section => {
+      if (section.id !== 'product-details') section.style.display = 'none';
+    });
+
+    // Fetch product details
+    const response = await fetch(`${API_BASE_URL}/products/${productId}`, { 
+      headers: getAuthHeaders(),
+      credentials: 'include' 
+    });
+    
+    if (!response.ok) throw await handleResponseError(response);
+    const product = await response.json();
+
+    // Populate product details
+    document.getElementById('product-detail-name').textContent = product.name;
+    document.getElementById('product-detail-price').textContent = `Ksh ${product.price.toLocaleString()}`;
+    document.getElementById('product-detail-category').textContent = product.category;
+    document.getElementById('product-detail-description').textContent = product.description;
+
+    // Set up WhatsApp link
+    const whatsappLink = document.getElementById('whatsapp-order');
+    const message = `Hi, I'm interested in this product: ${product.name} (Ksh ${product.price.toLocaleString()}). Product ID: ${product._id}`;
+    whatsappLink.href = `https://wa.me/254719362202?text=${encodeURIComponent(message)}`;
+    
+    // Set up image gallery
+    const mainImage = document.getElementById('main-product-image');
+    const thumbnailContainer = document.querySelector('.thumbnail-container');
+    thumbnailContainer.innerHTML = '';
+    
+    // Use product image or placeholder
+    const images = product.image 
+      ? [product.image] 
+      : ['https://via.placeholder.com/500?text=Product+Image'];
+    
+    mainImage.src = images[0];
+    mainImage.alt = product.name;
+    
+    images.forEach((img, index) => {
+      const thumbnail = document.createElement('div');
+      thumbnail.className = 'thumbnail' + (index === 0 ? ' active' : '');
+      thumbnail.innerHTML = `<img src="${img}" alt="${product.name} thumbnail">`;
+      
+      thumbnail.addEventListener('click', () => {
+        mainImage.src = img;
+        document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+        thumbnail.classList.add('active');
+      });
+      
+      thumbnailContainer.appendChild(thumbnail);
+    });
+    
+    // Set up Add to Cart button
+    const addToCartBtn = document.getElementById('add-to-cart-detail');
+    if (addToCartBtn) {
+      addToCartBtn.onclick = null; // Remove previous listeners
+      addToCartBtn.addEventListener('click', () => {
+        cartInstance.addToCart(product._id);
+        alert(`${product.name} added to cart!`);
+      });
+    }
+
+    // Remove loading and show content
+    productDetailsSection.removeChild(loadingElement);
+    productDetailsContainer.style.display = 'block';
+    
+  } catch (error) {
+    console.error('Product details error:', error);
+    document.getElementById('product-details').innerHTML = `
+      <div class="container">
+        <div class="error-message">
+          <h3>Error Loading Product</h3>
+          <p>${error.message || 'Could not load product details'}</p>
+          <button onclick="location.reload()">Go Back</button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+// Back to products function
+function setupBackButton() {
+  const backBtn = document.getElementById('back-to-products');
+  if (backBtn) {
+    backBtn.onclick = null; // Remove previous listeners
+    backBtn.addEventListener('click', () => {
+      document.getElementById('product-details').style.display = 'none';
+      document.getElementById('products').style.display = 'block';
+      window.scrollTo(0, 0);
+    });
+  }
+}
 async function initAdminPanel() {
   try {
     const user = await updateAuthUI();
@@ -859,54 +1437,105 @@ async function initAdminPanel() {
     
     if (adminSection && user?.role === 'admin') {
       adminSection.style.display = 'block';
+      
+      // Load products and store them
       adminProducts = await productService.getProducts();
-      renderAdminProducts(adminProducts);
+      await renderAdminProducts(adminProducts);
+      
+      // Initialize search functionality
+      initAdminSearch();
+      
       adminPanelInitialized = true;
+      return true;
     }
+    return false;
   } catch (error) {
     console.error('Admin panel init error:', error);
+    return false;
   }
 }
+function initAdminSearch() {
+  const searchInput = document.getElementById('admin-search-input');
+  if (!searchInput) return;
+  
+  searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase().trim();
+    
+    if (!searchTerm) {
+      renderAdminProducts(adminProducts);
+      return;
+    }
+    
+    const filteredProducts = adminProducts.filter(product => 
+      product.name.toLowerCase().includes(searchTerm) || 
+      product.category.toLowerCase().includes(searchTerm) ||
+      (product.description && product.description.toLowerCase().includes(searchTerm))
+    );
+    
+    renderAdminProducts(filteredProducts);
+  });
+}
 
-function renderAdminProducts(products) {
+
+async function renderAdminProducts(products) {
   const container = document.querySelector('.products-list-container');
   if (!container) return;
-  
-  container.innerHTML = products?.length 
-    ? products.map(product => `
-        <div class="admin-product-item" data-id="${product._id}">
-          <div class="admin-product-info">
-            <strong>${product.name}</strong>
-            <div>${product.category} | Ksh ${product.price.toLocaleString()}</div>
-          </div>
-          <div class="admin-product-actions">
-            <button class="delete-product-btn">Delete</button>
-          </div>
+
+  try {
+    if (!products || !products.length) {
+      container.innerHTML = '<p>No products found</p>';
+      return;
+    }
+    
+    container.innerHTML = '';
+    
+    products.forEach(product => {
+      const item = document.createElement('div');
+      item.className = 'admin-product-item';
+      item.dataset.id = product._id;
+      
+      item.innerHTML = `
+        <div class="admin-product-info">
+          <strong>${product.name}</strong>
+          <div>${product.category} | Ksh ${product.price.toLocaleString()}</div>
         </div>
-      `).join('')
-    : '<p>No products found</p>';
-  
-  // Add delete event listeners
-  document.querySelectorAll('.delete-product-btn').forEach(btn => {
-    btn.addEventListener('click', async function() {
-      const productId = this.closest('.admin-product-item').dataset.id;
-      if (confirm('Delete this product?')) {
-        try {
-          await productService.deleteProduct(productId);
-          adminProducts = adminProducts.filter(p => p._id !== productId);
-          renderAdminProducts(adminProducts);
-          loadProducts();
-        } catch {
-          alert('Failed to delete product');
+        <div class="admin-product-actions">
+          <button class="delete-product-btn">Delete</button>
+        </div>
+      `;
+      
+      container.appendChild(item);
+      
+      item.querySelector('.delete-product-btn').addEventListener('click', async function() {
+        const productId = this.closest('.admin-product-item').dataset.id;
+        if (confirm('Delete this product?')) {
+          try {
+            await productService.deleteProduct(productId);
+            // Update local product list
+            adminProducts = adminProducts.filter(p => p._id !== productId);
+            renderAdminProducts(adminProducts);
+            loadProducts();
+            alert('Product deleted');
+          } catch {
+            alert('Failed to delete product');
+          }
         }
-      }
+      });
     });
-  });
+    
+  } catch {
+    container.innerHTML = `<div class="error">Error loading products</div>`;
+  }
 }
 
 function initProductForm() {
   const form = document.getElementById('add-product-form');
   if (!form) return;
+  
+  const categorySelect = document.getElementById('product-category');
+  if (categorySelect) {
+    categorySelect.addEventListener('change', toggleNewCategoryInput);
+  }
   
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -925,21 +1554,41 @@ function initProductForm() {
     const productData = {
       name: document.getElementById('product-name').value,
       description: document.getElementById('product-description').value,
-      price: parseFloat(document.getElementById('product-price').value),
+      price: document.getElementById('product-price').value,
       category: category
     };
 
+    // Handle image upload separately
+    const imageInput = document.getElementById('product-image');
+    if (imageInput.files.length > 0) {
+      try {
+        const originalFile = imageInput.files[0];
+        const compressedFile = await compressImage(originalFile);
+        productData.image = await uploadImageToCloudinary(compressedFile);
+      } catch (error) {
+        alert('Error uploading image: ' + error.message);
+        return;
+      }
+    }
+
     try {
-      await fetch(`${API_BASE_URL}/products`, {
+      const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(productData),
         credentials: 'include'
       });
 
+      if (!response.ok) throw await handleResponseError(response);
+      
       alert('Product added successfully!');
       form.reset();
-      document.getElementById('image-preview').innerHTML = '';
+      
+      // Reset image preview
+      const imagePreview = document.getElementById('image-preview');
+      if (imagePreview) imagePreview.innerHTML = '';
+      
+      toggleNewCategoryInput();
       loadProducts();
       
       if (adminPanelInitialized) {
@@ -950,42 +1599,145 @@ function initProductForm() {
       alert(error.message || 'Failed to add product');
     }
   });
+
+  const imageInput = document.getElementById('product-image');
+  const imagePreview = document.getElementById('image-preview');
+  
+  if (imageInput && imagePreview) {
+    imageInput.addEventListener('change', function() {
+      imagePreview.innerHTML = '';
+      
+      if (this.files && this.files[0]) {
+        const file = this.files[0];
+        
+        if (file.size > 2 * 1024 * 1024) {
+          const warning = document.createElement('div');
+          warning.className = 'file-warning';
+          warning.textContent = `Large image (${Math.round(file.size/1024/1024)}MB). Compressing...`;
+          imagePreview.appendChild(warning);
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.style.maxWidth = '200px';
+          img.style.maxHeight = '200px';
+          imagePreview.appendChild(img);
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  toggleNewCategoryInput();
 }
 
-// ========================
-// MAIN INITIALIZATION
-// ========================
+// MOBILE AUTHENTICATION HANDLING
+function initMobileAuth() {
+  const mobileAccountBtn = document.getElementById('mobile-account-btn');
+  const mobileAuthModal = document.getElementById('mobile-auth-modal');
+  const closeMobileModal = document.querySelector('.close-mobile-modal');
+  const mobileLoginBtn = document.querySelector('.mobile-login-btn');
+  const mobileRegisterBtn = document.querySelector('.mobile-register-btn');
+  
+  if (!mobileAccountBtn) return;
+  
+  mobileAccountBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (mobileAuthModal) {
+      mobileAuthModal.style.display = 'flex';
+    }
+  });
+  
+  closeMobileModal?.addEventListener('click', () => {
+    if (mobileAuthModal) mobileAuthModal.style.display = 'none';
+  });
+  
+  mobileLoginBtn?.addEventListener('click', () => {
+    if (mobileAuthModal) mobileAuthModal.style.display = 'none';
+    document.getElementById('login-link')?.click();
+  });
+  
+  mobileRegisterBtn?.addEventListener('click', () => {
+    if (mobileAuthModal) mobileAuthModal.style.display = 'none';
+    document.getElementById('register-link')?.click();
+  });
+  
+  window.addEventListener('click', (e) => {
+    if (e.target === mobileAuthModal) {
+      mobileAuthModal.style.display = 'none';
+    }
+  });
+}
+async function loadProducts() {
+  try {
+    const products = await productService.getProducts();
+    renderProducts(products);
+  } catch (error) {
+    console.error('Failed to load products:', error);
+    const productGrid = document.querySelector('.product-grid');
+    if (productGrid) {
+      productGrid.innerHTML = `
+        <div class="error">
+          <p>Failed to load products. Please try again later.</p>
+          <button onclick="loadProducts()">Retry</button>
+        </div>
+      `;
+    }
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
   try {
-    // Initialize core functionality
-    await updateAuthUI();
-    cartInstance = initCart();
-    await loadProducts();
+    // First check auth state
+    const user = await updateAuthUI();
     
-    // Initialize UI components
-    initAuthModal();
-    initLogout();
-    initMobileMenu();
+    // Then initialize cart
+    cartInstance = initCart();
+    
+    // Then load products
+    await loadProducts();
+
+    // Then other initializations
+    initSlider();
     initCategoryFilter();
     initSearch();
+    initSmoothScrolling();
+    initAuthModal();
+    initMobileAuth();
+    initLogout();
+    initMobileLogout();
+    setupBackButton();
+    await initOffersSlider();
     
-    // Setup back button
-    document.getElementById('back-to-products')?.addEventListener('click', () => {
-      document.getElementById('product-details').style.display = 'none';
-      document.getElementById('products').style.display = 'block';
-    });
+    if (user?.role === 'admin') {
+      await initAdminPanel();
+      initProductForm();
+    }
     
     // Mobile cart button
     document.getElementById('mobile-cart-btn')?.addEventListener('click', () => {
       cartInstance?.openCart();
     });
-    
-    // Initialize admin panel if admin
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (user?.role === 'admin') {
-      await initAdminPanel();
-      initProductForm();
-    }
+   // Mobile menu toggle
+const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+const mobileNav = document.querySelector('.mobile-nav');
+
+if (mobileNav) {
+  const mobileNavClose = document.createElement('span');
+  mobileNavClose.className = 'mobile-nav-close';
+  mobileNavClose.innerHTML = '&times;';
+  mobileNav.appendChild(mobileNavClose);
+
+  mobileMenuToggle?.addEventListener('click', () => {
+    mobileNav.classList.add('active');
+  });
+
+  mobileNavClose.addEventListener('click', () => {
+    mobileNav.classList.remove('active');
+  });
+}
     
   } catch (error) {
     console.error('Initialization error:', error);
