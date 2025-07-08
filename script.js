@@ -872,62 +872,44 @@ function renderProducts(products) {
   products.forEach(product => {
     const card = document.createElement('div');
     card.className = 'product-card';
-    card.dataset.category = product.category;
     card.dataset.id = product._id;
-
-    let imageHTML = '';
-    if (product.image) {
-      imageHTML = `<img src="${product.image}" alt="${product.name}">`;
-    } else {
-      imageHTML = `<div class="product-icon"><i class="${getProductIcon(product.category)}"></i></div>`;
-    }
-
+    
     card.innerHTML = `
       <div class="product-img">
-        ${imageHTML}
+        ${getProductImageHTML(product)}
       </div>
       <div class="product-content">
-        <h3>${product.name}</h3>
         <p>${product.description}</p>
-        <span class="product-category">${product.category}</span>
-        <span>Ksh ${product.price.toLocaleString()}</span>
+        <span class="price">Ksh ${product.price.toLocaleString()}</span>
         <div class="button-group">
           <button class="inquire-btn">Inquire</button>
           <button class="add-to-cart-btn">Add to Cart</button>
         </div>
       </div>
     `;
-
+    
+    // Add event listeners
     card.querySelector('.inquire-btn').addEventListener('click', () => inquire(product.name));
     card.querySelector('.add-to-cart-btn').addEventListener('click', () => {
       cartInstance?.addToCart(product._id);
     });
     
-    // Add click event to show product details
-    card.querySelector('.product-img, .product-content h3, .product-content p, .product-category')
-      .addEventListener('click', (e) => {
-        if (!e.target.closest('.button-group')) {
-          showProductDetails(product._id);
-        }
-      });
+    // Click to show details
+    card.querySelector('.product-img, .product-content p, .price').addEventListener('click', () => {
+      showProductDetails(product._id);
+    });
     
     productGrid.appendChild(card);
   });
 }
 
-function getProductIcon(category) {
-  const icons = {
-    'laptops': 'fas fa-laptop',
-    'desktops': 'fas fa-desktop',
-    'monitors': 'fas fa-tv',
-    'accessories': 'fas fa-mouse',
-    'storage': 'fas fa-hdd',
-    'printers': 'fas fa-print',
-    'ram': 'fas fa-memory'
-  };
-  return icons[category] || 'fas fa-box';
+// Helper function for product image
+function getProductImageHTML(product) {
+  if (product.image) {
+    return `<img src="${product.image}" alt="${product.name}">`;
+  }
+  return `<div class="product-icon"><i class="${getProductIcon(product.category)}"></i></div>`;
 }
-
 async function compressImage(file, maxWidth = 800, quality = 0.7) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
