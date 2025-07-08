@@ -2463,3 +2463,150 @@ footer {
     font-size: 12px;
   }
 }
+/* Product Details */
+#product-details {
+  background-color: #f8f9fa;
+  padding: 40px 0;
+}
+
+.back-btn {
+  background: #e9ecef;
+  color: #495057;
+  margin-bottom: 25px;
+}
+
+.back-btn:hover {
+  background: #dee2e6;
+  transform: none;
+}
+
+.product-details-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 30px;
+}
+
+.product-gallery {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+
+.main-image {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.main-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.thumbnail-container {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.thumbnail {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumbnail.active {
+  border-color: var(--primary);
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-info {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.price-category {
+  display: flex;
+  justify-content: space-between;
+  margin: 15px 0;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.price {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.category {
+  background: #edf2ff;
+  color: var(--primary);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.description {
+  line-height: 1.7;
+  margin-bottom: 25px;
+  color: #495057;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.cart-btn {
+  background: var(--primary);
+  flex: 1;
+}
+
+.whatsapp-btn {
+  background: #25D366;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive styles */
+@media (min-width: 768px) {
+  .product-details-container {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .product-gallery {
+    grid-template-rows: auto 100px;
+  }
+  
+  .thumbnail-container {
+    justify-content: center;
+  }
+}

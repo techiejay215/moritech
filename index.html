@@ -61,7 +61,6 @@
   
   <!-- Updated Mobile Header -->
   <div class="mobile-header">
-    <!-- Updated mobile-header-top structure -->
     <div class="mobile-header-top">
       <button class="mobile-menu-toggle">
         <i class="fas fa-bars"></i>
@@ -71,7 +70,6 @@
         <div class="mobile-company-name">
           <h1>Moritech Technologies</h1>
         </div>
-        <!-- Moved cart here -->
         <div class="mobile-cart">
           <i class="fas fa-shopping-cart"></i>
           <span class="mobile-cart-count">0</span>
@@ -79,7 +77,6 @@
       </div>
     </div>
     
-    <!-- Updated mobile-header-bottom -->
     <div class="mobile-header-bottom">
       <div class="mobile-search">
         <i class="fas fa-search"></i>
@@ -140,7 +137,6 @@
   
   <!-- Hero Section -->
   <section id="home" class="hero">
-    <!-- Image Slider -->
     <div class="slider-container">
       <div class="slider">
         <div class="slide slide-1 active"></div>
@@ -150,13 +146,11 @@
       </div>
     </div>
     
-    <!-- Slider Navigation -->
     <div class="slider-nav">
       <button class="slider-btn prev-btn"><i class="fas fa-chevron-left"></i></button>
       <button class="slider-btn next-btn"><i class="fas fa-chevron-right"></i></button>
     </div>
     
-    <!-- Slider Controls -->
     <div class="slider-controls">
       <div class="slider-dot active" data-slide="0"></div>
       <div class="slider-dot" data-slide="1"></div>
@@ -185,6 +179,44 @@
       
       <div class="product-grid">
         <!-- Products will be loaded by JavaScript -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Product Details Section -->
+  <section id="product-details" class="section" style="display:none;">
+    <div class="container">
+      <button id="back-to-products" class="btn back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Products
+      </button>
+      
+      <div class="product-details-container">
+        <div class="product-gallery">
+          <div class="main-image">
+            <img id="main-product-image" src="" alt="Main Product Image">
+          </div>
+          <div class="thumbnail-container">
+            <!-- Thumbnails will be inserted here -->
+          </div>
+        </div>
+        
+        <div class="product-info">
+          <h2 id="product-detail-name"></h2>
+          <div class="price-category">
+            <span id="product-detail-price" class="price"></span>
+            <span id="product-detail-category" class="category"></span>
+          </div>
+          <p id="product-detail-description" class="description"></p>
+          
+          <div class="action-buttons">
+            <button id="add-to-cart-detail" class="btn cart-btn">
+              <i class="fas fa-shopping-cart"></i> Add to Cart
+            </button>
+            <a id="whatsapp-order" class="btn whatsapp-btn" target="_blank">
+              <i class="fab fa-whatsapp"></i> Order on WhatsApp
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -292,7 +324,6 @@
         <div class="map">
           <i class="fas fa-map-marked-alt" style="font-size: 50px;"></i>
           <p></p>
-          <!-- Updated to use a placeholder map image -->
           <img 
             src="https://via.placeholder.com/400x300?text=Map+Location" 
             alt="Kisii CBD Map" 
@@ -413,13 +444,11 @@
   <div class="container">
     <h2>Admin Panel</h2>
 
-    <!-- 🔍 Search Products -->
     <div class="admin-search-container">
       <i class="fas fa-search"></i>
       <input type="text" id="admin-search-input" placeholder="Search products...">
     </div>
 
-    <!-- 📦 Add New Product -->
     <div class="admin-form">
       <h3>Add New Product</h3>
       <form id="add-product-form" enctype="multipart/form-data">
@@ -474,7 +503,6 @@
       </form>
     </div>
 
-    <!-- 🧾 Product List -->
     <div class="admin-products-list">
       <h3>Manage Products</h3>
       <div class="products-list-container">

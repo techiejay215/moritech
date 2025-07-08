@@ -861,7 +861,6 @@ function toggleNewCategoryInput() {
     newCategoryInput.required = false;
   }
 }
-
 function renderProducts(products) {
   const productGrid = document.querySelector('.product-grid');
   if (!productGrid) return;
@@ -907,27 +906,16 @@ function renderProducts(products) {
       cartInstance?.addToCart(product._id);
     });
     
+    // Add click event to show product details
+    card.querySelector('.product-img, .product-content h3, .product-content p, .product-category')
+      .addEventListener('click', (e) => {
+        if (!e.target.closest('.button-group')) {
+          showProductDetails(product._id);
+        }
+      });
+    
     productGrid.appendChild(card);
   });
-}
-
-async function loadProducts() {
-  const productGrid = document.querySelector('.product-grid');
-  if (!productGrid) return;
-
-  try {
-    productGrid.innerHTML = '<div class="loading">Loading products...</div>';
-    const products = await productService.getProducts();
-    renderProducts(products);
-  } catch {
-    productGrid.innerHTML = `
-      <div class="error-message">
-        <h3>Products Unavailable</h3>
-        <p>We're having trouble loading products</p>
-        <button onclick="loadProducts()">Retry</button>
-      </div>
-    `;
-  }
 }
 
 function getProductIcon(category) {
@@ -1128,6 +1116,102 @@ function initMobileLogout() {
   }
 }
 
+async function showProductDetails(productId) {
+  try {
+    // Show loading state
+    document.getElementById('product-details').innerHTML = `
+      <div class="container" style="text-align: center; padding: 50px">
+        <div class="loading">Loading product details...</div>
+      </div>
+    `;
+    document.getElementById('product-details').style.display = 'block';
+    
+    // Hide other sections
+    document.querySelectorAll('section').forEach(section => {
+      if (section.id !== 'product-details') {
+        section.style.display = 'none';
+      }
+    });
+    
+    // Fetch product details
+    const response = await fetch(`${API_BASE_URL}/products/${productId}`);
+    if (!response.ok) throw await handleResponseError(response);
+    const product = await response.json();
+    
+    // Populate product details
+    document.getElementById('product-detail-name').textContent = product.name;
+    document.getElementById('product-detail-price').textContent = `Ksh ${product.price.toLocaleString()}`;
+    document.getElementById('product-detail-category').textContent = product.category;
+    document.getElementById('product-detail-description').textContent = product.description;
+    
+    // Set up WhatsApp link
+    const whatsappLink = document.getElementById('whatsapp-order');
+    const message = `Hi, I'm interested in this product: ${product.name} (Ksh ${product.price.toLocaleString()}). Product ID: ${product._id}`;
+    whatsappLink.href = `https://wa.me/254719362202?text=${encodeURIComponent(message)}`;
+    
+    // Set up image gallery
+    const mainImage = document.getElementById('main-product-image');
+    const thumbnailContainer = document.querySelector('.thumbnail-container');
+    thumbnailContainer.innerHTML = '';
+    
+    // Use product image or placeholder
+    const images = product.image 
+      ? [product.image] 
+      : ['https://via.placeholder.com/500?text=Product+Image'];
+    
+    mainImage.src = images[0];
+    mainImage.alt = product.name;
+    
+    images.forEach((img, index) => {
+      const thumbnail = document.createElement('div');
+      thumbnail.className = 'thumbnail' + (index === 0 ? ' active' : '');
+      thumbnail.innerHTML = `<img src="${img}" alt="${product.name} thumbnail">`;
+      
+      thumbnail.addEventListener('click', () => {
+        mainImage.src = img;
+        document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+        thumbnail.classList.add('active');
+      });
+      
+      thumbnailContainer.appendChild(thumbnail);
+    });
+    
+    // Set up Add to Cart button
+    const addToCartBtn = document.getElementById('add-to-cart-detail');
+    if (addToCartBtn) {
+      addToCartBtn.onclick = null; // Remove previous listeners
+      addToCartBtn.addEventListener('click', () => {
+        cartInstance.addToCart(product._id);
+        alert(`${product.name} added to cart!`);
+      });
+    }
+    
+  } catch (error) {
+    console.error('Product details error:', error);
+    document.getElementById('product-details').innerHTML = `
+      <div class="container">
+        <div class="error-message">
+          <h3>Error Loading Product</h3>
+          <p>${error.message || 'Could not load product details'}</p>
+          <button onclick="showProductDetails('${productId}')">Retry</button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+// Back to products function
+function setupBackButton() {
+  const backBtn = document.getElementById('back-to-products');
+  if (backBtn) {
+    backBtn.onclick = null; // Remove previous listeners
+    backBtn.addEventListener('click', () => {
+      document.getElementById('product-details').style.display = 'none';
+      document.getElementById('products').style.display = 'block';
+      window.scrollTo(0, 0);
+    });
+  }
+}
 async function initAdminPanel() {
   try {
     const user = await updateAuthUI();
@@ -1173,6 +1257,7 @@ function initAdminSearch() {
     renderAdminProducts(filteredProducts);
   });
 }
+
 
 async function renderAdminProducts(products) {
   const container = document.querySelector('.products-list-container');
@@ -1388,6 +1473,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initMobileAuth();
     initLogout();
     initMobileLogout();
+    setupBackButton();
     
     if (user?.role === 'admin') {
       await initAdminPanel();
