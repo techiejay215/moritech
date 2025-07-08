@@ -1479,6 +1479,23 @@ document.addEventListener('DOMContentLoaded', async function() {
       await initAdminPanel();
       initProductForm();
     }
+    async function loadProducts() {
+  try {
+    const products = await productService.getProducts();
+    renderProducts(products);
+  } catch (error) {
+    console.error('Failed to load products:', error);
+    const productGrid = document.querySelector('.product-grid');
+    if (productGrid) {
+      productGrid.innerHTML = `
+        <div class="error">
+          <p>Failed to load products. Please try again later.</p>
+          <button onclick="loadProducts()">Retry</button>
+        </div>
+      `;
+    }
+  }
+}
     
     // Mobile cart button
     document.getElementById('mobile-cart-btn')?.addEventListener('click', () => {
