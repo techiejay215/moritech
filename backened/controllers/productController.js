@@ -16,28 +16,20 @@ const uploadToCloudinary = (fileBuffer, mimetype) => {
   });
 };
 
-// 🆕 Create a new product (updated to allow no image)
+// 🆕 Create a new product (updated to use image URL from request body)
 const createProduct = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   try {
-    const { name, description, price, category } = req.body;
-    const image = req.file; // Multer puts file here
-
-    // Handle image upload if exists
-    let imageUrl = '';
-    if (image) {
-      const uploadResult = await uploadToCloudinary(image.buffer, image.mimetype);
-      imageUrl = uploadResult.secure_url;
-    }
+    const { name, description, price, category, image } = req.body;
 
     const newProduct = new Product({
       name,
       description,
       price,
       category,
-      image: imageUrl // Can be empty string
+      image: image || '' // Use image URL from body or empty string
     });
 
     const savedProduct = await newProduct.save();
@@ -48,7 +40,7 @@ const createProduct = async (req, res) => {
   }
 };
 
-// ✏️ Update an existing product (improved field updates)
+// ✏️ Update an existing product (maintains Cloudinary upload for files)
 const updateProduct = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
@@ -59,13 +51,13 @@ const updateProduct = async (req, res) => {
 
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    // Update fields only if provided (preserve existing for undefined)
+    // Update fields only if provided
     if (name !== undefined) product.name = name;
     if (description !== undefined) product.description = description;
     if (price !== undefined) product.price = price;
     if (category !== undefined) product.category = category;
 
-    // Update image only if new file is provided
+    // Handle image update separately (Cloudinary for files)
     if (req.file) {
       const result = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
       product.image = result.secure_url;

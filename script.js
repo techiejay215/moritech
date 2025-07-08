@@ -973,14 +973,14 @@ async function compressImage(file, maxWidth = 800, quality = 0.7) {
 async function uploadImageToCloudinary(file) {
   try {
     const formData = new FormData();
-    formData.append('image', file); // Key must be 'image'
+    formData.append('image', file);
 
     const response = await fetch(`${API_BASE_URL}/upload`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
       },
-      body: formData, // ✅ FormData handles Content-Type automatically
+      body: formData,
       credentials: 'include'
     });
 
@@ -1235,55 +1235,42 @@ function initProductForm() {
     categorySelect.addEventListener('change', toggleNewCategoryInput);
   }
   
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    // Create FormData object
-    const formData = new FormData();
-    formData.append('name', document.getElementById('product-name').value);
-    formData.append('description', document.getElementById('product-description').value);
-    formData.append('price', document.getElementById('product-price').value);
-    
-    // Handle category
-    let category = document.getElementById('product-category').value;
-    if (category === 'new') {
-      category = document.getElementById('new-category-input').value.trim();
-      if (!category) {
-        alert('Please enter a new category name');
-        return;
-      }
-    }
-    formData.append('category', category);
+ form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  // Create JSON data instead of FormData
+  const productData = {
+    name: document.getElementById('product-name').value,
+    description: document.getElementById('product-description').value,
+    price: document.getElementById('product-price').value,
+    category: category // from category handling
+  };
 
-    // Append image if exists
-    const imageInput = document.getElementById('product-image');
-    if (imageInput.files.length > 0) {
-      try {
-        const originalFile = imageInput.files[0];
-        const compressedFile = await compressImage(originalFile);
-        formData.append('image', compressedFile);
-      } catch (error) {
-        alert('Error compressing image: ' + error.message);
-        return;
-      }
-    }
-
+  // Handle image upload separately
+  if (imageInput.files.length > 0) {
     try {
-      // Remove Content-Type header for FormData
-      const headers = getAuthHeaders();
-      delete headers['Content-Type'];
+      const originalFile = imageInput.files[0];
+      const compressedFile = await compressImage(originalFile);
+      productData.image = await uploadImageToCloudinary(compressedFile);
+    } catch (error) {
+      alert('Error uploading image: ' + error.message);
+      return;
+    }
+  }
 
-      const response = await fetch(`${API_BASE_URL}/products`, {
-        method: 'POST',
-        headers: headers,
-        body: formData, // Send FormData instead of JSON
-        credentials: 'include'
-      });
+  try {
+    const response = await fetch(`${API_BASE_URL}/products`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(productData),
+      credentials: 'include'
+    });
 
-      if (!response.ok) throw await handleResponseError(response);
-      
-      alert('Product added successfully!');
-      form.reset();
+    if (!response.ok) throw await handleResponseError(response);
+    
+    alert('Product added successfully!');
+    form.reset();
+    
       
       // Reset image preview
       const imagePreview = document.getElementById('image-preview');

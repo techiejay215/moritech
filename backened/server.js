@@ -124,7 +124,8 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
-// ☁️ Image Upload Endpoint (PROTECTED)
+
+// ☁️ Image Upload Endpoint (PROTECTED) - UPDATED VERSION
 app.post('/api/upload', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
@@ -133,14 +134,17 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
 
     // Upload to Cloudinary
     const result = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
+      const uploadStream = cloudinary.uploader.upload_stream(
         { folder: 'moritech-uploads' },
         (error, result) => {
           if (error) reject(error);
           else resolve(result);
         }
       );
-      stream.end(req.file.buffer);
+      
+      // Use buffer instead of stream
+      const buffer = req.file.buffer;
+      uploadStream.end(buffer);
     });
 
     res.json({ url: result.secure_url });
