@@ -105,12 +105,11 @@ app.use((req, res, next) => {
   });
 });
 
-// 🔐 Route Protection Middleware - UPDATED WITH UPLOAD PATH
+// 🔐 Route Protection Middleware - UPDATED
 const protectedPaths = [
   '/api/cart', 
-  '/api/products', 
   '/api/inquiries',
-  '/api/upload'  // 👈 ADDED UPLOAD PATH
+  '/api/upload'  // Only these paths are now globally protected
 ];
 app.use(protectedPaths, (req, res, next) => {
   if (!req.user) {
@@ -123,9 +122,9 @@ app.use(protectedPaths, (req, res, next) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
-app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/products', require('./routes/productRoutes')); // Product routes now unprotected globally
 
-// ☁️ Image Upload Endpoint (PROTECTED) - UPDATED VERSION
+// ☁️ Image Upload Endpoint (PROTECTED)
 app.post('/api/upload', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {

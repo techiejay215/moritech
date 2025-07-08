@@ -117,10 +117,9 @@ const authService = {
 
   async requestPasswordReset(email) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, credentials: 'include'})
       });
       
       if (!response.ok) throw await handleResponseError(response);
@@ -234,10 +233,9 @@ const cartService = {
   
   async addToCart(productId, quantity = 1) {
     try {
-      const response = await fetch(`${API_BASE_URL}/cart/items`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/cart/items`, {method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ productId, quantity }),
+        body: JSON.stringify({ productId, quantity, credentials: 'include'}),
         credentials: 'include'
       });
       
@@ -251,10 +249,9 @@ const cartService = {
 
   async updateCartItem(itemId, quantity) {
     try {
-      const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
-        method: 'PUT',
+      const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {method: 'PUT',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ quantity }),
+        body: JSON.stringify({ quantity, credentials: 'include'}),
         credentials: 'include'
       });
       
@@ -321,7 +318,7 @@ const productService = {
 
   async searchProducts(query) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`, {
+      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query, { credentials: 'include' })}`, {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
@@ -335,7 +332,7 @@ const productService = {
 
   async getProductsByCategory(category) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
+      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category, { credentials: 'include' })}`, {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
@@ -1134,7 +1131,7 @@ async function showProductDetails(productId) {
     });
     
     // Fetch product details
-    const response = await fetch(`${API_BASE_URL}/products/${productId}`);
+    const response = await fetch(`${API_BASE_URL}/products/${productId}`, { credentials: 'include' });
     if (!response.ok) throw await handleResponseError(response);
     const product = await response.json();
     
@@ -1193,7 +1190,7 @@ async function showProductDetails(productId) {
         <div class="error-message">
           <h3>Error Loading Product</h3>
           <p>${error.message || 'Could not load product details'}</p>
-          <button onclick="showProductDetails('${productId}')">Retry</button>
+          <button onclick="location.reload()">Go Back</button>
         </div>
       </div>
     `;
