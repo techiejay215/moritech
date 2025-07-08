@@ -529,13 +529,13 @@ nav a:hover::after {
 }
 
 .product-card {
-  background-color: var(--white);
-  border-radius: var(--border-radius);
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  box-shadow: var(--shadow);
-  transition: var(--transition);
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  transition: all 0.3s ease;
+  border: 1px solid #e8eaed
 }
 
 .product-card:hover {
@@ -962,12 +962,11 @@ footer {
 
 /* Product Images */
 .product-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: unset;
-  /* fills area without distortion */
-  border-radius: 6px;
-  transition: transform 0.3s ease;
+  max-height: 100%;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }
 
 .product-icon {
