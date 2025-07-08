@@ -1236,76 +1236,71 @@ function initProductForm() {
   }
   
   form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const productData = {
-    name: document.getElementById('product-name').value,
-    description: document.getElementById('product-description').value,
-    price: document.getElementById('product-price').value,
-  };
-
-  // Handle category
-  let category = document.getElementById('product-category').value;
-  if (category === 'new') {
-    category = document.getElementById('new-category-input').value.trim();
-    if (!category) {
-      alert('Please enter a new category name');
-      return;
+    e.preventDefault();
+    
+    // Create FormData object
+    const formData = new FormData();
+    formData.append('name', document.getElementById('product-name').value);
+    formData.append('description', document.getElementById('product-description').value);
+    formData.append('price', document.getElementById('product-price').value);
+    
+    // Handle category
+    let category = document.getElementById('product-category').value;
+    if (category === 'new') {
+      category = document.getElementById('new-category-input').value.trim();
+      if (!category) {
+        alert('Please enter a new category name');
+        return;
+      }
     }
-  }
-  productData.category = category;
+    formData.append('category', category);
 
-  // Handle image upload - only if file exists
-  const imageInput = document.getElementById('product-image');
-  let imageUrl = '';
-  
-  if (imageInput.files.length > 0) {
+    // Append image if exists
+    const imageInput = document.getElementById('product-image');
+    if (imageInput.files.length > 0) {
+      try {
+        const originalFile = imageInput.files[0];
+        const compressedFile = await compressImage(originalFile);
+        formData.append('image', compressedFile);
+      } catch (error) {
+        alert('Error compressing image: ' + error.message);
+        return;
+      }
+    }
+
     try {
-      const originalFile = imageInput.files[0];
-      const compressedFile = await compressImage(originalFile);
-      imageUrl = await uploadImageToCloudinary(compressedFile);
+      // Remove Content-Type header for FormData
+      const headers = getAuthHeaders();
+      delete headers['Content-Type'];
+
+      const response = await fetch(`${API_BASE_URL}/products`, {
+        method: 'POST',
+        headers: headers,
+        body: formData, // Send FormData instead of JSON
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw await handleResponseError(response);
+      
+      alert('Product added successfully!');
+      form.reset();
+      
+      // Reset image preview
+      const imagePreview = document.getElementById('image-preview');
+      if (imagePreview) imagePreview.innerHTML = '';
+      
+      toggleNewCategoryInput();
+      loadProducts();
+      
+      if (adminPanelInitialized) {
+        adminProducts = await productService.getProducts();
+        renderAdminProducts(adminProducts);
+      }
     } catch (error) {
-      alert('Error uploading image: ' + error.message);
-      return;
+      alert(error.message || 'Failed to add product');
     }
-  } else {
-    // Use default icon if no image selected
-    imageUrl = ''; 
-  }
+  });
 
-  // Only add image property if we have a URL
-  if (imageUrl) {
-    productData.image = imageUrl;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/products`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(productData),
-      credentials: 'include'
-    });
-
-    if (!response.ok) throw await handleResponseError(response);
-    
-    alert('Product added successfully!');
-    form.reset();
-    
-    // Reset image preview
-    const imagePreview = document.getElementById('image-preview');
-    if (imagePreview) imagePreview.innerHTML = '';
-    
-    toggleNewCategoryInput();
-    loadProducts();
-    
-    if (adminPanelInitialized) {
-  adminProducts = await productService.getProducts();
-  renderAdminProducts(adminProducts);
-}
-  } catch (error) {
-    alert(error.message || 'Failed to add product');
-  }
-});
   const imageInput = document.getElementById('product-image');
   const imagePreview = document.getElementById('image-preview');
   
