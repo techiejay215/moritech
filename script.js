@@ -1115,32 +1115,38 @@ function initMobileLogout() {
 
 async function showProductDetails(productId) {
   try {
-    // Show loading state
-    document.getElementById('product-details').innerHTML = `
-      <div class="container" style="text-align: center; padding: 50px">
-        <div class="loading">Loading product details...</div>
-      </div>
-    `;
-    document.getElementById('product-details').style.display = 'block';
+    // Get the product details section and container
+    const productDetailsSection = document.getElementById('product-details');
+    const productDetailsContainer = productDetailsSection.querySelector('.product-details-container');
+    const loadingElement = document.createElement('div');
+    loadingElement.className = 'loading-overlay';
+    loadingElement.innerHTML = '<div class="loading">Loading product details...</div>';
     
+    // Show loading overlay
+    productDetailsSection.appendChild(loadingElement);
+    productDetailsContainer.style.display = 'none';
+    productDetailsSection.style.display = 'block';
+
     // Hide other sections
     document.querySelectorAll('section').forEach(section => {
-      if (section.id !== 'product-details') {
-        section.style.display = 'none';
-      }
+      if (section.id !== 'product-details') section.style.display = 'none';
+    });
+
+    // Fetch product details
+    const response = await fetch(`${API_BASE_URL}/products/${productId}`, { 
+      headers: getAuthHeaders(),
+      credentials: 'include' 
     });
     
-    // Fetch product details
-    const response = await fetch(`${API_BASE_URL}/products/${productId}`, { credentials: 'include' });
     if (!response.ok) throw await handleResponseError(response);
     const product = await response.json();
-    
+
     // Populate product details
     document.getElementById('product-detail-name').textContent = product.name;
     document.getElementById('product-detail-price').textContent = `Ksh ${product.price.toLocaleString()}`;
     document.getElementById('product-detail-category').textContent = product.category;
     document.getElementById('product-detail-description').textContent = product.description;
-    
+
     // Set up WhatsApp link
     const whatsappLink = document.getElementById('whatsapp-order');
     const message = `Hi, I'm interested in this product: ${product.name} (Ksh ${product.price.toLocaleString()}). Product ID: ${product._id}`;
@@ -1182,6 +1188,10 @@ async function showProductDetails(productId) {
         alert(`${product.name} added to cart!`);
       });
     }
+
+    // Remove loading and show content
+    productDetailsSection.removeChild(loadingElement);
+    productDetailsContainer.style.display = 'block';
     
   } catch (error) {
     console.error('Product details error:', error);
