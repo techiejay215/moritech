@@ -1,7 +1,7 @@
 let adminProducts = []; // Store products for client-side filtering
 console.log("🟢 Loaded updated script.js (Mobile Fix + Admin Panel + Cloudinary)");
 const API_BASE_URL = 'https://moritech.onrender.com/api';
-let cartInstance = null;
+window.cartInstance = null;
 let adminPanelInitialized = false;
 let refreshingToken = null; // For handling concurrent refresh requests
 
@@ -932,7 +932,7 @@ function initAuthModal() {
 }
 
 function initCart() {
-  if (cartInstance) return cartInstance;
+  if (window.cartInstance) return cartInstance;
   
   const cartIcon = document.querySelector('.cart-icon');
   const cartSidebar = document.getElementById('cart-sidebar');
@@ -946,6 +946,7 @@ function initCart() {
   const cartOverlay = document.createElement('div');
   cartOverlay.className = 'cart-overlay';
   document.body.appendChild(cartOverlay);
+  
 
   const openCart = () => {
     cartSidebar.classList.add('active');
@@ -1107,29 +1108,33 @@ function initCart() {
 
   fetchCart();
 
-  cartInstance = {
+  window.cartInstance = {
     addToCart,
     fetchCart,
     openCart
   };
-  return cartInstance;
+  return window.cartInstance;
 }
+
 function setupProductEventDelegation() {
-  document.querySelector('.product-grid')?.addEventListener('click', async (e) => {
-    const card = e.target.closest('.product-card');
-    if (!card) return;
-    
-    const productId = card.dataset.id;
-    if (!productId) return;
-    
+  document.body.addEventListener('click', async (e) => {
     if (e.target.classList.contains('add-to-cart-btn')) {
-      cartInstance?.addToCart(productId);
+      const card = e.target.closest('.product-card');
+      if (!card) return;
+      
+      const productId = card.dataset.id;
+      if (!productId) return;
+      
+      window.cartInstance?.addToCart(productId);
     }
     else if (e.target.classList.contains('inquire-btn')) {
+      const card = e.target.closest('.product-card');
+      if (!card) return;
       inquire(card.dataset.name);
     }
-    else {
-      showProductDetails(productId);
+    else if (e.target.closest('.product-card')) {
+      const card = e.target.closest('.product-card');
+      showProductDetails(card.dataset.id);
     }
   });
 }
@@ -1179,11 +1184,6 @@ function renderProducts(products) {
       </div>
     `;
     
-    // Add event listeners
-    card.querySelector('.inquire-btn').addEventListener('click', () => inquire(product.name));
-    card.querySelector('.add-to-cart-btn').addEventListener('click', () => {
-      cartInstance?.addToCart(product._id);
-    });
     
     // Click to show details
     card.querySelector('.product-img, .product-content p, .price').addEventListener('click', () => {
@@ -1771,6 +1771,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initLogout();
     initMobileLogout();
     setupBackButton();
+    initCart();
     await initOffersSlider();
     setupProductEventDelegation();
     
