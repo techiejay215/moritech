@@ -130,7 +130,7 @@ app.use('/api/offers', memoryUpload.single('image'), require('./routes/offerRout
 
 // ☁️ Image Upload Endpoint (PROTECTED)
 app.post('/api/upload', memoryUpload.single('image'), async (req, res) => {
-  try {S
+  try {
     if (!req.file) {
       return res.status(400).json({ message: 'No image uploaded' });
     }
