@@ -1071,40 +1071,49 @@ function initCart() {
       alert('Checkout failed. Please try again.');
     }
   });
-
- async function addToCart(productId) {
-    console.log(`Adding product ${productId} to cart`);
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        // Show login modal on mobile
-        if (window.innerWidth <= 768) {
-          document.getElementById('mobile-account-btn')?.click();
-        } else {
-          document.getElementById('login-link')?.click();
-        }
-        alert('Please login to add items to your cart');
-        return;
-      }
-      
-      await cartService.addToCart(productId);
-      await fetchCart();
-      openCart();
-      
-      // Mobile-specific feedback
+// Replace the entire addToCart function in initCart
+async function addToCart(productId) {
+  console.log(`Adding product ${productId} to cart`);
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
       if (window.innerWidth <= 768) {
-        const mobileCartBtn = document.getElementById('mobile-cart-btn');
-        if (mobileCartBtn) {
-          mobileCartBtn.classList.add('pulse');
-          setTimeout(() => mobileCartBtn.classList.remove('pulse'), 1000);
-        }
+        document.getElementById('mobile-account-btn')?.click();
+      } else {
+        document.getElementById('login-link')?.click();
       }
-    } catch (error) {
-      console.error('Add to cart error:', error);
-      alert(error.message || 'Failed to add to cart');
+      alert('Please login to add items to your cart');
+      return;
     }
-  }
+    
+    // Add with retry logic
+    try {
+      await cartService.addToCart(productId);
+    } catch (error) {
+      // If it's a 401, refresh token and retry
+      if (error.message.includes('401')) {
+        await authService.refreshToken();
+        await cartService.addToCart(productId);
+      } else {
+        throw error;
+      }
+    }
 
+    await fetchCart();
+    openCart();
+    
+    if (window.innerWidth <= 768) {
+      const mobileCartBtn = document.getElementById('mobile-cart-btn');
+      if (mobileCartBtn) {
+        mobileCartBtn.classList.add('pulse');
+        setTimeout(() => mobileCartBtn.classList.remove('pulse'), 1000);
+      }
+    }
+  } catch (error) {
+    console.error('Add to cart error:', error);
+    alert(error.message || 'Failed to add to cart');
+  }
+}
 
   fetchCart();
 
