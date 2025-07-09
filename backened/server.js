@@ -8,13 +8,13 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
 const mongoose = require('mongoose');
+const multer = require('multer'); // Added multer
 
 // 🔌 Database connection
 const connectDB = require('./config/db');
 
 // ☁️ Cloudinary and file upload
 const cloudinary = require('cloudinary').v2;
-const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 // 👤 User Model
@@ -47,7 +47,10 @@ connectDB();
 mongoose.connection.on('connected', () => {
   console.log('✅ MongoDB connected');
 });
-const upload = multer({ storage: multer.memoryStorage() });
+
+// Multer configurations
+const memoryUpload = multer({ storage: multer.memoryStorage() }); // For Cloudinary uploads
+const diskUpload = multer({ dest: 'uploads/' }); // For offer image uploads
 
 const app = express();
 
@@ -122,10 +125,11 @@ app.use(protectedPaths, (req, res, next) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
-app.use('/api/products', require('./routes/productRoutes')); // Product routes now unprotected globally
+app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/offers', diskUpload.single('image'), require('./routes/offerRoutes')); // Added offers route
 
 // ☁️ Image Upload Endpoint (PROTECTED)
-app.post('/api/upload', upload.single('image'), async (req, res) => {
+app.post('/api/upload', memoryUpload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No image uploaded' });
