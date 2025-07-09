@@ -375,16 +375,22 @@ const offerService = {
     }
   },
 
-  async addOffer(offerData) {
+ async addOffer(offerData) {
     try {
       const formData = new FormData();
-      for (const key in offerData) {
-        formData.append(key, offerData[key]);
+      formData.append('name', offerData.name);
+      formData.append('oldPrice', offerData.oldPrice);
+      formData.append('price', offerData.price);
+      
+      if (offerData.image) {
+        formData.append('image', offerData.image);
       }
       
       const response = await fetch(`${API_BASE_URL}/offers`, {
         method: 'POST',
-        headers: getAuthHeaders('multipart/form-data'),
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
         body: formData,
         credentials: 'include'
       });
