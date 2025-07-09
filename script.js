@@ -501,6 +501,21 @@ async function initOffersSlider() {
     offersSection.style.display = 'none';
   }
 }
+function getProductIcon(category) {
+  const icons = {
+    'laptops': 'fas fa-laptop',
+    'desktops': 'fas fa-desktop',
+    'monitors': 'fas fa-tv',
+    'accessories': 'fas fa-keyboard',
+    'storage': 'fas fa-hdd',
+    'printers': 'fas fa-print',
+    'ram': 'fas fa-memory',
+    'toners': 'fas fa-fill-drip',
+    'networking': 'fas fa-network-wired',
+    'software': 'fas fa-compact-disc'
+  };
+  return icons[category] || 'fas fa-microchip';
+}
 function renderOffers(offers) {
   const container = document.querySelector('.offers-container');
   if (!container) return;
@@ -511,7 +526,11 @@ function renderOffers(offers) {
     const offerEl = document.createElement('div');
     offerEl.className = 'offer-card';
     offerEl.innerHTML = `
-      <div class="offer-image" style="background-image: url(${offer.image || 'https://via.placeholder.com/300?text=Offer+Image'})"></div>
+      <div class="offer-image" style="background-image: url(${offer.image || 'https://via.placeholder.com/300?text=Offer+Image'})">
+        ${offer.category === 'toners' ? '<div class="offer-tag">TONER</div>' : ''}
+        ${offer.category === 'networking' ? '<div class="offer-tag">NETWORK</div>' : ''}
+        ${offer.category === 'software' ? '<div class="offer-tag">SOFTWARE</div>' : ''}
+      </div>
       <div class="offer-content">
         <h3>${offer.name}</h3>
         <div class="offer-prices">
