@@ -2634,9 +2634,8 @@ footer {
 .product-card {
   background-color: white;
   border: none !important;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  overflow: hidden;
   transition: all 0.3s ease;
 }
 
