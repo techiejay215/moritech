@@ -1074,11 +1074,13 @@ function initCart() {
     }
   });
 // Replace the entire addToCart function in initCart
+// Replace the existing addToCart function with this corrected version
 async function addToCart(productId) {
   console.log(`Adding product ${productId} to cart`);
   try {
     const token = localStorage.getItem('token');
     if (!token) {
+      // Mobile/desktop login prompt
       if (window.innerWidth <= 768) {
         document.getElementById('mobile-account-btn')?.click();
       } else {
@@ -1088,11 +1090,11 @@ async function addToCart(productId) {
       return;
     }
     
-    // Add with retry logic
+    // FIX: Remove the nested try-catch block and handle refresh properly
     try {
       await cartService.addToCart(productId);
     } catch (error) {
-      // If it's a 401, refresh token and retry
+      // Handle token refresh on 401 error
       if (error.message.includes('401')) {
         await authService.refreshToken();
         await cartService.addToCart(productId);
@@ -1104,6 +1106,7 @@ async function addToCart(productId) {
     await fetchCart();
     openCart();
     
+    // Mobile feedback animation
     if (window.innerWidth <= 768) {
       const mobileCartBtn = document.getElementById('mobile-cart-btn');
       if (mobileCartBtn) {
