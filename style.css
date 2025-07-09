@@ -2884,3 +2884,55 @@ footer {
 .offers-section:not([style*="display: none"]) ~ #products {
   margin-top: 0;
 }
+/* Add to style.css */
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important; /* Two columns */
+    gap: 15px;
+  }
+
+  .product-card {
+    min-width: 0; /* Allow cards to shrink */
+    max-width: 100%; /* Prevent overflow */
+  }
+
+  .product-img {
+    height: 140px; /* Reduced height */
+  }
+
+  .product-content {
+    padding: 12px;
+  }
+
+  .product-content p {
+    font-size: 13px; /* Smaller text */
+    margin-bottom: 8px;
+    -webkit-line-clamp: 2; /* Limit to 2 lines */
+  }
+
+  .price {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  .button-group button {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+}
+
+/* Further adjustments for very small screens */
+@media (max-width: 480px) {
+  .product-grid {
+    gap: 10px;
+  }
+
+  .product-img {
+    height: 120px;
+  }
+
+  .button-group button {
+    font-size: 11px;
+    padding: 5px;
+  }
+}
