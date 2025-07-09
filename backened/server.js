@@ -126,7 +126,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
-app.use('/api/offers', diskUpload.single('image'), require('./routes/offerRoutes')); // Added offers route
+app.use('/api/offers', memoryUploadUpload.single('image'), require('./routes/offerRoutes')); // Added offers route
 
 // ☁️ Image Upload Endpoint (PROTECTED)
 app.post('/api/upload', memoryUpload.single('image'), async (req, res) => {

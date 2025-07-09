@@ -1,26 +1,31 @@
 const express = require('express');
 const router = express.Router();
 const Offer = require('../models/Offer');
+const cloudinary = require('cloudinary').v2;
 
-// Create new offer
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Create new offer with direct buffer upload
 router.post('/', async (req, res) => {
   try {
     const { name, oldPrice, price } = req.body;
     let image = '';
     
     if (req.file) {
-      // Upload image to Cloudinary
-      const result = await cloudinary.uploader.upload(req.file.path);
+      // Upload directly from buffer
+      const result = await cloudinary.uploader.upload(
+        `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`,
+        { folder: 'moritech-offers' }
+      );
       image = result.secure_url;
     }
 
-    const newOffer = new Offer({
-      name,
-      oldPrice,
-      price,
-      image
-    });
-
+    const newOffer = new Offer({ name, oldPrice, price, image });
     const savedOffer = await newOffer.save();
     res.json(savedOffer);
   } catch (err) {

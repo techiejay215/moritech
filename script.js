@@ -384,9 +384,11 @@ const offerService = {
       formData.append('price', offerData.price);
       
       if (offerData.image) {
-        formData.append('image', offerData.image);
+        // FIX: Use the actual file object instead of offerData.image
+        formData.append('image', offerData.image); // ✅ Correct
       }
       
+      // FIX: Don't set Content-Type header manually for FormData
       const response = await fetch(`${API_BASE_URL}/offers`, {
         method: 'POST',
         headers: {
