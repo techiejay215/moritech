@@ -1071,12 +1071,17 @@ function initCart() {
     }
   });
 
-  async function addToCart(productId) {
+ async function addToCart(productId) {
+    console.log(`Adding product ${productId} to cart`);
     try {
-      // Check if user is authenticated
       const token = localStorage.getItem('token');
       if (!token) {
-        document.getElementById('login-link')?.click();
+        // Show login modal on mobile
+        if (window.innerWidth <= 768) {
+          document.getElementById('mobile-account-btn')?.click();
+        } else {
+          document.getElementById('login-link')?.click();
+        }
         alert('Please login to add items to your cart');
         return;
       }
@@ -1084,10 +1089,21 @@ function initCart() {
       await cartService.addToCart(productId);
       await fetchCart();
       openCart();
+      
+      // Mobile-specific feedback
+      if (window.innerWidth <= 768) {
+        const mobileCartBtn = document.getElementById('mobile-cart-btn');
+        if (mobileCartBtn) {
+          mobileCartBtn.classList.add('pulse');
+          setTimeout(() => mobileCartBtn.classList.remove('pulse'), 1000);
+        }
+      }
     } catch (error) {
+      console.error('Add to cart error:', error);
       alert(error.message || 'Failed to add to cart');
     }
   }
+
 
   fetchCart();
 
@@ -1097,6 +1113,25 @@ function initCart() {
     openCart
   };
   return cartInstance;
+}
+function setupProductEventDelegation() {
+  document.querySelector('.product-grid')?.addEventListener('click', async (e) => {
+    const card = e.target.closest('.product-card');
+    if (!card) return;
+    
+    const productId = card.dataset.id;
+    if (!productId) return;
+    
+    if (e.target.classList.contains('add-to-cart-btn')) {
+      cartInstance?.addToCart(productId);
+    }
+    else if (e.target.classList.contains('inquire-btn')) {
+      inquire(card.dataset.name);
+    }
+    else {
+      showProductDetails(productId);
+    }
+  });
 }
 
 function toggleNewCategoryInput() {
@@ -1128,6 +1163,7 @@ function renderProducts(products) {
     const card = document.createElement('div');
     card.className = 'product-card';
     card.dataset.id = product._id;
+    card.dataset.name = product.name; 
     
     card.innerHTML = `
       <div class="product-img">
@@ -1736,6 +1772,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initMobileLogout();
     setupBackButton();
     await initOffersSlider();
+    setupProductEventDelegation();
     
     if (user?.role === 'admin') {
       await initAdminPanel();
