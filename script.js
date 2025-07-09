@@ -233,9 +233,10 @@ const cartService = {
   
   async addToCart(productId, quantity = 1) {
     try {
-      const response = await fetch(`${API_BASE_URL}/cart/items`, {method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/cart/items`, {
+        method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ productId, quantity, credentials: 'include'}),
+        body: JSON.stringify({ productId, quantity }),
         credentials: 'include'
       });
       
@@ -251,7 +252,7 @@ const cartService = {
     try {
       const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {method: 'PUT',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ quantity, credentials: 'include'}),
+        body: JSON.stringify({ quantity}),
         credentials: 'include'
       });
       
