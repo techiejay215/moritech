@@ -115,12 +115,15 @@ const protectedPaths = [
   '/api/upload'  // Only these paths are now globally protected
 ];
 app.use(protectedPaths, (req, res, next) => {
+  // Allow OPTIONS (preflight) requests to pass through
+  if (req.method === 'OPTIONS') return next();
+
   if (!req.user) {
     return res.status(401).json({ message: 'Authentication required' });
   }
+
   next();
 });
-
 // 🔀 Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));

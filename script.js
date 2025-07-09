@@ -231,22 +231,22 @@ const cartService = {
     }
   },
   
-  async addToCart(productId, quantity = 1) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/cart/items`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ productId, quantity }),
-        credentials: 'include'
-      });
-      
-      if (!response.ok) throw await handleResponseError(response);
-      return await response.json();
-    } catch (error) {
-      console.error('Cart error:', error);
-      throw error;
-    }
-  },
+ async addToCart(productId, quantity = 1) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/cart/items`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ productId, quantity }),
+      credentials: 'include'
+    });
+    
+    if (!response.ok) throw await handleResponseError(response);
+    return await response.json();
+  } catch (error) {
+    console.error('Cart error:', error);
+    throw error;
+  }
+},
 
   async updateCartItem(itemId, quantity) {
     try {
