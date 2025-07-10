@@ -2941,15 +2941,6 @@ footer {
   .mobile-search {
     display: none !important;
   }
-  
-  .mobile-header-bottom {
-    justify-content: flex-end;
-    padding: 5px 15px;
-  }
-  
-  .section#products {
-    padding-top: 40px !important;
-  }
 }
 /* Add this at the end of your style.css file */
 
