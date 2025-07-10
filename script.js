@@ -711,12 +711,10 @@ function initCategoryFilter() {
 }
 
 function initSearch() {
-  const searchInput = document.getElementById('search-input');
-  if (!searchInput) return;
+  const desktopSearch = document.getElementById('search-input');
+  const mobileSearch = document.getElementById('mobile-search-input');
   
-  let searchTimeout;
-  
-  searchInput.addEventListener('input', function() {
+  const searchHandler = function() {
     const searchTerm = this.value.trim();
     clearTimeout(searchTimeout);
     
@@ -733,7 +731,10 @@ function initSearch() {
         alert('Search failed. Please try again.');
       }
     }, 500);
-  });
+  };
+
+  if (desktopSearch) desktopSearch.addEventListener('input', searchHandler);
+  if (mobileSearch) mobileSearch.addEventListener('input', searchHandler);
 }
 
 function initSmoothScrolling() {
