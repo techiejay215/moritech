@@ -625,11 +625,12 @@ function renderOffers(offers) {
 }
 
 function initOffersControls() {
-  const container = document.querySelector('.offers-container');
+ const container = document.querySelector('.offers-container');
   const prevBtn = document.querySelector('.offers-prev');
   const nextBtn = document.querySelector('.offers-next');
+  
   if (!container || !prevBtn || !nextBtn) return;
-
+  
   const offerCards = container.querySelectorAll('.offer-card');
   if (!offerCards.length) return;
 
@@ -1852,6 +1853,18 @@ async function loadProducts() {
     }
   }
 }
+async function loadOffers() {
+  try {
+    const offers = await offerService.getOffers();
+    if (offers.length > 0) {
+      renderOffers(offers);
+      initOffersControls();
+      document.querySelector('.offers-section').style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Failed to load offers:', error);
+  }
+}
 
 document.addEventListener('DOMContentLoaded', async function() {
   try {
@@ -1876,6 +1889,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     setupBackButton();
     initCart();
     setupProductEventDelegation();
+    await loadOffers();
     
     if (user?.role === 'admin') {
       await initAdminPanel();
