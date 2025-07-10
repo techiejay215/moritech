@@ -2966,3 +2966,34 @@ footer {
     padding-top: 40px !important;
   }
 }
+/* Hide desktop search on small screens */
+@media screen and (max-width: 768px) {
+  #products .search-container {
+    display: none;
+  }
+
+  .mobile-header-bottom {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    background: #f9f9f9;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .mobile-search {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 5px 10px;
+  }
+
+  .mobile-search input {
+    border: none;
+    outline: none;
+    width: 100%;
+  }
+}
