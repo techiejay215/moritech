@@ -709,31 +709,37 @@ function initCategoryFilter() {
     });
   });
 }
-
+// Modify initSearch() function to handle mobile search
 function initSearch() {
-  const searchInput = document.getElementById('search-input');
-  if (!searchInput) return;
+  const desktopSearch = document.getElementById('search-input');
+  const mobileSearch = document.getElementById('mobile-search-input');
   
-  let searchTimeout;
-  
-  searchInput.addEventListener('input', function() {
-    const searchTerm = this.value.trim();
-    clearTimeout(searchTimeout);
+  function setupSearch(inputElement) {
+    if (!inputElement) return;
     
-    if (searchTerm.length < 2) {
-      loadProducts();
-      return;
-    }
-    
-    searchTimeout = setTimeout(async () => {
-      try {
-        const products = await productService.searchProducts(searchTerm);
-        renderProducts(products);
-      } catch {
-        alert('Search failed. Please try again.');
+    let searchTimeout;
+    inputElement.addEventListener('input', function() {
+      const searchTerm = this.value.trim();
+      clearTimeout(searchTimeout);
+      
+      if (searchTerm.length < 2) {
+        loadProducts();
+        return;
       }
-    }, 500);
-  });
+      
+      searchTimeout = setTimeout(async () => {
+        try {
+          const products = await productService.searchProducts(searchTerm);
+          renderProducts(products);
+        } catch {
+          alert('Search failed. Please try again.');
+        }
+      }, 500);
+    });
+  }
+
+  setupSearch(desktopSearch);
+  setupSearch(mobileSearch);
 }
 
 function initSmoothScrolling() {
