@@ -485,26 +485,42 @@ async function initSlider() {
 async function initOffersSlider() {
   const offersSection = document.querySelector('.offers-section');
   if (!offersSection) return;
-  
+
   try {
     const offers = await offerService.getOffers();
-    
-    // Hide section if no offers
+
     if (!offers.length) {
       offersSection.style.display = 'none';
       return;
     }
-    
-    // Show section and render offers
+
     offersSection.style.display = 'block';
     renderOffers(offers);
     initOffersControls();
-    
+    startOffersAutoSlide();  // ✅ Start auto-slide
   } catch (error) {
     console.error('Failed to load offers:', error);
     offersSection.style.display = 'none';
   }
 }
+function startOffersAutoSlide() {
+  const container = document.querySelector('.offers-container');
+  const nextBtn = document.querySelector('.offers-next');
+  if (!container || !nextBtn) return;
+
+  let interval = setInterval(() => {
+    nextBtn.click();
+  }, 5000); // Auto-slide every 5s
+
+  container.addEventListener('mouseenter', () => clearInterval(interval));
+  container.addEventListener('mouseleave', () => {
+    interval = setInterval(() => {
+      nextBtn.click();
+    }, 5000);
+  });
+}
+
+
 function getProductIcon(category) {
   const icons = {
     'laptops': 'fas fa-laptop',
@@ -523,9 +539,9 @@ function getProductIcon(category) {
 function renderOffers(offers) {
   const container = document.querySelector('.offers-container');
   if (!container) return;
-  
+
   container.innerHTML = '';
-  
+
   offers.forEach(offer => {
     const offerEl = document.createElement('div');
     offerEl.className = 'offer-card';
@@ -544,51 +560,64 @@ function renderOffers(offers) {
         <div class="offer-save">Save Ksh ${(offer.oldPrice - offer.price).toLocaleString()}</div>
       </div>
     `;
+
+    // Make it clickable
+    offerEl.addEventListener('click', () => {
+      const foundProduct = adminProducts.find(p =>
+        p.name.toLowerCase().includes(offer.name.toLowerCase()) ||
+        offer.name.toLowerCase().includes(p.name.toLowerCase())
+      );
+      if (foundProduct) {
+        showProductDetails(foundProduct._id);
+      } else {
+        alert('Product details not available');
+      }
+    });
+
     container.appendChild(offerEl);
   });
 }
+
 
 function initOffersControls() {
   const container = document.querySelector('.offers-container');
   const prevBtn = document.querySelector('.offers-prev');
   const nextBtn = document.querySelector('.offers-next');
-  
   if (!container || !prevBtn || !nextBtn) return;
-  
+
   const offerCards = container.querySelectorAll('.offer-card');
   if (!offerCards.length) return;
-  
-  // Hide controls if only one card
+
   if (offerCards.length <= 1) {
     prevBtn.style.display = 'none';
     nextBtn.style.display = 'none';
     return;
   }
-  
+
   let currentIndex = 0;
-  const cardWidth = offerCards[0].offsetWidth + 20;
-  
+  const cardWidth = offerCards[0].offsetWidth + 40; // 20px gap + 20px margin
+
   function updatePosition() {
     container.style.transform = `translateX(-${currentIndex * cardWidth}px)`;
   }
-  
+
   prevBtn.addEventListener('click', () => {
     if (currentIndex > 0) {
       currentIndex--;
       updatePosition();
     }
   });
-  
+
   nextBtn.addEventListener('click', () => {
     if (currentIndex < offerCards.length - 1) {
       currentIndex++;
       updatePosition();
     }
   });
-  
-  // Initialize position
+
   updatePosition();
 }
+
   
 function initOfferForm() {
   const form = document.getElementById('add-offer-form');

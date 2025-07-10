@@ -49,6 +49,9 @@ body {
   flex-wrap: wrap;
   gap: 10px;
 }
+.top-bar-search {
+  flex: 0 1 300px; /* Fixed width for search bar */
+}
 
 .top-bar-contact {
   display: flex;
@@ -3105,6 +3108,22 @@ footer {
 /* Mobile adjustment */
 @media (max-width: 768px) {
   .top-bar-search {
-    display: none;
+    display: flex;
   }
+}
+/* Add cursor pointer to offer cards */
+.offer-card {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.offer-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Ensure consistent card sizing */
+.offer-card {
+  width: 280px;
+  flex: 0 0 auto;
 }
