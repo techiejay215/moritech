@@ -2951,3 +2951,27 @@ footer {
     padding-top: 40px !important;
   }
 }
+/* Add this at the end of your style.css file */
+
+/* Hide mobile header search bar */
+@media (max-width: 768px) {
+  .mobile-header-bottom {
+    display: none !important;
+  }
+  
+  /* Position products search bar at the top */
+  .section#products .search-container {
+    position: sticky;
+    top: 60px; /* Adjust based on your header height */
+    z-index: 100;
+    background: white;
+    padding: 10px 0;
+    margin: 0 -20px 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  /* Add padding to products section to account for sticky search */
+  .section#products {
+    padding-top: 40px !important;
+  }
+}
