@@ -3238,64 +3238,95 @@ footer {
   display: inline-block;
 }
 
-.top-bar-search {
-  position: relative;
-  flex: 0 1 300px;
+/* Offers Section */
+.offers-section {
+  background-color: #f8f9fa;
+  padding: 50px 0;
+}
+
+.offers-container {
   display: flex;
+  overflow-x: auto;
+  gap: 20px;
+  padding: 15px 5px 25px;
+  scrollbar-width: thin;
+  scrollbar-color: #1468df #f1f1f1;
 }
 
-.top-bar-search input {
-  width: 100%;
-  padding: 8px 45px 8px 15px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 30px;
-  color: white;
-  font-size: 14px;
-  transition: all 0.3s ease;
+.offers-container::-webkit-scrollbar {
+  height: 8px;
 }
 
-.top-bar-search input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
+.offers-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
 }
 
-.top-bar-search input:focus {
+.offers-container::-webkit-scrollbar-thumb {
+  background: #1468df;
+  border-radius: 4px;
+}
+
+.offer-card {
+  flex: 0 0 auto;
+  width: 280px;
   background: white;
-  color: var(--dark);
-  outline: none;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
 }
 
-.top-bar-search input:focus::placeholder {
-  color: var(--gray);
+.offer-card:hover {
+  transform: translateY(-5px);
 }
 
-.top-bar-search button {
+.offer-image {
+  height: 180px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.offer-tag {
   position: absolute;
-  right: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.9);
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  top: 10px;
+  left: 10px;
+  background: #e74c3c;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.offer-content {
+  padding: 15px;
+}
+
+.offer-prices {
+  margin: 10px 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
 }
 
-.top-bar-search button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+.old-price {
+  text-decoration: line-through;
+  color: #999;
+  margin-right: 10px;
 }
 
-/* Mobile adjustment */
-@media (max-width: 768px) {
-  .top-bar-search {
-    display: none;
-    /* Hide on mobile */
-  }
+.new-price {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #e74c3c;
+}
+
+.offer-save {
+  background: #f1c40f;
+  color: #333;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  display: inline-block;
 }
