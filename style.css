@@ -313,6 +313,7 @@ nav a:hover::after {
   transform: translateX(-50%);
   display: flex;
   gap: 8px;
+  display: none;
   z-index: 10;
 }
 
