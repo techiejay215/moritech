@@ -379,7 +379,9 @@ const offerService = {
 
  async addOffer(offerData) {
     try {
+      
     const formData = new FormData();
+    formData.append('productId', offerData.productId);
     formData.append('name', offerData.name);
     formData.append('oldPrice', offerData.oldPrice);
     formData.append('price', offerData.price);
