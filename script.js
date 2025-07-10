@@ -495,6 +495,11 @@ async function initOffersSlider() {
       return;
     }
     
+    // Show section and render offers
+    offersSection.style.display = 'block';
+    renderOffers(offers);
+    initOffersControls();
+    
   } catch (error) {
     console.error('Failed to load offers:', error);
     offersSection.style.display = 'none';
