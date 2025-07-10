@@ -378,8 +378,7 @@ const offerService = {
   },
 
  async addOffer(offerData) {
-    try {
-      
+  try {
     const formData = new FormData();
     formData.append('productId', offerData.productId);
     formData.append('name', offerData.name);
@@ -609,7 +608,10 @@ function initOfferForm() {
   e.preventDefault();
 
   const productId = document.getElementById('offer-product-id').value;
-  
+    if (!productId) {
+    alert('Please select a product');
+    return;
+  }
   const offerData = {
     productId,
     name: form.elements['name'].value,

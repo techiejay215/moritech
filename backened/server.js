@@ -201,6 +201,16 @@ app.use('/api/products', require('./routes/productRoutes'));
 // 🎁 Offer Routes
 app.post('/api/offers', memoryUpload.single('image'), async (req, res) => {
   try {
+    // Validate required fields
+    const requiredFields = ['productId', 'name', 'oldPrice', 'price'];
+    for (const field of requiredFields) {
+      if (!req.body[field]) {
+        return res.status(400).json({ 
+          message: `Missing required field: ${field}` 
+        });
+      }
+    }
+
     const { productId, name, oldPrice, price } = req.body;
     
     if (!req.file) {
