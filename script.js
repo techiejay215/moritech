@@ -547,6 +547,7 @@ function renderOffers(offers) {
     container.appendChild(offerEl);
   });
 }
+
 function getProductIcon(category) {
   const icons = {
     'laptops': 'fas fa-laptop',
