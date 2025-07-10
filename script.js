@@ -608,8 +608,8 @@ function initOfferForm() {
   e.preventDefault();
 
 const productId = document.getElementById('offer-product-select').value;
-  if (!productId) {
-    alert('Please select a product');
+  if (!productId || !/^[0-9a-fA-F]{24}$/.test(productId)) {
+    alert('Please select a valid product');
     return;
   }
   const offerData = {
@@ -1796,10 +1796,14 @@ async function populateProductDropdown() {
   if (!select) return;
   
   try {
-    // Use the already loaded products
     select.innerHTML = '<option value="">Select a product</option>';
     
-    allProducts.forEach(product => {
+    // Filter out products with invalid IDs
+    const validProducts = allProducts.filter(p => 
+      p._id && /^[0-9a-fA-F]{24}$/.test(p._id)
+    );
+
+    validProducts.forEach(product => {
       const option = document.createElement('option');
       option.value = product._id;
       option.textContent = product.name;
