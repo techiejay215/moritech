@@ -319,16 +319,16 @@ const productService = {
 
   async searchProducts(query) {
     try {
-    const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`, {
-      headers: getAuthHeaders(),
-      credentials: 'include'
-    });
-    if (!response.ok) throw await handleResponseError(response);
-    return await response.json();
-  } catch (error) {
-    console.error('Search error:', error);
-    throw error;
-  }
+      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query, { credentials: 'include' })}`, {
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      if (!response.ok) throw await handleResponseError(response);
+      return await response.json();
+    } catch (error) {
+      console.error('Search error:', error);
+      throw error;
+    }
   },
 
   async getProductsByCategory(category) {
@@ -711,10 +711,12 @@ function initCategoryFilter() {
 }
 
 function initSearch() {
-  const desktopSearch = document.getElementById('search-input');
-  const mobileSearch = document.getElementById('mobile-search-input');
+  const searchInput = document.getElementById('search-input');
+  if (!searchInput) return;
   
-  const searchHandler = function() {
+  let searchTimeout;
+  
+  searchInput.addEventListener('input', function() {
     const searchTerm = this.value.trim();
     clearTimeout(searchTimeout);
     
@@ -731,10 +733,7 @@ function initSearch() {
         alert('Search failed. Please try again.');
       }
     }, 500);
-  };
-
-  if (desktopSearch) desktopSearch.addEventListener('input', searchHandler);
-  if (mobileSearch) mobileSearch.addEventListener('input', searchHandler);
+  });
 }
 
 function initSmoothScrolling() {
