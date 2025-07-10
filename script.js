@@ -319,16 +319,16 @@ const productService = {
 
   async searchProducts(query) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query, { credentials: 'include' })}`, {
-        headers: getAuthHeaders(),
-        credentials: 'include'
-      });
-      if (!response.ok) throw await handleResponseError(response);
-      return await response.json();
-    } catch (error) {
-      console.error('Search error:', error);
-      throw error;
-    }
+    const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    if (!response.ok) throw await handleResponseError(response);
+    return await response.json();
+  } catch (error) {
+    console.error('Search error:', error);
+    throw error;
+  }
   },
 
   async getProductsByCategory(category) {
@@ -733,8 +733,22 @@ function initSearch() {
     }, 500);
   };
 
-  if (desktopSearch) desktopSearch.addEventListener('input', searchHandler);
-  if (mobileSearch) mobileSearch.addEventListener('input', searchHandler);
+  // Add event listeners only if elements exist
+  if (desktopSearch) {
+    desktopSearch.addEventListener('input', searchHandler);
+  }
+  
+  if (mobileSearch) {
+    mobileSearch.addEventListener('input', searchHandler);
+    
+    // Also add search icon click handler for mobile
+    const mobileSearchIcon = document.querySelector('.mobile-search i.fa-search');
+    if (mobileSearchIcon) {
+      mobileSearchIcon.addEventListener('click', () => {
+        searchHandler.call(mobileSearch);
+      });
+    }
+  }
 }
 
 function initSmoothScrolling() {
