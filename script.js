@@ -1530,7 +1530,10 @@ async function initAdminPanel() {
       // Initialize search functionality
       initAdminSearch();
       initOfferForm();
-    await loadAdminOffers();
+      await loadAdminOffers();
+      
+      // POPULATE THE DROPDOWN HERE
+      await populateProductDropdown();
       
       adminPanelInitialized = true;
       return true;
@@ -1602,6 +1605,7 @@ async function renderAdminProducts(products) {
             adminProducts = adminProducts.filter(p => p._id !== productId);
             renderAdminProducts(adminProducts);
             loadProducts();
+             await populateProductDropdown();
             alert('Product deleted');
           } catch {
             alert('Failed to delete product');
@@ -1677,7 +1681,7 @@ function initProductForm() {
       
       toggleNewCategoryInput();
       loadProducts();
-      
+      await populateProductDropdown();
       if (adminPanelInitialized) {
         adminProducts = await productService.getProducts();
         renderAdminProducts(adminProducts);
@@ -1792,20 +1796,19 @@ async function populateProductDropdown() {
   if (!select) return;
   
   try {
-    const products = await productService.getProducts();
+    // Use the already loaded products
     select.innerHTML = '<option value="">Select a product</option>';
     
-    products.forEach(product => {
+    allProducts.forEach(product => {
       const option = document.createElement('option');
       option.value = product._id;
       option.textContent = product.name;
       select.appendChild(option);
     });
   } catch (error) {
-    console.error('Failed to load products for dropdown:', error);
+    console.error('Failed to populate products dropdown:', error);
   }
 }
-
 document.addEventListener('DOMContentLoaded', async function() {
   try {
     // First check auth state
