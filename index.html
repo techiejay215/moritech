@@ -548,9 +548,12 @@
             <label for="offer-name">Product Name</label>
             <input type="text" id="offer-name" name="name" required>
           </div>
-          <div class="form-group">
-  <label for="offer-product-id">Product ID</label>
-  <input type="text" id="offer-product-id" name="productId" required>
+         <div class="form-group">
+  <label for="offer-product-select">Select Product</label>
+  <select id="offer-product-select" name="productId" required>
+    <option value="">Select a product</option>
+    <!-- Products will be populated by JavaScript -->
+  </select>
 </div>
           
           <div class="form-group">

@@ -607,8 +607,8 @@ function initOfferForm() {
   form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const productId = document.getElementById('offer-product-id').value;
-    if (!productId) {
+const productId = document.getElementById('offer-product-select').value;
+  if (!productId) {
     alert('Please select a product');
     return;
   }
@@ -899,6 +899,7 @@ function initAuthModal() {
       if (updatedUser?.role === 'admin') {
         await initAdminPanel();
         initProductForm();
+        await populateProductDropdown();
       }
       
       // Initialize cart
@@ -1784,6 +1785,24 @@ async function loadOffers() {
     }
   } catch (error) {
     console.error('Failed to load offers:', error);
+  }
+}
+async function populateProductDropdown() {
+  const select = document.getElementById('offer-product-select');
+  if (!select) return;
+  
+  try {
+    const products = await productService.getProducts();
+    select.innerHTML = '<option value="">Select a product</option>';
+    
+    products.forEach(product => {
+      const option = document.createElement('option');
+      option.value = product._id;
+      option.textContent = product.name;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Failed to load products for dropdown:', error);
   }
 }
 

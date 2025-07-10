@@ -45,19 +45,42 @@ mongoose.connection.on('connected', () => {
   console.log('✅ MongoDB connected');
 });
 
+// 🆔 ObjectID Validation Middleware
+const validateObjectId = (req, res, next) => {
+  const id = req.params.id || req.body.productId;
+  
+  if (id && !mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ 
+      message: 'Invalid ID format' 
+    });
+  }
+  
+  next();
+};
+
 // Define Offer Schema
 const offerSchema = new mongoose.Schema({
   productId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Product', 
     required: true,
-    validate: {
-      validator: async function(value) {
-        const product = await mongoose.model('Product').findById(value);
-        return product !== null;
+    validate: [
+      // Format validation
+      {
+        validator: function(v) {
+          return mongoose.Types.ObjectId.isValid(v);
+        },
+        message: 'Invalid product ID format'
       },
-      message: 'Product not found'
-    }
+      // Existence validation
+      {
+        validator: async function(v) {
+          const product = await mongoose.model('Product').findById(v);
+          return product !== null;
+        },
+        message: 'Product not found'
+      }
+    ]
   },
   name: { 
     type: String, 
@@ -197,9 +220,10 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/offers/:id', validateObjectId);
 
 // 🎁 Offer Routes
-app.post('/api/offers', memoryUpload.single('image'), async (req, res) => {
+app.post('/api/offers', validateObjectId, memoryUpload.single('image'), async (req, res) => {
   try {
     // Validate required fields
     const requiredFields = ['productId', 'name', 'oldPrice', 'price'];
