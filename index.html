@@ -142,35 +142,43 @@
     </div>
   </div>
   
-  <!-- Hero Section -->
-  <section id="home" class="hero">
-    <div class="slider-container">
-      <div class="slider">
-        <div class="slide slide-1 active"></div>
-        <div class="slide slide-2"></div>
-        <div class="slide slide-3"></div>
-        <div class="slide slide-4"></div>
-      </div>
+  <!-- Updated Hero Section -->
+<section id="home" class="hero">
+  <!-- Default Slider (Hidden when offers exist) -->
+  <div id="default-slider" class="slider-container">
+    <div class="slider">
+      <div class="slide slide-1 active"></div>
+      <div class="slide slide-2"></div>
+      <div class="slide slide-3"></div>
+      <div class="slide slide-4"></div>
     </div>
-    
-    <div class="slider-nav">
-      <button class="slider-btn prev-btn"><i class="fas fa-chevron-left"></i></button>
-      <button class="slider-btn next-btn"><i class="fas fa-chevron-right"></i></button>
+  </div>
+  
+  <!-- Offers Slider (Hidden by default) -->
+  <div id="offers-slider" class="slider-container" style="display:none;">
+    <div class="slider">
+      <!-- Slides will be dynamically added here -->
     </div>
-    
-    <div class="slider-controls">
-      <div class="slider-dot active" data-slide="0"></div>
-      <div class="slider-dot" data-slide="1"></div>
-      <div class="slider-dot" data-slide="2"></div>
-      <div class="slider-dot" data-slide="3"></div>
-    </div>
-    
-    <div class="container hero-content">
-      <h2>Premium IT Solutions and computer shop in Kisii</h2>
-      <p>Your trusted partner for computers, accessories, and professional IT solutions in Kisii and beyond</p>
-      <a href="#products" class="btn">Explore Products</a>
-    </div>
-  </section>
+  </div>
+  
+  <div class="slider-nav">
+    <button class="slider-btn prev-btn"><i class="fas fa-chevron-left"></i></button>
+    <button class="slider-btn next-btn"><i class="fas fa-chevron-right"></i></button>
+  </div>
+  
+  <div class="slider-controls">
+    <div class="slider-dot active" data-slide="0"></div>
+    <div class="slider-dot" data-slide="1"></div>
+    <div class="slider-dot" data-slide="2"></div>
+    <div class="slider-dot" data-slide="3"></div>
+  </div>
+  
+  <div class="container hero-content">
+    <h2>Premium IT Solutions and computer shop in Kisii</h2>
+    <p>Your trusted partner for computers, accessories, and professional IT solutions in Kisii and beyond</p>
+    <a href="#products" class="btn">Explore Products</a>
+  </div>
+</section>
   
   <!-- Special Offers Section -->
 <section class="offers-section" style="display: none;"> <!-- Initially hidden -->

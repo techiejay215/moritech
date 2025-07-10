@@ -420,13 +420,61 @@ const offerService = {
   }
 };
 
-async function initSlider() {
-  const slides = document.querySelectorAll('.slide');
+async function initOffersSlider() {
+  const offersSlider = document.getElementById('offers-slider');
+  const defaultSlider = document.getElementById('default-slider');
+  const slider = offersSlider.querySelector('.slider');
+  const sliderControls = offersSlider.querySelector('.slider-controls');
+  
+  try {
+    const offers = await offerService.getOffers();
+    
+    // If we have offers, show offers slider and hide default
+    if (offers.length) {
+      offersSlider.style.display = 'block';
+      defaultSlider.style.display = 'none';
+      
+      // Clear any existing slides
+      slider.innerHTML = '';
+      sliderControls.innerHTML = '';
+      
+      // Create new slides for offers
+      offers.forEach((offer, index) => {
+        const slide = document.createElement('div');
+        slide.className = `slide slide-offer-${index} ${index === 0 ? 'active' : ''}`;
+        slide.style.backgroundImage = `url(${offer.image || 'https://via.placeholder.com/1920x1080?text=Offer+Image'})`;
+        slider.appendChild(slide);
+        
+        // Create dot
+        const dot = document.createElement('div');
+        dot.className = `slider-dot ${index === 0 ? 'active' : ''}`;
+        dot.dataset.slide = index;
+        sliderControls.appendChild(dot);
+      });
+      
+      // Initialize the slider functionality
+      initSlider(offersSlider);
+    } else {
+      // No offers, show default slider
+      offersSlider.style.display = 'none';
+      defaultSlider.style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Failed to load offers:', error);
+    // Fallback to default slider
+    offersSlider.style.display = 'none';
+    defaultSlider.style.display = 'block';
+  }
+}
+
+// Modify initSlider to accept a container
+function initSlider(container = document) {
+  const slides = container.querySelectorAll('.slide');
   if (!slides.length) return;
   
-  const dots = document.querySelectorAll('.slider-dot');
-  const prevBtn = document.querySelector('.prev-btn');
-  const nextBtn = document.querySelector('.next-btn');
+  const dots = container.querySelectorAll('.slider-dot');
+  const prevBtn = container.querySelector('.prev-btn');
+  const nextBtn = container.querySelector('.next-btn');
   
   let currentSlide = 0;
   let slideInterval;
@@ -480,6 +528,7 @@ async function initSlider() {
   showSlide(0);
   startSlideShow();
 }
+
 
 // Add new functions for offers
 async function initOffersSlider() {
