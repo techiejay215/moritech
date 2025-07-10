@@ -1891,6 +1891,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     setupProductEventDelegation();
     await loadOffers();
     
+    
     if (user?.role === 'admin') {
       await initAdminPanel();
       initProductForm();
