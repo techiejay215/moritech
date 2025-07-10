@@ -733,22 +733,8 @@ function initSearch() {
     }, 500);
   };
 
-  // Add event listeners only if elements exist
-  if (desktopSearch) {
-    desktopSearch.addEventListener('input', searchHandler);
-  }
-  
-  if (mobileSearch) {
-    mobileSearch.addEventListener('input', searchHandler);
-    
-    // Also add search icon click handler for mobile
-    const mobileSearchIcon = document.querySelector('.mobile-search i.fa-search');
-    if (mobileSearchIcon) {
-      mobileSearchIcon.addEventListener('click', () => {
-        searchHandler.call(mobileSearch);
-      });
-    }
-  }
+  if (desktopSearch) desktopSearch.addEventListener('input', searchHandler);
+  if (mobileSearch) mobileSearch.addEventListener('input', searchHandler);
 }
 
 function initSmoothScrolling() {
