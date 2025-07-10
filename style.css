@@ -3067,3 +3067,44 @@ footer {
   align-items: center;
   justify-content: center;
 }
+/* Add to style.css */
+.top-bar-search {
+  margin-top: 8px;
+  max-width: 300px;
+  margin-left: auto;
+}
+
+.top-bar-search input {
+  padding: 8px 15px 8px 35px;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 30px;
+}
+
+.top-bar-search input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.top-bar-search input:focus {
+  background: white;
+  color: var(--dark);
+  border-color: white;
+}
+
+.top-bar-search input:focus::placeholder {
+  color: var(--gray);
+}
+
+.top-bar-search i {
+  color: rgba(255, 255, 255, 0.7);
+  left: 12px;
+}
+
+/* Mobile adjustment */
+@media (max-width: 768px) {
+  .top-bar-search {
+    display: none;
+  }
+}

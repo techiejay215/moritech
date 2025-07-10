@@ -718,10 +718,11 @@ function initCategoryFilter() {
     });
   });
 }
-// Modify initSearch() function to handle mobile search
+// Update initSearch() function in script.js
 function initSearch() {
   const desktopSearch = document.getElementById('search-input');
   const mobileSearch = document.getElementById('mobile-search-input');
+  const topSearch = document.getElementById('top-search-input');
   
   function setupSearch(inputElement) {
     if (!inputElement) return;
@@ -749,6 +750,7 @@ function initSearch() {
 
   setupSearch(desktopSearch);
   setupSearch(mobileSearch);
+  setupSearch(topSearch); // Initialize the new top search
 }
 
 function initSmoothScrolling() {
