@@ -4,6 +4,7 @@ const API_BASE_URL = 'https://moritech.onrender.com/api';
 window.cartInstance = null;
 let adminPanelInitialized = false;
 let refreshingToken = null; // For handling concurrent refresh requests
+let allProducts = [];
 
 function getAuthHeaders(contentType = 'application/json') {
   const headers = {
@@ -561,23 +562,42 @@ function renderOffers(offers) {
       </div>
     `;
 
-    // Make it clickable
-    offerEl.addEventListener('click', () => {
-      const foundProduct = adminProducts.find(p =>
-        p.name.toLowerCase().includes(offer.name.toLowerCase()) ||
-        offer.name.toLowerCase().includes(p.name.toLowerCase())
-      );
+    // Make it clickable with async search
+    offerEl.addEventListener('click', async () => {
+      // Normalize names for comparison
+      const offerNameNormalized = offer.name.toLowerCase().trim();
+      
+      // Search in allProducts first
+      const foundProduct = allProducts.find(p => {
+        const productNameNormalized = p.name.toLowerCase().trim();
+        return (
+          productNameNormalized === offerNameNormalized ||
+          productNameNormalized.includes(offerNameNormalized) ||
+          offerNameNormalized.includes(productNameNormalized)
+        );
+      });
+
       if (foundProduct) {
         showProductDetails(foundProduct._id);
       } else {
-        alert('Product details not available');
+        // Fallback to API search
+        try {
+          const searchResult = await productService.searchProducts(offer.name);
+          if (searchResult.length > 0) {
+            showProductDetails(searchResult[0]._id);
+          } else {
+            alert('Product details not available');
+          }
+        } catch (error) {
+          console.error('Search failed:', error);
+          alert('Error searching for product');
+        }
       }
     });
 
     container.appendChild(offerEl);
   });
 }
-
 
 function initOffersControls() {
   const container = document.querySelector('.offers-container');
@@ -1792,6 +1812,7 @@ function initMobileAuth() {
 async function loadProducts() {
   try {
     const products = await productService.getProducts();
+    allProducts = products; // Store products globally
     renderProducts(products);
   } catch (error) {
     console.error('Failed to load products:', error);
