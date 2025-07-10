@@ -378,34 +378,31 @@ const offerService = {
 
  async addOffer(offerData) {
     try {
-      const formData = new FormData();
-      formData.append('name', offerData.name);
-      formData.append('oldPrice', offerData.oldPrice);
-      formData.append('price', offerData.price);
-      
-      if (offerData.image) {
-        // FIX: Use the actual file object instead of offerData.image
-        formData.append('image', offerData.image); // ✅ Correct
-      }
-      
-      // FIX: Don't set Content-Type header manually for FormData
-      const response = await fetch(`${API_BASE_URL}/offers`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-        },
-        body: formData,
-        credentials: 'include'
-      });
-      
-      if (!response.ok) throw await handleResponseError(response);
-      return await response.json();
-    } catch (error) {
-      console.error('Add offer error:', error);
-      throw error;
+    const formData = new FormData();
+    formData.append('name', offerData.name);
+    formData.append('oldPrice', offerData.oldPrice);
+    formData.append('price', offerData.price);
+    
+    if (offerData.image) {
+      formData.append('image', offerData.image);
     }
-  },
-
+    
+    const response = await fetch(`${API_BASE_URL}/offers`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      },
+      body: formData,
+      credentials: 'include'
+    });
+    
+    if (!response.ok) throw await handleResponseError(response);
+    return await response.json();
+  } catch (error) {
+    console.error('Add offer error:', error);
+    throw error;
+  }
+},
   async deleteOffer(id) {
     try {
       const response = await fetch(`${API_BASE_URL}/offers/${id}`, {

@@ -10,29 +10,44 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Create new offer with direct buffer upload
+// Create new offer
 router.post('/', async (req, res) => {
   try {
     const { name, oldPrice, price } = req.body;
     let image = '';
     
     if (req.file) {
-      // Upload directly from buffer
-      const result = await cloudinary.uploader.upload(
-        `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`,
-        { folder: 'moritech-offers' }
-      );
+      // Upload to Cloudinary using buffer
+      const result = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: 'moritech-offers' },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        
+        // Use buffer from multer memory storage
+        uploadStream.end(req.file.buffer);
+      });
+      
       image = result.secure_url;
     }
 
-    const newOffer = new Offer({ name, oldPrice, price, image });
+    const newOffer = new Offer({ 
+      name, 
+      oldPrice: parseFloat(oldPrice), 
+      price: parseFloat(price), 
+      image 
+    });
+    
     const savedOffer = await newOffer.save();
     res.json(savedOffer);
   } catch (err) {
+    console.error('Offer creation error:', err);
     res.status(500).json({ message: err.message });
   }
 });
-
 // Get all offers
 router.get('/', async (req, res) => {
   try {
