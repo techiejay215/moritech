@@ -490,6 +490,7 @@ function renderOffers(offers) {
   offers.forEach(offer => {
     const offerEl = document.createElement('div');
     offerEl.className = 'offer-card';
+    offerEl.dataset.productId = offer.productId; 
     
     // Determine tag based on category
     let tag = '';
@@ -542,6 +543,7 @@ function renderOffers(offers) {
         console.error('Search failed:', error);
         alert('Error searching for product');
       }
+      
     });
 
     container.appendChild(offerEl);

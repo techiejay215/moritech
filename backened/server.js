@@ -8,7 +8,7 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
 const mongoose = require('mongoose');
-const multer = require('multer'); // Added multer
+const multer = require('multer');
 
 // 🔌 Database connection
 const connectDB = require('./config/db');
@@ -16,9 +16,6 @@ const connectDB = require('./config/db');
 // ☁️ Cloudinary and file upload
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
-
-// 👤 User Model
-const User = require('./models/User');
 
 // ✅ Check required environment variables
 [
@@ -48,9 +45,83 @@ mongoose.connection.on('connected', () => {
   console.log('✅ MongoDB connected');
 });
 
+// Define Offer Schema
+const offerSchema = new mongoose.Schema({
+  productId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Product', 
+    required: true,
+    validate: {
+      validator: async function(value) {
+        const product = await mongoose.model('Product').findById(value);
+        return product !== null;
+      },
+      message: 'Product not found'
+    }
+  },
+  name: { 
+    type: String, 
+    required: true,
+    trim: true,
+    maxlength: 100
+  },
+  oldPrice: { 
+    type: Number, 
+    required: true,
+    min: 0,
+    validate: {
+      validator: function(value) {
+        return value > this.price;
+      },
+      message: 'Old price must be greater than current price'
+    }
+  },
+  price: { 
+    type: Number, 
+    required: true,
+    min: 0
+  },
+  image: { 
+    type: String, 
+    required: true,
+    validate: {
+      validator: function(value) {
+        return /^https?:\/\/.+\..+/.test(value);
+      },
+      message: 'Invalid image URL'
+    }
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  expiresAt: {
+    type: Date,
+    required: false
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  }
+});
+
+// Create Offer model
+const Offer = mongoose.model('Offer', offerSchema);
+
 // Multer configurations
-const memoryUpload = multer({ storage: multer.memoryStorage() }); // For Cloudinary uploads
-const diskUpload = multer({ dest: 'uploads/' }); // For offer image uploads
+const memoryUpload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  }
+});
 
 const app = express();
 
@@ -62,7 +133,7 @@ const corsOptions = {
     'http://127.0.0.1:5500'
   ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
 };
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
@@ -98,7 +169,7 @@ app.use((req, res, next) => {
       } else {
         console.error('❌ JWT verification failed:', err.message);
       }
-      return next(); // Don't block; let route middleware handle protection
+      return next();
     }
     req.user = decoded;
     if (process.env.NODE_ENV !== 'production') {
@@ -108,28 +179,170 @@ app.use((req, res, next) => {
   });
 });
 
-// 🔐 Route Protection Middleware - UPDATED
+// 🔐 Route Protection Middleware
 const protectedPaths = [
   '/api/cart', 
   '/api/inquiries',
-  '/api/upload'  // Only these paths are now globally protected
+  '/api/upload',
+  '/api/offers' // Added offers to protected paths
 ];
 app.use(protectedPaths, (req, res, next) => {
-  // Allow OPTIONS (preflight) requests to pass through
   if (req.method === 'OPTIONS') return next();
-
-  if (!req.user) {
-    return res.status(401).json({ message: 'Authentication required' });
-  }
-
+  if (!req.user) return res.status(401).json({ message: 'Authentication required' });
   next();
 });
+
 // 🔀 Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
-app.use('/api/offers', memoryUpload.single('image'), require('./routes/offerRoutes')); // Added offers route
+
+// 🎁 Offer Routes
+app.post('/api/offers', memoryUpload.single('image'), async (req, res) => {
+  try {
+    const { productId, name, oldPrice, price } = req.body;
+    
+    if (!req.file) {
+      return res.status(400).json({ message: 'Image is required' });
+    }
+
+    // Upload image to Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: 'moritech-offers' },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      
+      uploadStream.end(req.file.buffer);
+    });
+
+    const newOffer = new Offer({
+      productId,
+      name,
+      oldPrice: parseFloat(oldPrice),
+      price: parseFloat(price),
+      image: result.secure_url
+    });
+
+    await newOffer.save();
+    
+    // Populate product details in response
+    const populatedOffer = await Offer.findById(newOffer._id).populate('productId', 'name description');
+    
+    res.status(201).json({
+      message: 'Offer created successfully',
+      offer: populatedOffer
+    });
+  } catch (error) {
+    console.error('❌ Offer creation error:', error.message);
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: 'Validation failed',
+        errors: Object.values(error.errors).map(err => err.message)
+      });
+    }
+    
+    res.status(500).json({ message: 'Failed to create offer' });
+  }
+});
+
+// Get all active offers
+app.get('/api/offers', async (req, res) => {
+  try {
+    const offers = await Offer.find({ isActive: true })
+      .populate('productId', 'name description category')
+      .sort({ createdAt: -1 });
+      
+    res.json(offers);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch offers' });
+  }
+});
+
+// Get single offer
+app.get('/api/offers/:id', async (req, res) => {
+  try {
+    const offer = await Offer.findById(req.params.id)
+      .populate('productId');
+      
+    if (!offer) {
+      return res.status(404).json({ message: 'Offer not found' });
+    }
+    
+    res.json(offer);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch offer' });
+  }
+});
+
+// Update offer
+app.put('/api/offers/:id', memoryUpload.single('image'), async (req, res) => {
+  try {
+    const { name, oldPrice, price } = req.body;
+    const updateData = { name, oldPrice, price };
+    
+    if (req.file) {
+      const result = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: 'moritech-offers' },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        
+        uploadStream.end(req.file.buffer);
+      });
+      updateData.image = result.secure_url;
+    }
+    
+    const updatedOffer = await Offer.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    ).populate('productId');
+    
+    if (!updatedOffer) {
+      return res.status(404).json({ message: 'Offer not found' });
+    }
+    
+    res.json({
+      message: 'Offer updated successfully',
+      offer: updatedOffer
+    });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: 'Validation failed',
+        errors: Object.values(error.errors).map(err => err.message)
+      });
+    }
+    res.status(500).json({ message: 'Failed to update offer' });
+  }
+});
+
+// Delete offer
+app.delete('/api/offers/:id', async (req, res) => {
+  try {
+    const deletedOffer = await Offer.findByIdAndDelete(req.params.id);
+    
+    if (!deletedOffer) {
+      return res.status(404).json({ message: 'Offer not found' });
+    }
+    
+    // Optionally: Delete the image from Cloudinary
+    // await cloudinary.uploader.destroy(deletedOffer.image);
+    
+    res.json({ message: 'Offer deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete offer' });
+  }
+});
 
 // ☁️ Image Upload Endpoint (PROTECTED)
 app.post('/api/upload', memoryUpload.single('image'), async (req, res) => {
@@ -138,7 +351,6 @@ app.post('/api/upload', memoryUpload.single('image'), async (req, res) => {
       return res.status(400).json({ message: 'No image uploaded' });
     }
 
-    // Upload to Cloudinary
     const result = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         { folder: 'moritech-uploads' },
@@ -148,9 +360,7 @@ app.post('/api/upload', memoryUpload.single('image'), async (req, res) => {
         }
       );
       
-      // Use buffer instead of stream
-      const buffer = req.file.buffer;
-      uploadStream.end(buffer);
+      uploadStream.end(req.file.buffer);
     });
 
     res.json({ url: result.secure_url });
@@ -164,7 +374,8 @@ app.post('/api/upload', memoryUpload.single('image'), async (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    user: req.user ? req.user.id : 'unauthenticated'
+    user: req.user ? req.user.id : 'unauthenticated',
+    db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
 
@@ -221,7 +432,7 @@ app.post('/api/auth/refresh', async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'Lax',
-      maxAge: 15 * 60 * 1000 // 15 minutes
+      maxAge: 15 * 60 * 1000
     });
 
     res.json({ token });
@@ -234,7 +445,18 @@ app.post('/api/auth/refresh', async (req, res) => {
 // 🧯 Global Error Handler
 app.use((err, req, res, next) => {
   console.error('🔥 Server Error:', err.message);
-  res.status(err.status || 500).json({ message: err.message || 'Server error' });
+  
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ 
+      message: 'File upload error',
+      error: err.message
+    });
+  }
+  
+  res.status(err.status || 500).json({ 
+    message: err.message || 'Server error',
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
+  });
 });
 
 // 🚀 Start Server
