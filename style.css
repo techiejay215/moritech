@@ -49,8 +49,10 @@ body {
   flex-wrap: wrap;
   gap: 10px;
 }
+
 .top-bar-search {
-  flex: 0 1 300px; /* Fixed width for search bar */
+  flex: 0 1 300px;
+  /* Fixed width for search bar */
 }
 
 .top-bar-contact {
@@ -2707,6 +2709,7 @@ footer {
     transform: none;
   }
 }
+
 /* Offers Section */
 .offers-section {
   background-color: #f8f9fa;
@@ -2730,7 +2733,7 @@ footer {
   background: white;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .offer-image {
@@ -2830,7 +2833,7 @@ footer {
   .offer-card {
     flex: 0 0 100%;
   }
-  
+
   .offers-controls {
     position: absolute;
     top: 50%;
@@ -2841,6 +2844,7 @@ footer {
     transform: translateY(-50%);
   }
 }
+
 /* Hero Offer Content */
 .hero-offer-content {
   background: rgba(0, 0, 0, 0.6);
@@ -2879,28 +2883,34 @@ footer {
   font-weight: bold;
   color: #ff9f43;
 }
+
 .offers-section {
   transition: all 0.3s ease;
 }
 
 /* Hide controls when no offers */
-.offers-section:not([style*="display: none"]) ~ #products {
+.offers-section:not([style*="display: none"])~#products {
   margin-top: 0;
 }
+
 /* Add to style.css */
 @media (max-width: 768px) {
   .product-grid {
-    grid-template-columns: repeat(2, 1fr) !important; /* Two columns */
+    grid-template-columns: repeat(2, 1fr) !important;
+    /* Two columns */
     gap: 15px;
   }
 
   .product-card {
-    min-width: 0; /* Allow cards to shrink */
-    max-width: 100%; /* Prevent overflow */
+    min-width: 0;
+    /* Allow cards to shrink */
+    max-width: 100%;
+    /* Prevent overflow */
   }
 
   .product-img {
-    height: 140px; /* Reduced height */
+    height: 140px;
+    /* Reduced height */
   }
 
   .product-content {
@@ -2908,9 +2918,11 @@ footer {
   }
 
   .product-content p {
-    font-size: 13px; /* Smaller text */
+    font-size: 13px;
+    /* Smaller text */
     margin-bottom: 8px;
-    -webkit-line-clamp: 2; /* Limit to 2 lines */
+    -webkit-line-clamp: 2;
+    /* Limit to 2 lines */
   }
 
   .price {
@@ -2939,40 +2951,42 @@ footer {
     padding: 5px;
   }
 }
- /* Hide the search container in products section on mobile */
-  .search-container {
-    display: none;
-  }
-  
-  /* Adjust mobile header layout */
-  .mobile-header-bottom {
-    flex-direction: column;
-    gap: 10px;
-    padding: 10px 15px;
-  }
-  
-  .mobile-search {
-    width: 100%;
-  }
-  
-  .mobile-header-icons {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-  }
+
+/* Hide the search container in products section on mobile */
+.search-container {
+  display: none;
+}
+
+/* Adjust mobile header layout */
+.mobile-header-bottom {
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 15px;
+}
+
+.mobile-search {
+  width: 100%;
+}
+
+.mobile-header-icons {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
 
 /* Add this at the end of the CSS */
 @media (max-width: 480px) {
   .mobile-header-icons {
     flex-wrap: wrap;
   }
-  
+
   .mobile-user-profile {
     min-width: 100%;
     text-align: center;
     margin-top: 5px;
   }
 }
+
 /* Offers Section */
 .offers-section {
   background-color: #f8f9fa;
@@ -2992,7 +3006,7 @@ footer {
   background: white;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s;
 }
 
@@ -3057,7 +3071,8 @@ footer {
   gap: 20px;
 }
 
-.offers-prev, .offers-next {
+.offers-prev,
+.offers-next {
   background: #3498db;
   color: white;
   border: none;
@@ -3070,6 +3085,7 @@ footer {
   align-items: center;
   justify-content: center;
 }
+
 /* Add to style.css */
 .top-bar-search {
   margin-top: 8px;
@@ -3111,6 +3127,7 @@ footer {
     display: flex;
   }
 }
+
 /* Add cursor pointer to offer cards */
 .offer-card {
   cursor: pointer;
@@ -3119,7 +3136,7 @@ footer {
 
 .offer-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 /* Ensure consistent card sizing */
@@ -3127,6 +3144,7 @@ footer {
   width: 280px;
   flex: 0 0 auto;
 }
+
 /* Offers Section */
 .offers-section {
   background-color: #f8f9fa;
@@ -3162,7 +3180,7 @@ footer {
   background: white;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s;
 }
 
@@ -3218,4 +3236,66 @@ footer {
   border-radius: 4px;
   font-size: 0.9rem;
   display: inline-block;
+}
+
+.top-bar-search {
+  position: relative;
+  flex: 0 1 300px;
+  display: flex;
+}
+
+.top-bar-search input {
+  width: 100%;
+  padding: 8px 45px 8px 15px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 30px;
+  color: white;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.top-bar-search input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.top-bar-search input:focus {
+  background: white;
+  color: var(--dark);
+  outline: none;
+}
+
+.top-bar-search input:focus::placeholder {
+  color: var(--gray);
+}
+
+.top-bar-search button {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.9);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.top-bar-search button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Mobile adjustment */
+@media (max-width: 768px) {
+  .top-bar-search {
+    display: none;
+    /* Hide on mobile */
+  }
 }
