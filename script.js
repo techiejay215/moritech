@@ -481,74 +481,7 @@ async function initSlider() {
   showSlide(0);
   startSlideShow();
 }
-function renderOffers(offers) {
-  const container = document.querySelector('.offers-container');
-  if (!container) return;
 
-  container.innerHTML = '';
-
-  offers.forEach(offer => {
-    const offerEl = document.createElement('div');
-    offerEl.className = 'offer-card';
-    offerEl.dataset.productId = offer.productId; 
-    
-    // Determine tag based on category
-    let tag = '';
-    if (offer.category === 'toners') tag = '<div class="offer-tag">TONER</div>';
-    else if (offer.category === 'networking') tag = '<div class="offer-tag">NETWORK</div>';
-    else if (offer.category === 'software') tag = '<div class="offer-tag">SOFTWARE</div>';
-
-    offerEl.innerHTML = `
-      <div class="offer-image" style="background-image: url(${offer.image || 'https://via.placeholder.com/300?text=Offer+Image'})">
-        ${tag}
-      </div>
-      <div class="offer-content">
-        <h3>${offer.name}</h3>
-        <div class="offer-prices">
-          <span class="old-price">Ksh ${offer.oldPrice.toLocaleString()}</span>
-          <span class="new-price">Ksh ${offer.price.toLocaleString()}</span>
-        </div>
-        <div class="offer-save">Save Ksh ${(offer.oldPrice - offer.price).toLocaleString()}</div>
-      </div>
-    `;
-
-    // Click handler
-    offerEl.addEventListener('click', async () => {
-      const normalizedOfferName = offer.name.toLowerCase().trim();
-      
-      // Try to find in local products
-      const foundProduct = allProducts.find(p => {
-        const productName = p.name.toLowerCase().trim();
-        return (
-          productName === normalizedOfferName ||
-          productName.includes(normalizedOfferName) ||
-          normalizedOfferName.includes(productName)
-        );
-      });
-
-      if (foundProduct) {
-        showProductDetails(foundProduct._id);
-        return;
-      }
-
-      // Fallback to API search
-      try {
-        const searchResult = await productService.searchProducts(offer.name);
-        if (searchResult.length > 0) {
-          showProductDetails(searchResult[0]._id);
-        } else {
-          alert('Product details not available');
-        }
-      } catch (error) {
-        console.error('Search failed:', error);
-        alert('Error searching for product');
-      }
-      
-    });
-
-    container.appendChild(offerEl);
-  });
-}
 
 function getProductIcon(category) {
   const icons = {
@@ -574,11 +507,17 @@ function renderOffers(offers) {
   offers.forEach(offer => {
     const offerEl = document.createElement('div');
     offerEl.className = 'offer-card';
+    offerEl.dataset.productId = offer.productId; 
+
+    // Determine tag based on category
+    let tag = '';
+    if (offer.category === 'toners') tag = '<div class="offer-tag">TONER</div>';
+    else if (offer.category === 'networking') tag = '<div class="offer-tag">NETWORK</div>';
+    else if (offer.category === 'software') tag = '<div class="offer-tag">SOFTWARE</div>';
+
     offerEl.innerHTML = `
       <div class="offer-image" style="background-image: url(${offer.image || 'https://via.placeholder.com/300?text=Offer+Image'})">
-        ${offer.category === 'toners' ? '<div class="offer-tag">TONER</div>' : ''}
-        ${offer.category === 'networking' ? '<div class="offer-tag">NETWORK</div>' : ''}
-        ${offer.category === 'software' ? '<div class="offer-tag">SOFTWARE</div>' : ''}
+        ${tag}
       </div>
       <div class="offer-content">
         <h3>${offer.name}</h3>
@@ -590,37 +529,9 @@ function renderOffers(offers) {
       </div>
     `;
 
-    // Make it clickable with async search
-    offerEl.addEventListener('click', async () => {
-      // Normalize names for comparison
-      const offerNameNormalized = offer.name.toLowerCase().trim();
-      
-      // Search in allProducts first
-      const foundProduct = allProducts.find(p => {
-        const productNameNormalized = p.name.toLowerCase().trim();
-        return (
-          productNameNormalized === offerNameNormalized ||
-          productNameNormalized.includes(offerNameNormalized) ||
-          offerNameNormalized.includes(productNameNormalized)
-        );
-      });
-
-      if (foundProduct) {
-        showProductDetails(foundProduct._id);
-      } else {
-        // Fallback to API search
-        try {
-          const searchResult = await productService.searchProducts(offer.name);
-          if (searchResult.length > 0) {
-            showProductDetails(searchResult[0]._id);
-          } else {
-            alert('Product details not available');
-          }
-        } catch (error) {
-          console.error('Search failed:', error);
-          alert('Error searching for product');
-        }
-      }
+    // ✅ Simplified click handler using product ID
+    offerEl.addEventListener('click', () => {
+      showProductDetails(offer.productId);
     });
 
     container.appendChild(offerEl);
@@ -694,8 +605,11 @@ function initOfferForm() {
   // Form submission
   form.addEventListener('submit', async (e) => {
   e.preventDefault();
+
+  const productId = document.getElementById('offer-product-id').value;
   
   const offerData = {
+    productId,
     name: form.elements['name'].value,
     oldPrice: parseFloat(form.elements['oldPrice'].value),
     price: parseFloat(form.elements['price'].value),
