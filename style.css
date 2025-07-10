@@ -2936,18 +2936,37 @@ footer {
     padding: 5px;
   }
 }
-/* Add this at the end of style.css */
-@media (max-width: 768px) {
-  .mobile-search {
-    display: none !important;
+ /* Hide the search container in products section on mobile */
+  .search-container {
+    display: none;
   }
   
+  /* Adjust mobile header layout */
   .mobile-header-bottom {
-    justify-content: flex-end;
-    padding: 5px 15px;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 15px;
   }
   
-  .section#products {
-    padding-top: 40px !important;
+  .mobile-search {
+    width: 100%;
+  }
+  
+  .mobile-header-icons {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+  }
+
+/* Add this at the end of the CSS */
+@media (max-width: 480px) {
+  .mobile-header-icons {
+    flex-wrap: wrap;
+  }
+  
+  .mobile-user-profile {
+    min-width: 100%;
+    text-align: center;
+    margin-top: 5px;
   }
 }
