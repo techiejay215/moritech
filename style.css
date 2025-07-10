@@ -2935,10 +2935,4 @@ footer {
     font-size: 11px;
     padding: 5px;
   }
-  /* style.css */
-@media (max-width: 768px) {
-  #products .search-container {
-    display: none;
-  }
-}
 }
