@@ -481,47 +481,72 @@ async function initSlider() {
   showSlide(0);
   startSlideShow();
 }
-
-// Add new functions for offers
-async function initOffersSlider() {
-  const offersSection = document.querySelector('.offers-section');
-  if (!offersSection) return;
-
-  try {
-    const offers = await offerService.getOffers();
-
-    if (!offers.length) {
-      offersSection.style.display = 'none';
-      return;
-    }
-
-    offersSection.style.display = 'block';
-    renderOffers(offers);
-    initOffersControls();
-    startOffersAutoSlide();  // ✅ Start auto-slide
-  } catch (error) {
-    console.error('Failed to load offers:', error);
-    offersSection.style.display = 'none';
-  }
-}
-function startOffersAutoSlide() {
+function renderOffers(offers) {
   const container = document.querySelector('.offers-container');
-  const nextBtn = document.querySelector('.offers-next');
-  if (!container || !nextBtn) return;
+  if (!container) return;
 
-  let interval = setInterval(() => {
-    nextBtn.click();
-  }, 5000); // Auto-slide every 5s
+  container.innerHTML = '';
 
-  container.addEventListener('mouseenter', () => clearInterval(interval));
-  container.addEventListener('mouseleave', () => {
-    interval = setInterval(() => {
-      nextBtn.click();
-    }, 5000);
+  offers.forEach(offer => {
+    const offerEl = document.createElement('div');
+    offerEl.className = 'offer-card';
+    
+    // Determine tag based on category
+    let tag = '';
+    if (offer.category === 'toners') tag = '<div class="offer-tag">TONER</div>';
+    else if (offer.category === 'networking') tag = '<div class="offer-tag">NETWORK</div>';
+    else if (offer.category === 'software') tag = '<div class="offer-tag">SOFTWARE</div>';
+
+    offerEl.innerHTML = `
+      <div class="offer-image" style="background-image: url(${offer.image || 'https://via.placeholder.com/300?text=Offer+Image'})">
+        ${tag}
+      </div>
+      <div class="offer-content">
+        <h3>${offer.name}</h3>
+        <div class="offer-prices">
+          <span class="old-price">Ksh ${offer.oldPrice.toLocaleString()}</span>
+          <span class="new-price">Ksh ${offer.price.toLocaleString()}</span>
+        </div>
+        <div class="offer-save">Save Ksh ${(offer.oldPrice - offer.price).toLocaleString()}</div>
+      </div>
+    `;
+
+    // Click handler
+    offerEl.addEventListener('click', async () => {
+      const normalizedOfferName = offer.name.toLowerCase().trim();
+      
+      // Try to find in local products
+      const foundProduct = allProducts.find(p => {
+        const productName = p.name.toLowerCase().trim();
+        return (
+          productName === normalizedOfferName ||
+          productName.includes(normalizedOfferName) ||
+          normalizedOfferName.includes(productName)
+        );
+      });
+
+      if (foundProduct) {
+        showProductDetails(foundProduct._id);
+        return;
+      }
+
+      // Fallback to API search
+      try {
+        const searchResult = await productService.searchProducts(offer.name);
+        if (searchResult.length > 0) {
+          showProductDetails(searchResult[0]._id);
+        } else {
+          alert('Product details not available');
+        }
+      } catch (error) {
+        console.error('Search failed:', error);
+        alert('Error searching for product');
+      }
+    });
+
+    container.appendChild(offerEl);
   });
 }
-
-
 function getProductIcon(category) {
   const icons = {
     'laptops': 'fas fa-laptop',
@@ -1850,7 +1875,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     initMobileLogout();
     setupBackButton();
     initCart();
-    await initOffersSlider();
     setupProductEventDelegation();
     
     if (user?.role === 'admin') {
