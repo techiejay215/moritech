@@ -610,26 +610,30 @@ function initOfferForm() {
   
   // Form submission
   form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const offerData = {
-      name: form.elements['name'].value,
-      oldPrice: parseFloat(form.elements['oldPrice'].value),
-      price: parseFloat(form.elements['price'].value),
-      image: imageInput.files[0] || null
-    };
-    
-    try {
-      await offerService.addOffer(offerData);
-      alert('Offer added successfully!');
-      form.reset();
-      imagePreview.innerHTML = '';
-      loadAdminOffers();
-      initOffersSlider(); // Refresh frontend display
-    } catch (error) {
-      alert(error.message || 'Failed to add offer');
+  e.preventDefault();
+  
+  const offerData = {
+    name: form.elements['name'].value,
+    oldPrice: parseFloat(form.elements['oldPrice'].value),
+    price: parseFloat(form.elements['price'].value),
+    image: imageInput.files[0] || null
+  };
+  
+  try {
+    // Add image compression before upload
+    if (offerData.image) {
+      offerData.image = await compressImage(offerData.image);
     }
-  });
+    
+    await offerService.addOffer(offerData);
+    alert('Offer added successfully!');
+    form.reset();
+    imagePreview.innerHTML = '';
+    await loadAdminOffers();
+  } catch (error) {
+    alert(error.message || 'Failed to add offer');
+  }
+});
 }
 
 async function loadAdminOffers() {
@@ -1223,9 +1227,6 @@ async function compressImage(file, maxWidth = 800, quality = 0.7) {
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
-      img.onerror = () => reject(new Error('Image loading failed'));
-      img.src = event.target.result;
-      
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const scale = Math.min(maxWidth / img.width, 1);
@@ -1241,6 +1242,7 @@ async function compressImage(file, maxWidth = 800, quality = 0.7) {
           quality
         );
       };
+      img.src = event.target.result;
     };
     reader.readAsDataURL(file);
   });
@@ -1523,6 +1525,8 @@ async function initAdminPanel() {
       
       // Initialize search functionality
       initAdminSearch();
+      initOfferForm();
+    await loadAdminOffers();
       
       adminPanelInitialized = true;
       return true;
