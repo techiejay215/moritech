@@ -2941,59 +2941,13 @@ footer {
   .mobile-search {
     display: none !important;
   }
-}
-/* Add this at the end of your style.css file */
-
-/* Hide mobile header search bar */
-@media (max-width: 768px) {
+  
   .mobile-header-bottom {
-    display: none !important;
+    justify-content: flex-end;
+    padding: 5px 15px;
   }
   
-  /* Position products search bar at the top */
-  .section#products .search-container {
-    position: sticky;
-    top: 60px; /* Adjust based on your header height */
-    z-index: 100;
-    background: white;
-    padding: 10px 0;
-    margin: 0 -20px 15px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-  
-  /* Add padding to products section to account for sticky search */
   .section#products {
     padding-top: 40px !important;
-  }
-}
-/* Hide desktop search on small screens */
-@media screen and (max-width: 768px) {
-  #products .search-container {
-    display: none;
-  }
-
-  .mobile-header-bottom {
-    display: flex;
-    justify-content: center;
-    padding: 10px;
-    background: #f9f9f9;
-    border-bottom: 1px solid #ccc;
-  }
-
-  .mobile-search {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 5px 10px;
-  }
-
-  .mobile-search input {
-    border: none;
-    outline: none;
-    width: 100%;
   }
 }
