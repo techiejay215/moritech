@@ -1855,8 +1855,6 @@ function initCategoryDropdowns() {
   if (window.innerWidth > 768) {
     console.log('Setting up desktop dropdown hover');
     document.querySelectorAll('.dropdown').forEach(dropdown => {
-      const toggle = dropdown.querySelector('.dropdown-toggle');
-      
       dropdown.addEventListener('mouseenter', () => {
         console.log('Mouse enter on dropdown');
         dropdown.classList.add('active');
@@ -1877,22 +1875,30 @@ function initCategoryDropdowns() {
         e.preventDefault();
         e.stopPropagation();
         const dropdown = this.closest('.dropdown');
+        
+        // Close all other dropdowns
         document.querySelectorAll('.dropdown').forEach(d => {
           if (d !== dropdown) d.classList.remove('active');
         });
+        
+        // Toggle this dropdown
         dropdown.classList.toggle('active');
       });
     });
     
     // Close dropdowns when clicking outside
-    document.addEventListener('click', function() {
-      console.log('Document click - closing dropdowns');
-      document.querySelectorAll('.dropdown').forEach(dropdown => {
-        dropdown.classList.remove('active');
-      });
+    document.addEventListener('click', function(e) {
+      // Only close if click is outside dropdowns
+      if (!e.target.closest('.dropdown')) {
+        console.log('Document click - closing dropdowns');
+        document.querySelectorAll('.dropdown').forEach(dropdown => {
+          dropdown.classList.remove('active');
+        });
+      }
     });
   }
 }
+
 function initSubcategoryButtons() {
   const subcategoryButtons = document.querySelectorAll('.subcategory-btn');
   console.log(`Initializing ${subcategoryButtons.length} subcategory buttons`);
