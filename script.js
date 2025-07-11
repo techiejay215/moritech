@@ -1219,6 +1219,10 @@ function renderProducts(products) {
   }
 
   products.forEach(product => {
+    if (!product._id || !/^[0-9a-fA-F]{24}$/.test(product._id)) {
+      console.warn('Skipping product with invalid ID:', product);
+      return;
+    }
     const card = document.createElement('div');
     card.className = 'product-card';
     card.dataset.id = product._id;
