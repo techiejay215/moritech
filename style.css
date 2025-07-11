@@ -3402,3 +3402,7 @@ footer {
     display: block;
   }
 }
+/* Hide slider dots in offers section */
+.offers-controls {
+  display: none !important;
+}
