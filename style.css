@@ -1,6 +1,6 @@
 :root {
   --primary: #1468df;
-  --primary-dark: #0d5bc5;
+  --primary-dark: #0e6ae3;
   --secondary: #f57c00;
   --light: #f0f4f9;
   --dark: #202124;
@@ -3344,7 +3344,7 @@ footer {
   background-color: #fff;
   min-width: 200px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  z-index: 10;
   border-radius: 5px;
   padding: 10px 0;
   top: 100%;
