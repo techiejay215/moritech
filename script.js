@@ -747,7 +747,8 @@ function initCategoryFilter() {
 function initSearch() {
   const desktopSearch = document.getElementById('search-input');
   const mobileSearch = document.getElementById('mobile-search-input');
-  const topSearch = document.getElementById('top-search-input');
+  
+  const headerSearch = document.getElementById('header-search-input');
   
   function setupSearch(inputElement) {
     if (!inputElement) return;
@@ -775,7 +776,7 @@ function initSearch() {
 
   setupSearch(desktopSearch);
   setupSearch(mobileSearch);
-  setupSearch(topSearch); // Initialize the new top search
+  setupSearch(headerSearch);
 }
 
 function initSmoothScrolling() {
