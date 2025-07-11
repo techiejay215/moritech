@@ -22,6 +22,7 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
   'MONGODB_URI',
   'JWT_SECRET',
   'REFRESH_SECRET',
+  'RESET_SECRET', // Added for password reset
   'CLOUDINARY_CLOUD_NAME',
   'CLOUDINARY_API_KEY',
   'CLOUDINARY_API_SECRET'
@@ -444,6 +445,7 @@ app.get('/api/auth/session', async (req, res) => {
   }
 
   try {
+    const User = require('./models/User');
     const user = await User.findById(req.user.id).select('-password');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -468,6 +470,7 @@ app.post('/api/auth/refresh', async (req, res) => {
   }
 
   try {
+    const User = require('./models/User');
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
     const user = await User.findById(decoded.id);
 
@@ -497,6 +500,80 @@ app.post('/api/auth/refresh', async (req, res) => {
   } catch (error) {
     console.error('❌ Refresh token error:', error.message);
     res.status(401).json({ message: 'Invalid refresh token' });
+  }
+});
+
+// 🔄 Forgot Password Route
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  
+  try {
+    const User = require('./models/User');
+    // 1. Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'Email not found' });
+    }
+
+    // 2. Generate reset token
+    const resetToken = jwt.sign(
+      { id: user._id },
+      process.env.RESET_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    // 3. Save token to user document
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = Date.now() + 900000; // 15 minutes
+    await user.save();
+
+    // 4. Send password reset email (simulated)
+    console.log(`Password reset link: https://yourdomain.com/reset-password?token=${resetToken}`);
+    
+    res.json({ 
+      message: 'Password reset instructions sent to your email' 
+    });
+  } catch (error) {
+    console.error('❌ Forgot password error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 🔄 Reset Password Route
+app.post('/api/auth/reset-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  try {
+    const User = require('./models/User');
+    // Verify token
+    const decoded = jwt.verify(token, process.env.RESET_SECRET);
+    
+    // Find user with valid token
+    const user = await User.findOne({
+      _id: decoded.id,
+      resetToken: token,
+      resetTokenExpiry: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+
+    // Update password (in production, hash the password first!)
+    user.password = newPassword;
+    user.resetToken = undefined;
+    user.resetTokenExpiry = undefined;
+    await user.save();
+
+    res.json({ message: 'Password reset successful' });
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(400).json({ message: 'Token expired' });
+    } else if (error.name === 'JsonWebTokenError') {
+      return res.status(400).json({ message: 'Invalid token' });
+    }
+    console.error('❌ Reset password error:', error);
+    res.status(400).json({ message: 'Password reset failed' });
   }
 });
 

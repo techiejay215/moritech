@@ -25,7 +25,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
-  }
+  },
+  resetToken: String,
+  resetTokenExpiry: Date
 });
 
 // 📧 Ensure case-insensitive email uniqueness
