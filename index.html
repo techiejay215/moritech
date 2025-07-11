@@ -125,14 +125,65 @@
     </div>
   </div>
   
-  <!-- Categories Bar -->
+  <!-- UPDATED Categories Bar with Dropdowns -->
   <div class="categories">
     <div class="container categories-container">
       <button class="category-btn active" data-category="all">All Categories</button>
-      <button class="category-btn" data-category="laptops">Laptops</button>
-      <button class="category-btn" data-category="desktops">Desktops</button>
-      <button class="category-btn" data-category="monitors">Monitors</button>
-      <button class="category-btn" data-category="printers">Printers</button>
+      
+      <!-- Laptops with Subgroups -->
+      <div class="dropdown">
+        <button class="category-btn dropdown-toggle" data-category="laptops">
+          Laptops <i class="fas fa-caret-down"></i>
+        </button>
+        <div class="dropdown-content">
+          <button class="subcategory-btn" data-category="hp-laptops">HP</button>
+          <button class="subcategory-btn" data-category="lenovo-laptops">Lenovo</button>
+          <button class="subcategory-btn" data-category="dell-laptops">Dell</button>
+          <button class="subcategory-btn" data-category="asus-laptops">Asus</button>
+          <button class="subcategory-btn" data-category="samsung-laptops">Samsung</button>
+        </div>
+      </div>
+      
+      <!-- Printers with Subgroups -->
+      <div class="dropdown">
+        <button class="category-btn dropdown-toggle" data-category="printers">
+          Printers <i class="fas fa-caret-down"></i>
+        </button>
+        <div class="dropdown-content">
+          <button class="subcategory-btn" data-category="hp-printers">HP</button>
+          <button class="subcategory-btn" data-category="canon-printers">Canon</button>
+          <button class="subcategory-btn" data-category="epson-printers">Epson</button>
+          <button class="subcategory-btn" data-category="kyocera-printers">Kyocera</button>
+          <button class="subcategory-btn" data-category="ecosys-printers">Ecosys</button>
+        </div>
+      </div>
+      
+      <!-- Desktops with Subgroups -->
+      <div class="dropdown">
+        <button class="category-btn dropdown-toggle" data-category="desktops">
+          Desktops <i class="fas fa-caret-down"></i>
+        </button>
+        <div class="dropdown-content">
+          <button class="subcategory-btn" data-category="hp-desktops">HP</button>
+          <button class="subcategory-btn" data-category="dell-desktops">Dell</button>
+          <button class="subcategory-btn" data-category="lenovo-desktops">Lenovo</button>
+        </div>
+      </div>
+      
+      <!-- Monitors with Subgroups -->
+      <div class="dropdown">
+        <button class="category-btn dropdown-toggle" data-category="monitors">
+          Monitors <i class="fas fa-caret-down"></i>
+        </button>
+        <div class="dropdown-content">
+          <button class="subcategory-btn" data-category="hp-monitors">HP</button>
+          <button class="subcategory-btn" data-category="lenovo-monitors">Lenovo</button>
+          <button class="subcategory-btn" data-category="samsung-monitors">Samsung</button>
+          <button class="subcategory-btn" data-category="fujitsu-monitors">Fujitsu</button>
+        </div>
+      </div>
+      
+      <!-- Other Categories -->
       <button class="category-btn" data-category="toners">Toners</button>
       <button class="category-btn" data-category="networking">Networking</button>
       <button class="category-btn" data-category="software">Software</button>

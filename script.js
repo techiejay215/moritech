@@ -332,35 +332,44 @@ const productService = {
     }
   },
 
-  async getProductsByCategory(category) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category, { credentials: 'include' })}`, {
+async getProductsByCategory(category) {
+  try {
+    const isSubcategory = [
+      'hp-laptops', 'lenovo-laptops', 'dell-laptops', 'asus-laptops', 'samsung-laptops',
+      'hp-printers', 'canon-printers', 'epson-printers', 'kyocera-printers', 'ecosys-printers',
+      'hp-desktops', 'dell-desktops', 'lenovo-desktops',
+      'hp-monitors', 'lenovo-monitors', 'samsung-monitors', 'fujitsu-monitors'
+    ].includes(category);
+
+    if (isSubcategory) {
+      const mainCategory = category.split('-')[1];
+      const allResponse = await fetch(`${API_BASE_URL}/products/category/${mainCategory}`, {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
-      if (!response.ok) throw await handleResponseError(response);
-      return await response.json();
-    } catch (error) {
-      console.error('Category error:', error);
-      throw error;
+
+      if (!allResponse.ok) throw await handleResponseError(allResponse);
+      const allProducts = await allResponse.json();
+
+      const brand = category.split('-')[0];
+      return allProducts.filter(product =>
+        product.brand && product.brand.toLowerCase() === brand
+      );
     }
-  },
-  
-  async deleteProduct(productId) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-        credentials: 'include'
-      });
-      
-      if (!response.ok) throw await handleResponseError(response);
-      return true;
-    } catch (error) {
-      console.error('Delete product error:', error);
-      throw error;
-    }
+
+    const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+
+    if (!response.ok) throw await handleResponseError(response);
+    return await response.json();
+  } catch (error) {
+    console.error('Category error:', error);
+    throw error;
   }
+}
+
 };
 const offerService = {
   async getOffers() {
@@ -684,36 +693,56 @@ async function loadAdminOffers() {
 function initCategoryFilter() {
   const categoryButtons = document.querySelectorAll('.category-btn');
   if (!categoryButtons.length) return;
-  
+
   categoryButtons.forEach(button => {
-    button.addEventListener('click', async function() {
+    button.addEventListener('click', async function () {
       categoryButtons.forEach(btn => btn.classList.remove('active'));
       this.classList.add('active');
-      
+
       const category = this.dataset.category;
-      
+
       if (window.innerWidth <= 768) {
         const productsSection = document.getElementById('products');
         if (productsSection) {
           window.scrollTo({
             top: productsSection.offsetTop - 100,
-            behavior: 'smooth'
+            behavior: 'smooth',
           });
         }
       }
-      
+
       try {
-        const products = category === 'all' 
+        const products = category === 'all'
           ? await productService.getProducts()
           : await productService.getProductsByCategory(category);
-        
+
         renderProducts(products);
       } catch {
         alert('Failed to load products. Please try again.');
       }
     });
   });
+
+  // ✅ Handle main category dropdown click (desktop only)
+  document.querySelectorAll('.dropdown-toggle').forEach(btn => {
+    btn.addEventListener('click', async function () {
+      const category = this.dataset.category;
+
+      if (window.innerWidth > 768) {
+        categoryButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+
+        try {
+          const products = await productService.getProductsByCategory(category);
+          renderProducts(products);
+        } catch {
+          alert('Failed to load products. Please try again.');
+        }
+      }
+    });
+  });
 }
+
 // Update initSearch() function in script.js
 function initSearch() {
   const desktopSearch = document.getElementById('search-input');
@@ -1813,6 +1842,40 @@ async function populateProductDropdown() {
     console.error('Failed to populate products dropdown:', error);
   }
 }
+function initCategoryDropdowns() {
+  // Mobile dropdown toggle
+  if (window.innerWidth <= 768) {
+    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+      toggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        const dropdown = this.closest('.dropdown');
+        dropdown.classList.toggle('active');
+      });
+    });
+  }
+}
+document.querySelectorAll('.subcategory-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const category = this.dataset.category;
+      
+      // Update UI
+      document.querySelectorAll('.category-btn, .subcategory-btn').forEach(b => {
+        b.classList.remove('active');
+      });
+      this.classList.add('active');
+      this.closest('.dropdown').querySelector('.dropdown-toggle').classList.add('active');
+      
+      // Load products
+      try {
+        const products = await productService.getProductsByCategory(category);
+        renderProducts(products);
+      } catch {
+        alert('Failed to load products. Please try again.');
+      }
+    });
+  });
+
+
 document.addEventListener('DOMContentLoaded', async function() {
   try {
     // First check auth state
