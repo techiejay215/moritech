@@ -1949,6 +1949,34 @@ function initSubcategoryButtons() {
     });
   });
 }
+// Add this function to toggle password visibility
+function initPasswordToggle() {
+  document.querySelectorAll('.password-container').forEach(container => {
+    const input = container.querySelector('input');
+    const icon = container.querySelector('.password-toggle');
+    
+    icon.addEventListener('click', () => {
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      icon.classList.toggle('fa-eye', !isPassword);
+      icon.classList.toggle('fa-eye-slash', isPassword);
+    });
+  });
+}
+function initPasswordToggle() {
+  document.querySelectorAll('.password-container').forEach(container => {
+    const input = container.querySelector('input');
+    const icon = container.querySelector('.password-toggle');
+    
+    icon.addEventListener('click', () => {
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      icon.classList.toggle('fa-eye', !isPassword);
+      icon.classList.toggle('fa-eye-slash', isPassword);
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
   try {
     // First check auth state
@@ -1975,6 +2003,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     await loadOffers();
     initCategoryDropdowns();
     initSubcategoryButtons();
+    initPasswordToggle();
     
     
     if (user?.role === 'admin') {
