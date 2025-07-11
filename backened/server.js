@@ -58,6 +58,16 @@ const validateObjectId = (req, res, next) => {
   next();
 };
 
+// Add Product model above Offer model
+const productSchema = new mongoose.Schema({
+  name: String,
+  price: Number,
+  category: String,
+  description: String,
+  image: String
+});
+const Product = mongoose.model('Product', productSchema);
+
 // Define Offer Schema
 const offerSchema = new mongoose.Schema({
   productId: { 
@@ -221,6 +231,20 @@ app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/offers/:id', validateObjectId);
+
+// Added product detail route after existing routes
+app.get('/api/products/:id', validateObjectId, async (req, res) => {
+  console.log(`Fetching product with ID: ${req.params.id}`);
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch product' });
+  }
+});
 
 // 🎁 Offer Routes
 app.post('/api/offers', validateObjectId, memoryUpload.single('image'), async (req, res) => {

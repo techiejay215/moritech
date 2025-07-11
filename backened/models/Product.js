@@ -9,5 +9,4 @@ const productSchema = new mongoose.Schema({
   image: { type: String }, // Stores the filename or path
   createdAt: { type: Date, default: Date.now }
 });
-
-module.exports = mongoose.model('Product', productSchema);
+module.exports = mongoose.models.Product || mongoose.model('Product', productSchema);

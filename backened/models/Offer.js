@@ -21,5 +21,5 @@ const offerSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+module.exports = mongoose.models.Offer || mongoose.model('Offer', offerSchema);
 
-module.exports = mongoose.model('Offer', offerSchema);
