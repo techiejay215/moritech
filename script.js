@@ -508,6 +508,7 @@ function getProductIcon(category) {
   };
   return icons[category] || 'fas fa-microchip';
 }
+// Updated renderOffers function
 function renderOffers(offers) {
   const container = document.querySelector('.offers-container');
   if (!container) return;
@@ -517,13 +518,17 @@ function renderOffers(offers) {
   offers.forEach(offer => {
     const offerEl = document.createElement('div');
     offerEl.className = 'offer-card';
-    offerEl.dataset.productId = offer.productId; 
-
+    
+    // FIX: Use offer.productId._id instead of offer.productId
+    const productId = offer.productId._id || offer.productId; // Fallback for safety
+    
     // Determine tag based on category
     let tag = '';
-    if (offer.category === 'toners') tag = '<div class="offer-tag">TONER</div>';
-    else if (offer.category === 'networking') tag = '<div class="offer-tag">NETWORK</div>';
-    else if (offer.category === 'software') tag = '<div class="offer-tag">SOFTWARE</div>';
+    const category = (offer.productId.category || '').toLowerCase();
+    
+    if (category === 'toners') tag = '<div class="offer-tag">TONER</div>';
+    else if (category === 'networking') tag = '<div class="offer-tag">NETWORK</div>';
+    else if (category === 'software') tag = '<div class="offer-tag">SOFTWARE</div>';
 
     offerEl.innerHTML = `
       <div class="offer-image" style="background-image: url(${offer.image || 'https://via.placeholder.com/300?text=Offer+Image'})">
@@ -539,9 +544,9 @@ function renderOffers(offers) {
       </div>
     `;
 
-    // ✅ Simplified click handler using product ID
+    // ✅ Fixed: Use the actual product ID
     offerEl.addEventListener('click', () => {
-      showProductDetails(offer.productId);
+      showProductDetails(productId);
     });
 
     container.appendChild(offerEl);
