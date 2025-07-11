@@ -320,10 +320,11 @@ const productService = {
 
   async searchProducts(query) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query, { credentials: 'include' })}`, {
+      const response = await fetch(`${API_BASE_URL}/products/search?query=${encodeURIComponent(query)}`, {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
+
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
     } catch (error) {
@@ -332,45 +333,61 @@ const productService = {
     }
   },
 
-async getProductsByCategory(category) {
-  try {
-    const isSubcategory = [
-      'hp-laptops', 'lenovo-laptops', 'dell-laptops', 'asus-laptops', 'samsung-laptops',
-      'hp-printers', 'canon-printers', 'epson-printers', 'kyocera-printers', 'ecosys-printers',
-      'hp-desktops', 'dell-desktops', 'lenovo-desktops',
-      'hp-monitors', 'lenovo-monitors', 'samsung-monitors', 'fujitsu-monitors'
-    ].includes(category);
+  async getProductsByCategory(category) {
+    try {
+      const isSubcategory = [
+        'hp-laptops', 'lenovo-laptops', 'dell-laptops', 'asus-laptops', 'samsung-laptops',
+        'hp-printers', 'canon-printers', 'epson-printers', 'kyocera-printers', 'ecosys-printers',
+        'hp-desktops', 'dell-desktops', 'lenovo-desktops',
+        'hp-monitors', 'lenovo-monitors', 'samsung-monitors', 'fujitsu-monitors'
+      ].includes(category);
 
-    if (isSubcategory) {
-      const mainCategory = category.split('-')[1];
-      const allResponse = await fetch(`${API_BASE_URL}/products/category/${mainCategory}`, {
+      if (isSubcategory) {
+        const mainCategory = category.split('-')[1];
+        const allResponse = await fetch(`${API_BASE_URL}/products/category/${mainCategory}`, {
+          headers: getAuthHeaders(),
+          credentials: 'include'
+        });
+
+        if (!allResponse.ok) throw await handleResponseError(allResponse);
+        const allProducts = await allResponse.json();
+
+        const brand = category.split('-')[0];
+        return allProducts.filter(product =>
+          product.brand && product.brand.toLowerCase() === brand
+        );
+      }
+
+      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
 
-      if (!allResponse.ok) throw await handleResponseError(allResponse);
-      const allProducts = await allResponse.json();
-
-      const brand = category.split('-')[0];
-      return allProducts.filter(product =>
-        product.brand && product.brand.toLowerCase() === brand
-      );
+      if (!response.ok) throw await handleResponseError(response);
+      return await response.json();
+    } catch (error) {
+      console.error('Category error:', error);
+      throw error;
     }
+  },
 
-    const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
-      headers: getAuthHeaders(),
-      credentials: 'include'
-    });
+  async getRelatedProducts(currentId, category) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/products/related/${currentId}?category=${encodeURIComponent(category)}`, {
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
 
-    if (!response.ok) throw await handleResponseError(response);
-    return await response.json();
-  } catch (error) {
-    console.error('Category error:', error);
-    throw error;
+      if (!response.ok) throw await handleResponseError(response);
+      return await response.json();
+    } catch (error) {
+      console.error('Related products error:', error);
+      return [];
+    }
   }
-}
-
 };
+
+
 const offerService = {
   async getOffers() {
     try {
@@ -1450,7 +1467,6 @@ function initMobileLogout() {
 
 async function showProductDetails(productId) {
   try {
-    // Get the product details section and container
     const productDetailsSection = document.getElementById('product-details');
     const productDetailsContainer = productDetailsSection.querySelector('.product-details-container');
     const loadingElement = document.createElement('div');
@@ -1476,11 +1492,25 @@ async function showProductDetails(productId) {
     if (!response.ok) throw await handleResponseError(response);
     const product = await response.json();
 
+    // NEW: Fetch related products
+    let relatedProducts = [];
+    try {
+      relatedProducts = await productService.getRelatedProducts(productId, product.category);
+    } catch (error) {
+      console.error('Failed to load related products:', error);
+    }
+
     // Populate product details
     document.getElementById('product-detail-name').textContent = product.name;
     document.getElementById('product-detail-price').textContent = `Ksh ${product.price.toLocaleString()}`;
     document.getElementById('product-detail-category').textContent = product.category;
     document.getElementById('product-detail-description').textContent = product.description;
+
+    // NEW: Display specifications
+    const specsContainer = document.getElementById('product-specs');
+    if (specsContainer) {
+      specsContainer.innerHTML = product.specifications || '<p>No specifications available</p>';
+    }
 
     // Set up WhatsApp link
     const whatsappLink = document.getElementById('whatsapp-order');
@@ -1492,10 +1522,10 @@ async function showProductDetails(productId) {
     const thumbnailContainer = document.querySelector('.thumbnail-container');
     thumbnailContainer.innerHTML = '';
     
-    // Use product image or placeholder
-    const images = product.image 
-      ? [product.image] 
-      : ['https://via.placeholder.com/500?text=Product+Image'];
+    // Use product images or placeholder
+    const images = product.images && product.images.length > 0 
+      ? product.images 
+      : [product.image || 'https://via.placeholder.com/500?text=Product+Image'];
     
     mainImage.src = images[0];
     mainImage.alt = product.name;
@@ -1524,6 +1554,12 @@ async function showProductDetails(productId) {
       });
     }
 
+    // NEW: Render reviews
+    renderReviews(product.reviews || []);
+
+    // NEW: Render related products
+    renderRelatedProducts(relatedProducts);
+
     // Remove loading and show content
     productDetailsSection.removeChild(loadingElement);
     productDetailsContainer.style.display = 'block';
@@ -1541,6 +1577,68 @@ async function showProductDetails(productId) {
     `;
   }
 }
+
+// NEW: Function to render reviews
+function renderReviews(reviews) {
+  const reviewsContainer = document.getElementById('product-reviews');
+  if (!reviewsContainer) return;
+  
+  reviewsContainer.innerHTML = '';
+  
+  if (!reviews.length) {
+    reviewsContainer.innerHTML = '<p>No reviews yet. Be the first to review!</p>';
+    return;
+  }
+  
+  reviews.forEach(review => {
+    const reviewEl = document.createElement('div');
+    reviewEl.className = 'review';
+    reviewEl.innerHTML = `
+      <div class="review-header">
+        <span class="review-author">${review.name}</span>
+        <div class="review-rating">
+          ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+        </div>
+      </div>
+      <div class="review-date">${new Date(review.date).toLocaleDateString()}</div>
+      <p class="review-content">${review.comment}</p>
+    `;
+    reviewsContainer.appendChild(reviewEl);
+  });
+}
+
+// NEW: Function to render related products
+function renderRelatedProducts(products) {
+  const container = document.getElementById('related-products');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  if (!products.length) {
+    container.innerHTML = '<p>No related products found</p>';
+    return;
+  }
+  
+  products.slice(0, 4).forEach(product => {
+    const card = document.createElement('div');
+    card.className = 'related-product-card';
+    card.dataset.id = product._id;
+    
+    card.innerHTML = `
+      <div class="related-product-img">
+        ${getProductImageHTML(product)}
+      </div>
+      <div class="related-product-info">
+        <h4>${product.name}</h4>
+        <div class="related-product-price">Ksh ${product.price.toLocaleString()}</div>
+      </div>
+    `;
+    
+    card.addEventListener('click', () => showProductDetails(product._id));
+    container.appendChild(card);
+  });
+}
+
 
 // Back to products function
 function setupBackButton() {

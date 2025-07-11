@@ -258,43 +258,61 @@
     </div>
   </section>
 
-  <!-- Product Details Section -->
-  <section id="product-details" class="section" style="display:none;">
-    <div class="container">
-      <button id="back-to-products" class="btn back-btn">
-        <i class="fas fa-arrow-left"></i> Back to Products
-      </button>
-      
-      <div class="product-details-container">
-        <div class="product-gallery">
-          <div class="main-image">
-            <img id="main-product-image" src="" alt="Main Product Image">
-          </div>
-          <div class="thumbnail-container">
-            <!-- Thumbnails will be inserted here -->
-          </div>
+<!-- Inside product-details section -->
+<section id="product-details" class="section" style="display:none;">
+  <div class="container">
+    <button id="back-to-products" class="btn back-btn">
+      <i class="fas fa-arrow-left"></i> Back to Products
+    </button>
+    
+    <div class="product-details-container">
+      <div class="product-gallery">
+        <div class="main-image">
+          <img id="main-product-image" src="" alt="Main Product Image">
         </div>
-        
-        <div class="product-info">
-          <h2 id="product-detail-name"></h2>
-          <div class="price-category">
-            <span id="product-detail-price" class="price"></span>
-            <span id="product-detail-category" class="category"></span>
-          </div>
-          <p id="product-detail-description" class="description"></p>
-          
-          <div class="action-buttons">
-            <button id="add-to-cart-detail" class="btn cart-btn">
-              <i class="fas fa-shopping-cart"></i> Add to Cart
-            </button>
-            <a id="whatsapp-order" class="btn whatsapp-btn" target="_blank">
-              <i class="fab fa-whatsapp"></i> Order on WhatsApp
-            </a>
-          </div>
+        <div class="thumbnail-container">
+          <!-- Thumbnails will be inserted here -->
         </div>
       </div>
+      
+      <div class="product-info">
+        <h2 id="product-detail-name"></h2>
+        <div class="price-category">
+          <span id="product-detail-price" class="price"></span>
+          <span id="product-detail-category" class="category"></span>
+        </div>
+        <p id="product-detail-description" class="description"></p>
+        
+        <!-- NEW: Specifications section -->
+        <div class="specifications-section">
+          <h3>Specifications</h3>
+          <div id="product-specs" class="specifications-content"></div>
+        </div>
+        
+        <div class="action-buttons">
+          <button id="add-to-cart-detail" class="btn cart-btn">
+            <i class="fas fa-shopping-cart"></i> Add to Cart
+          </button>
+          <a id="whatsapp-order" class="btn whatsapp-btn" target="_blank">
+            <i class="fab fa-whatsapp"></i> Order on WhatsApp
+          </a>
+        </div>
+      </div>
+      
+      <!-- NEW: Reviews section -->
+      <div class="reviews-section">
+        <h3>Customer Reviews</h3>
+        <div id="product-reviews" class="reviews-container"></div>
+      </div>
+      
+      <!-- NEW: Related products section -->
+      <div class="related-products-section">
+        <h3>Related Products</h3>
+        <div id="related-products" class="related-products-grid"></div>
+      </div>
     </div>
-  </section>
+  </div>
+</section>
 
   <!-- Services Section -->
   <section id="services" class="section">
