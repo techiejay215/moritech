@@ -3410,3 +3410,100 @@ footer {
   cursor: pointer;
   color: #555;
 }
+/* Add to style.css */
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.header-search {
+  position: relative;
+  margin: 0 20px;
+}
+
+.header-search i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #555;
+}
+
+.header-search input {
+  padding: 8px 8px 8px 35px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 250px;
+  transition: width 0.3s;
+}
+
+.header-search input:focus {
+  width: 350px;
+  outline: none;
+  border-color: #3498db;
+}
+
+/* Hide top bar search */
+.top-bar-search {
+  display: none;
+}
+
+/* Mobile header search should remain visible only on mobile */
+.mobile-header .mobile-search {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .header-search {
+    display: none; /* Hide on mobile */
+  }
+  
+  .mobile-header .mobile-search {
+    display: flex; /* Show mobile search */
+  }
+}
+/* Add this to the end of style.css */
+
+/* Fix for desktop search bar visibility */
+@media (min-width: 769px) {
+  .header-search {
+    display: block !important;
+    flex: 1;
+    max-width: 400px;
+    margin: 0 15px;
+  }
+  
+  .header-search input {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+  }
+  
+  .header-search input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(20, 104, 223, 0.15);
+    outline: none;
+  }
+  
+  .logo-container {
+    flex-wrap: nowrap;
+  }
+  
+  .company-name {
+    min-width: 180px;
+  }
+}
+
+/* Adjust top bar spacing */
+.top-bar-content {
+  flex-wrap: nowrap;
+}
