@@ -1843,19 +1843,61 @@ async function populateProductDropdown() {
   }
 }
 function initCategoryDropdowns() {
-  // Mobile dropdown toggle
-  if (window.innerWidth <= 768) {
-    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+  console.log('Initializing category dropdowns...');
+  const toggles = document.querySelectorAll('.dropdown-toggle');
+  console.log(`Found ${toggles.length} dropdown toggles`);
+
+  // Handle desktop dropdown hover
+  if (window.innerWidth > 768) {
+    console.log('Setting up desktop dropdown hover');
+    document.querySelectorAll('.dropdown').forEach(dropdown => {
+      const toggle = dropdown.querySelector('.dropdown-toggle');
+      
+      dropdown.addEventListener('mouseenter', () => {
+        console.log('Mouse enter on dropdown');
+        dropdown.classList.add('active');
+      });
+      
+      dropdown.addEventListener('mouseleave', () => {
+        console.log('Mouse leave on dropdown');
+        dropdown.classList.remove('active');
+      });
+    });
+  }
+  // Handle mobile dropdown click
+  else {
+    console.log('Setting up mobile dropdown click');
+    toggles.forEach(toggle => {
       toggle.addEventListener('click', function(e) {
+        console.log('Dropdown toggle clicked');
         e.preventDefault();
+        e.stopPropagation();
         const dropdown = this.closest('.dropdown');
+        document.querySelectorAll('.dropdown').forEach(d => {
+          if (d !== dropdown) d.classList.remove('active');
+        });
         dropdown.classList.toggle('active');
+      });
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function() {
+      console.log('Document click - closing dropdowns');
+      document.querySelectorAll('.dropdown').forEach(dropdown => {
+        dropdown.classList.remove('active');
       });
     });
   }
 }
-document.querySelectorAll('.subcategory-btn').forEach(btn => {
-    btn.addEventListener('click', async function() {
+function initSubcategoryButtons() {
+  const subcategoryButtons = document.querySelectorAll('.subcategory-btn');
+  console.log(`Initializing ${subcategoryButtons.length} subcategory buttons`);
+  
+  subcategoryButtons.forEach(btn => {
+    btn.addEventListener('click', async function(e) {
+      console.log('Subcategory button clicked:', this.dataset.category);
+      e.preventDefault();
+      e.stopPropagation();
       const category = this.dataset.category;
       
       // Update UI
@@ -1863,19 +1905,40 @@ document.querySelectorAll('.subcategory-btn').forEach(btn => {
         b.classList.remove('active');
       });
       this.classList.add('active');
-      this.closest('.dropdown').querySelector('.dropdown-toggle').classList.add('active');
+      
+      // Make sure the parent dropdown toggle also gets active class
+      const dropdown = this.closest('.dropdown');
+      const dropdownToggle = dropdown.querySelector('.dropdown-toggle');
+      dropdownToggle.classList.add('active');
       
       // Load products
       try {
+        console.log(`Loading products for category: ${category}`);
         const products = await productService.getProductsByCategory(category);
         renderProducts(products);
-      } catch {
+        
+        // Scroll to products section on mobile
+        if (window.innerWidth <= 768) {
+          const productsSection = document.getElementById('products');
+          if (productsSection) {
+            window.scrollTo({
+              top: productsSection.offsetTop - 100,
+              behavior: 'smooth'
+            });
+          }
+        }
+        
+        // Close the dropdown after selection on mobile
+        if (window.innerWidth <= 768) {
+          dropdown.classList.remove('active');
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
         alert('Failed to load products. Please try again.');
       }
     });
   });
-
-
+}
 document.addEventListener('DOMContentLoaded', async function() {
   try {
     // First check auth state
@@ -1900,6 +1963,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     initCart();
     setupProductEventDelegation();
     await loadOffers();
+    initCategoryDropdowns();
+    initSubcategoryButtons();
     
     
     if (user?.role === 'admin') {
