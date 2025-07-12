@@ -235,16 +235,26 @@ app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 // app.use('/api/products', require('./routes/productRoutes')); // Removed to implement locally
 app.use('/api/offers/:id', validateObjectId);
 
-// Replace the existing app.post('/api/products') route with this updated version
+// 🔄 Rewrite product creation endpoint
 app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
   try {
     const { name, price, category, description, specifications } = req.body;
-    let images = [];
+    console.log(`Creating product: ${name}`);
 
+    // 1. Validate required fields
+    if (!name || !price || !category) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // 2. Process images
+    const imageUrls = [];
     if (req.files && req.files.length > 0) {
-      // Process each image in parallel
-      const uploadPromises = req.files.map(file => {
-        return new Promise((resolve, reject) => {
+      console.log(`Processing ${req.files.length} images...`);
+      
+      for (const file of req.files) {
+        console.log(`Uploading image: ${file.originalname} (${file.size} bytes)`);
+        
+        const result = await new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
             { folder: 'moritech-products' },
             (error, result) => {
@@ -252,28 +262,33 @@ app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
                 console.error('❌ Cloudinary upload error:', error);
                 reject(error);
               } else {
+                console.log(`✅ Uploaded image: ${result.secure_url}`);
                 resolve(result.secure_url);
               }
             }
           );
           uploadStream.end(file.buffer);
         });
-      });
-
-      images = await Promise.all(uploadPromises);
+        
+        imageUrls.push(result);
+      }
     }
 
+    // 3. Create product
     const newProduct = new Product({
       name,
-      price,
+      price: parseFloat(price),
       category,
-      description,
-      specifications,
-      images
+      description: description || '',
+      specifications: specifications || '',
+      images: imageUrls
     });
 
-    await newProduct.save();
-    res.status(201).json(newProduct);
+    // 4. Save to database
+    const savedProduct = await newProduct.save();
+    console.log(`✅ Product created: ${savedProduct._id}`);
+    
+    res.status(201).json(savedProduct);
   } catch (error) {
     console.error('❌ Product creation error:', error);
     res.status(500).json({ 
@@ -282,7 +297,6 @@ app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
     });
   }
 });
-
 // Added product detail route
 app.get('/api/products/:id', validateObjectId, async (req, res) => {
   console.log(`Fetching product with ID: ${req.params.id}`);
@@ -299,6 +313,28 @@ app.get('/api/products/:id', validateObjectId, async (req, res) => {
     res.json(responseProduct);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch product' });
+  }
+});
+app.get('/api/test-upload', async (req, res) => {
+  try {
+    // Test Cloudinary connection
+    const result = await cloudinary.uploader.upload(
+      'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+      { folder: 'moritech-test' }
+    );
+    
+    res.json({
+      status: 'Cloudinary working',
+      result: {
+        url: result.secure_url,
+        public_id: result.public_id
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'Cloudinary error',
+      error: error.message
+    });
   }
 });
 

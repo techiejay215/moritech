@@ -1764,71 +1764,83 @@ async function renderAdminProducts(products) {
 function initProductForm() {
   const form = document.getElementById('add-product-form');
   if (!form) return;
-  
-  const categorySelect = document.getElementById('product-category');
-  if (categorySelect) {
-    categorySelect.addEventListener('change', toggleNewCategoryInput);
-  }
-  
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const formData = new FormData();
-  formData.append('name', document.getElementById('product-name').value);
-  formData.append('description', document.getElementById('product-description').value);
-  formData.append('price', document.getElementById('product-price').value);
-  
-  // Handle category selection
-  const categorySelect = document.getElementById('product-category');
-  const category = categorySelect.value === 'new' 
-    ? document.getElementById('new-category-input').value
-    : categorySelect.value;
-  formData.append('category', category);
-  
-  formData.append('specifications', document.getElementById('product-specifications').value);
-  
-  // Append all images
-  const imageInput = document.getElementById('product-image');
-  for (let i = 0; i < imageInput.files.length; i++) {
-    formData.append('images', imageInput.files[i]);
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/products`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-      },
-      body: formData,
-      credentials: 'include'
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to add product');
-    }
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
     
-    const result = await response.json();
-    console.log('Product created:', result);
-    alert('Product added successfully!');
-    form.reset();
-    imagePreview.innerHTML = '';
+    // 1. Collect form data
+    const name = document.getElementById('product-name').value;
+    const description = document.getElementById('product-description').value;
+    const price = document.getElementById('product-price').value;
+    const specifications = document.getElementById('product-specifications').value;
+    
+    // Handle category
+    const categorySelect = document.getElementById('product-category');
+    const category = categorySelect.value === 'new'
+      ? document.getElementById('new-category-input').value
+      : categorySelect.value;
+    
+    // 2. Create FormData
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', description);
+    formData.append('price', price);
+    formData.append('category', category);
+    formData.append('specifications', specifications);
+    
+    // 3. Append images
+    const imageInput = document.getElementById('product-image');
+    for (let i = 0; i < imageInput.files.length; i++) {
+      formData.append('images', imageInput.files[i]);
+    }
+
+    // 4. Send request
+    try {
+      console.log('Submitting product form...');
+      const response = await fetch(`${API_BASE_URL}/products`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: formData,
+        credentials: 'include'
+      });
+
+      // 5. Handle response
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add product');
+      }
+      
+      const result = await response.json();
+      console.log('Product created:', result);
+      
+      if (!result.images || result.images.length === 0) {
+        console.warn('Product created but no images saved');
+      }
+      
+      alert(`Product added successfully with ${result.images?.length || 0} images!`);
+      
+      // 6. Reset form
+      form.reset();
+      document.getElementById('image-preview').innerHTML = '';
+      toggleNewCategoryInput();
+      
+      // 7. Refresh products
+      await loadProducts();
+      await populateProductDropdown();
+      
+      if (adminPanelInitialized) {
+        adminProducts = await productService.getProducts();
+        renderAdminProducts(adminProducts);
+      }
+    } catch (error) {
+      console.error('Add product error:', error);
+      alert(`Error: ${error.message || 'Failed to add product'}`);
+    }
+  });
     toggleNewCategoryInput();
-    
-    // Reload products
-    await loadProducts();
-    await populateProductDropdown();
-    
-    if (adminPanelInitialized) {
-      adminProducts = await productService.getProducts();
-      renderAdminProducts(adminProducts);
-    }
-  } catch (error) {
-    console.error('Add product error:', error);
-    alert(error.message || 'Failed to add product');
-  }
-});
+}
 
   const imageInput = document.getElementById('product-image');
   const imagePreview = document.getElementById('image-preview');
@@ -1859,9 +1871,6 @@ form.addEventListener('submit', async (e) => {
       }
     });
   }
-
-  toggleNewCategoryInput();
-}
 
 // MOBILE AUTHENTICATION HANDLING
 function initMobileAuth() {
@@ -2096,7 +2105,17 @@ async function getRelatedProducts(currentId, category) {
     return [];
   }
 }
-
+async function testCloudinary() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/test-upload`);
+    const data = await response.json();
+    console.log('Cloudinary Test:', data);
+    alert(data.status);
+  } catch (error) {
+    console.error('Cloudinary Test Failed:', error);
+    alert('Cloudinary connection failed');
+  }
+}
 
 document.addEventListener('DOMContentLoaded', async function() {
   try {
