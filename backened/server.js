@@ -314,7 +314,7 @@ app.post('/api/offers', validateObjectId, memoryUpload.single('image'), async (r
 app.get('/api/offers', async (req, res) => {
   try {
     const offers = await Offer.find({ isActive: true })
-      .populate('productId', '-_id name description category')
+      .populate('productId', '_id name description category')
       .sort({ createdAt: -1 });
       
     res.json(offers);
