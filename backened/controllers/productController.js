@@ -22,14 +22,24 @@ const createProduct = async (req, res) => {
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   try {
-    const { name, description, price, category, image } = req.body;
+    const { name, description, price, category, specifications } = req.body;
+
+    const imageUrls = [];
+
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const result = await uploadToCloudinary(file.buffer, file.mimetype);
+        imageUrls.push(result.secure_url);
+      }
+    }
 
     const newProduct = new Product({
       name,
       description,
       price,
       category,
-      image: image || '' // Use image URL from body or empty string
+      specifications: specifications || '',
+      images: imageUrls // ✅ Save uploaded image URLs
     });
 
     const savedProduct = await newProduct.save();

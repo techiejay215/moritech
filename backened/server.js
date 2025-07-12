@@ -255,14 +255,10 @@ app.use('/api/offers/:id', validateObjectId);
 app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
   try {
     console.log('--- NEW PRODUCT REQUEST ---');
-    console.log('Request body:', req.body);
-    console.log('Files received:', req.files ? req.files.length : 0);
-    
     const { name, price, category, description, specifications } = req.body;
     
     // Validate required fields
     if (!name || !price || !category) {
-      console.log('❌ Missing required fields');
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -271,31 +267,31 @@ app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
     if (req.files && req.files.length > 0) {
       console.log(`Processing ${req.files.length} images...`);
       
-      for (const [index, file] of req.files.entries()) {
-        console.log(`Uploading image ${index + 1}: ${file.originalname} (${file.size} bytes)`);
-        
-        try {
-          const result = await new Promise((resolve, reject) => {
-            const uploadStream = cloudinary.uploader.upload_stream(
-              { folder: 'moritech-products' },
-              (error, result) => {
-                if (error) {
-                  console.error(`❌ Cloudinary upload error for ${file.originalname}:`, error);
-                  reject(error);
-                } else {
-                  console.log(`✅ Uploaded image ${index + 1}: ${result.secure_url}`);
-                  resolve(result.secure_url);
-                }
+      // Process images in parallel for better performance
+      const uploadPromises = req.files.map(file => {
+        return new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            { folder: 'moritech-products' },
+            (error, result) => {
+              if (error) {
+                console.error('Cloudinary upload error:', error);
+                resolve(null); // Resolve with null to prevent blocking other uploads
+              } else {
+                resolve(result.secure_url);
               }
-            );
-            uploadStream.end(file.buffer);
-          });
+            }
+          );
           
-          imageUrls.push(result);
-        } catch (uploadError) {
-          console.error(`❌ Failed to upload ${file.originalname}:`, uploadError.message);
-        }
-      }
+          // Use Buffer.from for Node.js compatibility
+          uploadStream.end(Buffer.from(file.buffer));
+        });
+      });
+
+      // Wait for all uploads to complete
+      const results = await Promise.all(uploadPromises);
+      
+      // Filter out any failed uploads
+      imageUrls.push(...results.filter(url => url !== null));
     } else {
       console.log('⚠️ No images received in request');
     }
@@ -311,15 +307,13 @@ app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
 
     const savedProduct = await newProduct.save();
     console.log(`✅ Product created with ${imageUrls.length} images`);
-    console.log(savedProduct);
     
     res.status(201).json(savedProduct);
   } catch (error) {
     console.error('❌ PRODUCT CREATION ERROR:', error);
     res.status(500).json({ 
       message: 'Failed to create product',
-      error: error.message,
-      stack: error.stack
+      error: error.message
     });
   }
 });
