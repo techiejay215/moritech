@@ -235,27 +235,32 @@ app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 // app.use('/api/products', require('./routes/productRoutes')); // Removed to implement locally
 app.use('/api/offers/:id', validateObjectId);
 
-// 🔄 Update Product Routes to use multiple files
+// Replace the existing app.post('/api/products') route with this updated version
 app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
   try {
     const { name, price, category, description, specifications } = req.body;
     let images = [];
 
-    // Handle multiple image uploads
     if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
-        const result = await new Promise((resolve, reject) => {
+      // Process each image in parallel
+      const uploadPromises = req.files.map(file => {
+        return new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
             { folder: 'moritech-products' },
             (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
+              if (error) {
+                console.error('❌ Cloudinary upload error:', error);
+                reject(error);
+              } else {
+                resolve(result.secure_url);
+              }
             }
           );
           uploadStream.end(file.buffer);
         });
-        images.push(result.secure_url);
-      }
+      });
+
+      images = await Promise.all(uploadPromises);
     }
 
     const newProduct = new Product({
@@ -264,14 +269,17 @@ app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
       category,
       description,
       specifications,
-      images // Store array of image URLs
+      images
     });
 
     await newProduct.save();
     res.status(201).json(newProduct);
   } catch (error) {
     console.error('❌ Product creation error:', error);
-    res.status(500).json({ message: 'Failed to create product' });
+    res.status(500).json({ 
+      message: 'Failed to create product',
+      error: error.message 
+    });
   }
 });
 

@@ -1770,32 +1770,28 @@ function initProductForm() {
     categorySelect.addEventListener('change', toggleNewCategoryInput);
   }
   
-  // Replace the form submission handler in initProductForm()
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  
-  // Handle category
-  let category = document.getElementById('product-category').value;
-  if (category === 'new') {
-    category = document.getElementById('new-category-input').value.trim();
-    if (!category) {
-      alert('Please enter a new category name');
-      return;
-    }
-  }
   
   const formData = new FormData();
   formData.append('name', document.getElementById('product-name').value);
   formData.append('description', document.getElementById('product-description').value);
   formData.append('price', document.getElementById('product-price').value);
+  
+  // Handle category selection
+  const categorySelect = document.getElementById('product-category');
+  const category = categorySelect.value === 'new' 
+    ? document.getElementById('new-category-input').value
+    : categorySelect.value;
   formData.append('category', category);
+  
   formData.append('specifications', document.getElementById('product-specifications').value);
   
   // Append all images
+  const imageInput = document.getElementById('product-image');
   for (let i = 0; i < imageInput.files.length; i++) {
-    // Compress each image before upload
-    const compressedFile = await compressImage(imageInput.files[i]);
-    formData.append('images', compressedFile);
+    formData.append('images', imageInput.files[i]);
   }
 
   try {
@@ -1808,8 +1804,13 @@ form.addEventListener('submit', async (e) => {
       credentials: 'include'
     });
 
-    if (!response.ok) throw await handleResponseError(response);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to add product');
+    }
     
+    const result = await response.json();
+    console.log('Product created:', result);
     alert('Product added successfully!');
     form.reset();
     imagePreview.innerHTML = '';
@@ -1824,6 +1825,7 @@ form.addEventListener('submit', async (e) => {
       renderAdminProducts(adminProducts);
     }
   } catch (error) {
+    console.error('Add product error:', error);
     alert(error.message || 'Failed to add product');
   }
 });
