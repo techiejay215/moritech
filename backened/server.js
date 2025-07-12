@@ -232,7 +232,7 @@ app.use(protectedPaths, (req, res, next) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
-// app.use('/api/products', require('./routes/productRoutes')); // Removed to implement locally
+app.use('/api/products', require('./routes/productRoutes')); // Removed to implement locally
 app.use('/api/offers/:id', validateObjectId);
 
 // 🔄 Rewrite product creation endpoint
