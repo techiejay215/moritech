@@ -1197,25 +1197,23 @@ function initCart() {
   return window.cartInstance;
 }
 
+// Replace the existing setupProductEventDelegation function with this:
 function setupProductEventDelegation() {
   document.body.addEventListener('click', async (e) => {
-    if (e.target.classList.contains('add-to-cart-btn')) {
-      const card = e.target.closest('.product-card');
-      if (!card) return;
+    const addToCartBtn = e.target.closest('.add-to-cart-btn');
+    const inquireBtn = e.target.closest('.inquire-btn');
+    const productCard = e.target.closest('.product-card');
 
-      const productId = card.dataset.id;
-      if (!productId) return;
-
-      window.cartInstance?.addToCart(productId);
-    }
-    else if (e.target.classList.contains('inquire-btn')) {
-      const card = e.target.closest('.product-card');
-      if (!card) return;
+    if (addToCartBtn) {
+      const card = addToCartBtn.closest('.product-card');
+      window.cartInstance?.addToCart(card.dataset.id);
+    } 
+    else if (inquireBtn) {
+      const card = inquireBtn.closest('.product-card');
       inquire(card.dataset.name);
     }
-    else if (e.target.closest('.product-card')) {
-      const card = e.target.closest('.product-card');
-      showProductDetails(card.dataset.id);
+    else if (productCard) {
+      showProductDetails(productCard.dataset.id);
     }
   });
 }
@@ -1646,14 +1644,17 @@ function renderRelatedProducts(products) {
 }
 
 
-// Back to products function
 function setupBackButton() {
   const backBtn = document.getElementById('back-to-products');
   if (backBtn) {
-    backBtn.onclick = null; // Remove previous listeners
     backBtn.addEventListener('click', () => {
+      // Hide product details
       document.getElementById('product-details').style.display = 'none';
+      
+      // Show products section
       document.getElementById('products').style.display = 'block';
+      
+      // Scroll to top
       window.scrollTo(0, 0);
     });
   }
