@@ -1828,10 +1828,16 @@ function initProductForm() {
     formData.append('specifications', specifications);
 
     // Append all images
-    const imageInput = document.getElementById('product-image');
+   const imageInput = document.getElementById('product-image');
+  if (imageInput.files && imageInput.files.length > 0) {
     for (let i = 0; i < imageInput.files.length; i++) {
-      formData.append('images', imageInput.files[i]);
+      const file = imageInput.files[i];
+      // Validate file type and size
+      if (file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024) {
+        formData.append('images', file);
+      }
     }
+  }
 
     try {
       console.log('Submitting product form with', imageInput.files.length, 'images');
