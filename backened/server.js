@@ -59,6 +59,19 @@ const validateObjectId = (req, res, next) => {
   next();
 };
 
+// 🔐 Admin Middleware
+const adminRequired = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+  
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+  
+  next();
+};
+
 // 📦 Update Product Schema
 const productSchema = new mongoose.Schema({
   name: String,
@@ -235,8 +248,12 @@ app.use('/api/inquiries', require('./routes/inquiryRoutes'));
 app.use('/api/products', require('./routes/productRoutes')); // Removed to implement locally
 app.use('/api/offers/:id', validateObjectId);
 
-// 🔄 Rewrite product creation endpoint
-app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
+// ========================
+// PRODUCT ROUTES
+// ========================
+
+// 🔄 Product creation endpoint
+app.post('/api/products', adminRequired, memoryUpload.array('images', 5), async (req, res) => {
   try {
     const { name, price, category, description, specifications } = req.body;
     console.log(`Creating product: ${name}`);
@@ -297,7 +314,48 @@ app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
     });
   }
 });
-// Added product detail route
+
+// Get all products
+app.get('/api/products', async (req, res) => {
+  try {
+    const products = await Product.find({});
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch products' });
+  }
+});
+
+// Get products by category
+app.get('/api/products/category/:category', async (req, res) => {
+  try {
+    const category = req.params.category;
+    const products = await Product.find({ category });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch category products' });
+  }
+});
+
+// Get related products
+app.get('/api/products/related/:id', validateObjectId, async (req, res) => {
+  try {
+    const currentProduct = await Product.findById(req.params.id);
+    if (!currentProduct) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    
+    const relatedProducts = await Product.find({
+      category: currentProduct.category,
+      _id: { $ne: req.params.id }
+    }).limit(4);
+    
+    res.json(relatedProducts);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch related products' });
+  }
+});
+
+// Get single product
 app.get('/api/products/:id', validateObjectId, async (req, res) => {
   console.log(`Fetching product with ID: ${req.params.id}`);
   try {
@@ -305,7 +363,7 @@ app.get('/api/products/:id', validateObjectId, async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    res.json(product);
+    
     const responseProduct = product.toObject();
     if (!responseProduct.specifications) {
       responseProduct.specifications = "";
@@ -315,30 +373,24 @@ app.get('/api/products/:id', validateObjectId, async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch product' });
   }
 });
-app.get('/api/test-upload', async (req, res) => {
+
+// Delete product
+app.delete('/api/products/:id', adminRequired, validateObjectId, async (req, res) => {
   try {
-    // Test Cloudinary connection
-    const result = await cloudinary.uploader.upload(
-      'https://res.cloudinary.com/demo/image/upload/sample.jpg',
-      { folder: 'moritech-test' }
-    );
-    
-    res.json({
-      status: 'Cloudinary working',
-      result: {
-        url: result.secure_url,
-        public_id: result.public_id
-      }
-    });
+    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+    if (!deletedProduct) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    res.json({ message: 'Product deleted successfully' });
   } catch (error) {
-    res.status(500).json({
-      status: 'Cloudinary error',
-      error: error.message
-    });
+    res.status(500).json({ message: 'Failed to delete product' });
   }
 });
 
-// 🎁 Offer Routes
+// ========================
+// OFFER ROUTES
+// ========================
+
 app.post('/api/offers', validateObjectId, memoryUpload.single('image'), async (req, res) => {
   try {
     // Validate required fields
@@ -493,6 +545,10 @@ app.delete('/api/offers/:id', async (req, res) => {
     res.status(500).json({ message: 'Failed to delete offer' });
   }
 });
+
+// ========================
+// UTILITY ROUTES
+// ========================
 
 // ☁️ Image Upload Endpoint (PROTECTED)
 app.post('/api/upload', memoryUpload.single('image'), async (req, res) => {
