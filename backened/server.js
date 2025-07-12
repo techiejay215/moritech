@@ -252,46 +252,54 @@ app.use('/api/offers/:id', validateObjectId);
 // PRODUCT ROUTES
 // ========================
 
-// 🔄 Product creation endpoint
-app.post('/api/products', adminRequired, memoryUpload.array('images', 5), async (req, res) => {
+app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
   try {
+    console.log('--- NEW PRODUCT REQUEST ---');
+    console.log('Request body:', req.body);
+    console.log('Files received:', req.files ? req.files.length : 0);
+    
     const { name, price, category, description, specifications } = req.body;
-    console.log(`Creating product: ${name}`);
-
-    // 1. Validate required fields
+    
+    // Validate required fields
     if (!name || !price || !category) {
+      console.log('❌ Missing required fields');
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // 2. Process images
     const imageUrls = [];
+    
     if (req.files && req.files.length > 0) {
       console.log(`Processing ${req.files.length} images...`);
       
-      for (const file of req.files) {
-        console.log(`Uploading image: ${file.originalname} (${file.size} bytes)`);
+      for (const [index, file] of req.files.entries()) {
+        console.log(`Uploading image ${index + 1}: ${file.originalname} (${file.size} bytes)`);
         
-        const result = await new Promise((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            { folder: 'moritech-products' },
-            (error, result) => {
-              if (error) {
-                console.error('❌ Cloudinary upload error:', error);
-                reject(error);
-              } else {
-                console.log(`✅ Uploaded image: ${result.secure_url}`);
-                resolve(result.secure_url);
+        try {
+          const result = await new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+              { folder: 'moritech-products' },
+              (error, result) => {
+                if (error) {
+                  console.error(`❌ Cloudinary upload error for ${file.originalname}:`, error);
+                  reject(error);
+                } else {
+                  console.log(`✅ Uploaded image ${index + 1}: ${result.secure_url}`);
+                  resolve(result.secure_url);
+                }
               }
-            }
-          );
-          uploadStream.end(file.buffer);
-        });
-        
-        imageUrls.push(result);
+            );
+            uploadStream.end(file.buffer);
+          });
+          
+          imageUrls.push(result);
+        } catch (uploadError) {
+          console.error(`❌ Failed to upload ${file.originalname}:`, uploadError.message);
+        }
       }
+    } else {
+      console.log('⚠️ No images received in request');
     }
 
-    // 3. Create product
     const newProduct = new Product({
       name,
       price: parseFloat(price),
@@ -301,16 +309,17 @@ app.post('/api/products', adminRequired, memoryUpload.array('images', 5), async 
       images: imageUrls
     });
 
-    // 4. Save to database
     const savedProduct = await newProduct.save();
-    console.log(`✅ Product created: ${savedProduct._id}`);
+    console.log(`✅ Product created with ${imageUrls.length} images`);
+    console.log(savedProduct);
     
     res.status(201).json(savedProduct);
   } catch (error) {
-    console.error('❌ Product creation error:', error);
+    console.error('❌ PRODUCT CREATION ERROR:', error);
     res.status(500).json({ 
       message: 'Failed to create product',
-      error: error.message 
+      error: error.message,
+      stack: error.stack
     });
   }
 });

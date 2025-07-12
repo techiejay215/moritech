@@ -10,13 +10,13 @@ function getAuthHeaders(contentType = 'application/json') {
   const headers = {
     'Content-Type': contentType
   };
-  
+
   // Add JWT token to headers if available
   const token = localStorage.getItem('token');
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  
+
   return headers;
 }
 
@@ -48,7 +48,7 @@ async function handleResponseError(response) {
         console.error('Token refresh failed:', refreshError);
       }
     }
-    
+
     // Only remove tokens if refresh fails
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -79,7 +79,7 @@ const authService = {
       });
 
       if (!response.ok) throw await handleResponseError(response);
-      
+
       const { user, token } = await response.json();
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
@@ -118,11 +118,12 @@ const authService = {
 
   async requestPasswordReset(email) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ email, credentials: 'include'})
+        body: JSON.stringify({ email, credentials: 'include' })
       });
-      
+
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
     } catch (error) {
@@ -138,15 +139,15 @@ const authService = {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
-      
+
       if (response.status === 401) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         return null;
       }
-      
+
       if (!response.ok) return null;
-      
+
       return await response.json();
     } catch (error) {
       console.error('Session check error:', error);
@@ -159,14 +160,14 @@ const authService = {
       // Clear token first
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      
+
       // Call logout API
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
         headers: getAuthHeaders(),
         credentials: 'include'
       });
-      
+
       return true;
     } catch (error) {
       console.error('Logout error:', error);
@@ -179,7 +180,7 @@ const authService = {
     if (refreshingToken) {
       return refreshingToken;
     }
-    
+
     try {
       refreshingToken = new Promise(async (resolve, reject) => {
         try {
@@ -187,11 +188,11 @@ const authService = {
             method: 'POST',
             credentials: 'include'
           });
-          
+
           if (!response.ok) {
             throw new Error('Token refresh failed');
           }
-          
+
           const { token } = await response.json();
           localStorage.setItem('token', token);
           resolve(token);
@@ -201,7 +202,7 @@ const authService = {
           refreshingToken = null;
         }
       });
-      
+
       return await refreshingToken;
     } catch (error) {
       refreshingToken = null;
@@ -231,32 +232,33 @@ const cartService = {
       return { items: [] };
     }
   },
-  
- async addToCart(productId, quantity = 1) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/cart/items`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ productId, quantity }),
-      credentials: 'include'
-    });
-    
-    if (!response.ok) throw await handleResponseError(response);
-    return await response.json();
-  } catch (error) {
-    console.error('Cart error:', error);
-    throw error;
-  }
-},
+
+  async addToCart(productId, quantity = 1) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/cart/items`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ productId, quantity }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw await handleResponseError(response);
+      return await response.json();
+    } catch (error) {
+      console.error('Cart error:', error);
+      throw error;
+    }
+  },
 
   async updateCartItem(itemId, quantity) {
     try {
-      const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {method: 'PUT',
+      const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
+        method: 'PUT',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ quantity}),
+        body: JSON.stringify({ quantity }),
         credentials: 'include'
       });
-      
+
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
     } catch (error) {
@@ -272,7 +274,7 @@ const cartService = {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
-      
+
       if (!response.ok) throw await handleResponseError(response);
       return true;
     } catch (error) {
@@ -291,7 +293,7 @@ const inquiryService = {
         body: JSON.stringify(inquiryData),
         credentials: 'include'
       });
-      
+
       if (!response.ok) throw await handleResponseError(response);
       return await response.json();
     } catch (error) {
@@ -403,34 +405,34 @@ const offerService = {
     }
   },
 
- async addOffer(offerData) {
-  try {
-    const formData = new FormData();
-    formData.append('productId', offerData.productId);
-    formData.append('name', offerData.name);
-    formData.append('oldPrice', offerData.oldPrice);
-    formData.append('price', offerData.price);
-    
-    if (offerData.image) {
-      formData.append('image', offerData.image);
+  async addOffer(offerData) {
+    try {
+      const formData = new FormData();
+      formData.append('productId', offerData.productId);
+      formData.append('name', offerData.name);
+      formData.append('oldPrice', offerData.oldPrice);
+      formData.append('price', offerData.price);
+
+      if (offerData.image) {
+        formData.append('image', offerData.image);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/offers`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: formData,
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw await handleResponseError(response);
+      return await response.json();
+    } catch (error) {
+      console.error('Add offer error:', error);
+      throw error;
     }
-    
-    const response = await fetch(`${API_BASE_URL}/offers`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-      },
-      body: formData,
-      credentials: 'include'
-    });
-    
-    if (!response.ok) throw await handleResponseError(response);
-    return await response.json();
-  } catch (error) {
-    console.error('Add offer error:', error);
-    throw error;
-  }
-},
+  },
   async deleteOffer(id) {
     try {
       const response = await fetch(`${API_BASE_URL}/offers/${id}`, {
@@ -438,7 +440,7 @@ const offerService = {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
-      
+
       if (!response.ok) throw await handleResponseError(response);
       return true;
     } catch (error) {
@@ -451,60 +453,60 @@ const offerService = {
 async function initSlider() {
   const slides = document.querySelectorAll('.slide');
   if (!slides.length) return;
-  
+
   const dots = document.querySelectorAll('.slider-dot');
   const prevBtn = document.querySelector('.prev-btn');
   const nextBtn = document.querySelector('.next-btn');
-  
+
   let currentSlide = 0;
   let slideInterval;
-  
+
   function showSlide(index) {
     slides.forEach(slide => slide.classList.remove('active'));
     dots.forEach(dot => dot.classList.remove('active'));
-    
+
     slides[index].classList.add('active');
     dots[index].classList.add('active');
     currentSlide = index;
   }
-  
+
   function nextSlide() {
     showSlide((currentSlide + 1) % slides.length);
   }
-  
+
   function prevSlide() {
     showSlide((currentSlide - 1 + slides.length) % slides.length);
   }
-  
+
   function startSlideShow() {
     slideInterval = setInterval(nextSlide, 5000);
   }
-  
+
   function stopSlideShow() {
     clearInterval(slideInterval);
   }
-  
+
   prevBtn?.addEventListener('click', () => {
     stopSlideShow();
     prevSlide();
     startSlideShow();
   });
-  
+
   nextBtn?.addEventListener('click', () => {
     stopSlideShow();
     nextSlide();
     startSlideShow();
   });
-  
+
   dots.forEach(dot => {
-    dot.addEventListener('click', function() {
+    dot.addEventListener('click', function () {
       const slideIndex = parseInt(this.dataset.slide);
       stopSlideShow();
       showSlide(slideIndex);
       startSlideShow();
     });
   });
-  
+
   showSlide(0);
   startSlideShow();
 }
@@ -535,14 +537,14 @@ function renderOffers(offers) {
   offers.forEach(offer => {
     const offerEl = document.createElement('div');
     offerEl.className = 'offer-card';
-    
+
     // FIX: Use offer.productId._id instead of offer.productId
     const productId = offer.productId._id || offer.productId; // Fallback for safety
-    
+
     // Determine tag based on category
     let tag = '';
     const category = (offer.productId.category || '').toLowerCase();
-    
+
     if (category === 'toners') tag = '<div class="offer-tag">TONER</div>';
     else if (category === 'networking') tag = '<div class="offer-tag">NETWORK</div>';
     else if (category === 'software') tag = '<div class="offer-tag">SOFTWARE</div>';
@@ -571,12 +573,12 @@ function renderOffers(offers) {
 }
 
 function initOffersControls() {
- const container = document.querySelector('.offers-container');
+  const container = document.querySelector('.offers-container');
   const prevBtn = document.querySelector('.offers-prev');
   const nextBtn = document.querySelector('.offers-next');
-  
+
   if (!container || !prevBtn || !nextBtn) return;
-  
+
   const offerCards = container.querySelectorAll('.offer-card');
   if (!offerCards.length) return;
 
@@ -610,80 +612,80 @@ function initOffersControls() {
   updatePosition();
 }
 
-  
+
 function initOfferForm() {
   const form = document.getElementById('add-offer-form');
   if (!form) return;
-  
-  // 🔄 Update image preview to handle multiple images
-const imageInput = document.getElementById('product-image');
-const imagePreview = document.getElementById('image-preview');
 
-imageInput?.addEventListener('change', function() {
-  imagePreview.innerHTML = '';
-  
-  if (this.files && this.files.length > 0) {
-    for (let i = 0; i < this.files.length; i++) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = document.createElement('img');
-        img.src = e.target.result;
-        img.style.maxWidth = '200px';
-        img.style.maxHeight = '200px';
-        img.style.margin = '5px';
-        imagePreview.appendChild(img);
+  // 🔄 Update image preview to handle multiple images
+  const imageInput = document.getElementById('product-image');
+  const imagePreview = document.getElementById('image-preview');
+
+  imageInput?.addEventListener('change', function () {
+    imagePreview.innerHTML = '';
+
+    if (this.files && this.files.length > 0) {
+      for (let i = 0; i < this.files.length; i++) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.style.maxWidth = '200px';
+          img.style.maxHeight = '200px';
+          img.style.margin = '5px';
+          imagePreview.appendChild(img);
+        }
+        reader.readAsDataURL(this.files[i]);
       }
-      reader.readAsDataURL(this.files[i]);
     }
-  }
-});
+  });
   // Form submission
   form.addEventListener('submit', async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-const productId = document.getElementById('offer-product-select').value;
-  if (!productId || !/^[0-9a-fA-F]{24}$/.test(productId)) {
-    alert('Please select a valid product');
-    return;
-  }
-  const offerData = {
-    productId,
-    name: form.elements['name'].value,
-    oldPrice: parseFloat(form.elements['oldPrice'].value),
-    price: parseFloat(form.elements['price'].value),
-    image: imageInput.files[0] || null
-  };
-  
-  try {
-    // Add image compression before upload
-    if (offerData.image) {
-      offerData.image = await compressImage(offerData.image);
+    const productId = document.getElementById('offer-product-select').value;
+    if (!productId || !/^[0-9a-fA-F]{24}$/.test(productId)) {
+      alert('Please select a valid product');
+      return;
     }
-    
-    await offerService.addOffer(offerData);
-    alert('Offer added successfully!');
-    form.reset();
-    imagePreview.innerHTML = '';
-    await loadAdminOffers();
-  } catch (error) {
-    alert(error.message || 'Failed to add offer');
-  }
-});
+    const offerData = {
+      productId,
+      name: form.elements['name'].value,
+      oldPrice: parseFloat(form.elements['oldPrice'].value),
+      price: parseFloat(form.elements['price'].value),
+      image: imageInput.files[0] || null
+    };
+
+    try {
+      // Add image compression before upload
+      if (offerData.image) {
+        offerData.image = await compressImage(offerData.image);
+      }
+
+      await offerService.addOffer(offerData);
+      alert('Offer added successfully!');
+      form.reset();
+      imagePreview.innerHTML = '';
+      await loadAdminOffers();
+    } catch (error) {
+      alert(error.message || 'Failed to add offer');
+    }
+  });
 }
 
 async function loadAdminOffers() {
   const container = document.querySelector('.offers-list-container');
   if (!container) return;
-  
+
   try {
     const offers = await offerService.getOffers();
     container.innerHTML = '';
-    
+
     if (!offers.length) {
       container.innerHTML = '<p>No offers found</p>';
       return;
     }
-    
+
     offers.forEach(offer => {
       const item = document.createElement('div');
       item.className = 'admin-offer-item';
@@ -697,7 +699,7 @@ async function loadAdminOffers() {
         </div>
       `;
       container.appendChild(item);
-      
+
       item.querySelector('.delete-offer-btn').addEventListener('click', async () => {
         if (confirm('Delete this offer?')) {
           try {
@@ -721,8 +723,7 @@ function initCategoryFilter() {
 
   categoryButtons.forEach(button => {
     button.addEventListener('click', async function () {
-      categoryButtons.forEach(btn => btn.classList.remove('active'));
-      this.classList.add('active');
+      if (window.innerWidth <= 768) return;
 
       const category = this.dataset.category;
 
@@ -772,22 +773,22 @@ function initCategoryFilter() {
 function initSearch() {
   const desktopSearch = document.getElementById('search-input');
   const mobileSearch = document.getElementById('mobile-search-input');
-  
+
   const headerSearch = document.getElementById('header-search-input');
-  
+
   function setupSearch(inputElement) {
     if (!inputElement) return;
-    
+
     let searchTimeout;
-    inputElement.addEventListener('input', function() {
+    inputElement.addEventListener('input', function () {
       const searchTerm = this.value.trim();
       clearTimeout(searchTimeout);
-      
+
       if (searchTerm.length < 2) {
         loadProducts();
         return;
       }
-      
+
       searchTimeout = setTimeout(async () => {
         try {
           const products = await productService.searchProducts(searchTerm);
@@ -806,11 +807,11 @@ function initSearch() {
 
 function initSmoothScrolling() {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
+    anchor.addEventListener('click', function (e) {
       e.preventDefault();
       const targetId = this.getAttribute('href');
       const targetElement = document.querySelector(targetId);
-      
+
       if (targetElement) {
         window.scrollTo({
           top: targetElement.offsetTop - 100,
@@ -819,20 +820,20 @@ function initSmoothScrolling() {
       }
     });
   });
-  
+
   const sections = document.querySelectorAll('section');
   const navLinks = document.querySelectorAll('nav ul li a');
-  
-  window.addEventListener('scroll', function() {
+
+  window.addEventListener('scroll', function () {
     let current = '';
-    
+
     sections.forEach(section => {
       const sectionTop = section.offsetTop;
       if (pageYOffset >= (sectionTop - 150)) {
         current = section.getAttribute('id');
       }
     });
-    
+
     navLinks.forEach(link => {
       const href = link.getAttribute('href');
       if (href && href.startsWith('#')) {
@@ -872,7 +873,7 @@ function initAuthModal() {
     tabBtns.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tabName);
     });
-    
+
     tabContents.forEach(content => {
       content.classList.toggle('active', content.id === `${tabName}-tab`);
     });
@@ -893,22 +894,22 @@ function initAuthModal() {
   resetPasswordForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = resetPasswordForm.querySelector('input[type="email"]').value;
-    
+
     try {
       const messageEl = document.getElementById('reset-message') || document.createElement('div');
       messageEl.id = 'reset-message';
       messageEl.style.marginTop = '10px';
       resetPasswordForm.appendChild(messageEl);
-      
+
       messageEl.textContent = 'Sending reset link...';
       messageEl.style.display = 'block';
       messageEl.style.color = '#333';
-      
+
       await authService.requestPasswordReset(email);
-      
+
       messageEl.textContent = 'Password reset link sent! Check your email.';
       messageEl.style.color = 'green';
-      
+
       setTimeout(() => {
         resetPasswordForm.reset();
         messageEl.style.display = 'none';
@@ -944,19 +945,19 @@ function initAuthModal() {
     e.preventDefault();
     const email = loginForm.querySelector('input[type="email"]').value;
     const password = loginForm.querySelector('input[type="password"]').value;
-    
+
     try {
       const user = await authService.login({ email, password });
       closeModalHandler();
       const updatedUser = await updateAuthUI();
-      
+
       // Add this check for admin role
       if (updatedUser?.role === 'admin') {
         await initAdminPanel();
         initProductForm();
         await populateProductDropdown();
       }
-      
+
       // Initialize cart
       if (!cartInstance) {
         cartInstance = initCart();
@@ -987,7 +988,7 @@ function initAuthModal() {
       alert('Registration successful! You are now logged in.');
       closeModalHandler();
       const updatedUser = await updateAuthUI();
-      
+
       // Initialize admin panel if user is admin
       if (updatedUser?.role === 'admin') {
         await initAdminPanel();
@@ -1001,7 +1002,7 @@ function initAuthModal() {
 
 function initCart() {
   if (window.cartInstance) return cartInstance;
-  
+
   const cartIcon = document.querySelector('.cart-icon');
   const cartSidebar = document.getElementById('cart-sidebar');
   if (!cartSidebar) return null;
@@ -1014,7 +1015,7 @@ function initCart() {
   const cartOverlay = document.createElement('div');
   cartOverlay.className = 'cart-overlay';
   document.body.appendChild(cartOverlay);
-  
+
 
   const openCart = () => {
     cartSidebar.classList.add('active');
@@ -1044,27 +1045,27 @@ function initCart() {
   function updateCartUI(cart) {
     const items = cart.items || [];
     const totalItems = items.reduce((total, item) => total + item.quantity, 0);
-    
+
     // Update both desktop and mobile cart counts
     document.querySelectorAll('.cart-count, .mobile-cart-count').forEach(el => {
       el.textContent = totalItems;
     });
-    
+
     if (cartItemsContainer) {
       cartItemsContainer.innerHTML = '';
-      
+
       if (items.length === 0) {
         cartItemsContainer.innerHTML = '<p class="empty-cart">Your cart is empty</p>';
         if (cartTotal) cartTotal.textContent = 'Ksh 0';
         return;
       }
-      
+
       let total = 0;
-      
+
       items.forEach(item => {
         const itemTotal = item.product.price * item.quantity;
         total += itemTotal;
-        
+
         const cartItem = document.createElement('div');
         cartItem.className = 'cart-item';
         cartItem.innerHTML = `
@@ -1082,22 +1083,22 @@ function initCart() {
             <button class="remove-item" data-id="${item._id}"><i class="fas fa-trash"></i></button>
           </div>
         `;
-        
+
         cartItemsContainer.appendChild(cartItem);
-        
+
         cartItem.querySelector('.decrease-quantity').addEventListener('click', async () => {
           await updateQuantity(item._id, item.quantity - 1);
         });
-        
+
         cartItem.querySelector('.increase-quantity').addEventListener('click', async () => {
           await updateQuantity(item._id, item.quantity + 1);
         });
-        
+
         cartItem.querySelector('.remove-item').addEventListener('click', async () => {
           await removeItem(item._id);
         });
       });
-      
+
       if (cartTotal) cartTotal.textContent = `Ksh ${total.toLocaleString()}`;
     }
   }
@@ -1108,7 +1109,7 @@ function initCart() {
         await removeItem(itemId);
         return;
       }
-      
+
       await cartService.updateCartItem(itemId, quantity);
       await fetchCart();
     } catch (error) {
@@ -1132,59 +1133,59 @@ function initCart() {
         alert('Your cart is empty');
         return;
       }
-      
+
       alert('Proceeding to checkout');
       await fetchCart();
     } catch {
       alert('Checkout failed. Please try again.');
     }
   });
-// Replace the entire addToCart function in initCart
-// Replace the existing addToCart function with this corrected version
-async function addToCart(productId) {
-  console.log(`Adding product ${productId} to cart`);
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      // Mobile/desktop login prompt
-      if (window.innerWidth <= 768) {
-        document.getElementById('mobile-account-btn')?.click();
-      } else {
-        document.getElementById('login-link')?.click();
-      }
-      alert('Please login to add items to your cart');
-      return;
-    }
-    
-    // FIX: Remove the nested try-catch block and handle refresh properly
+  // Replace the entire addToCart function in initCart
+  // Replace the existing addToCart function with this corrected version
+  async function addToCart(productId) {
+    console.log(`Adding product ${productId} to cart`);
     try {
-      await cartService.addToCart(productId);
-    } catch (error) {
-      // Handle token refresh on 401 error
-      if (error.message.includes('401')) {
-        await authService.refreshToken();
-        await cartService.addToCart(productId);
-      } else {
-        throw error;
+      const token = localStorage.getItem('token');
+      if (!token) {
+        // Mobile/desktop login prompt
+        if (window.innerWidth <= 768) {
+          document.getElementById('mobile-account-btn')?.click();
+        } else {
+          document.getElementById('login-link')?.click();
+        }
+        alert('Please login to add items to your cart');
+        return;
       }
-    }
 
-    await fetchCart();
-    openCart();
-    
-    // Mobile feedback animation
-    if (window.innerWidth <= 768) {
-      const mobileCartBtn = document.getElementById('mobile-cart-btn');
-      if (mobileCartBtn) {
-        mobileCartBtn.classList.add('pulse');
-        setTimeout(() => mobileCartBtn.classList.remove('pulse'), 1000);
+      // FIX: Remove the nested try-catch block and handle refresh properly
+      try {
+        await cartService.addToCart(productId);
+      } catch (error) {
+        // Handle token refresh on 401 error
+        if (error.message.includes('401')) {
+          await authService.refreshToken();
+          await cartService.addToCart(productId);
+        } else {
+          throw error;
+        }
       }
+
+      await fetchCart();
+      openCart();
+
+      // Mobile feedback animation
+      if (window.innerWidth <= 768) {
+        const mobileCartBtn = document.getElementById('mobile-cart-btn');
+        if (mobileCartBtn) {
+          mobileCartBtn.classList.add('pulse');
+          setTimeout(() => mobileCartBtn.classList.remove('pulse'), 1000);
+        }
+      }
+    } catch (error) {
+      console.error('Add to cart error:', error);
+      alert(error.message || 'Failed to add to cart');
     }
-  } catch (error) {
-    console.error('Add to cart error:', error);
-    alert(error.message || 'Failed to add to cart');
   }
-}
 
   fetchCart();
 
@@ -1201,10 +1202,10 @@ function setupProductEventDelegation() {
     if (e.target.classList.contains('add-to-cart-btn')) {
       const card = e.target.closest('.product-card');
       if (!card) return;
-      
+
       const productId = card.dataset.id;
       if (!productId) return;
-      
+
       window.cartInstance?.addToCart(productId);
     }
     else if (e.target.classList.contains('inquire-btn')) {
@@ -1222,9 +1223,9 @@ function setupProductEventDelegation() {
 function toggleNewCategoryInput() {
   const categorySelect = document.getElementById('product-category');
   const newCategoryInput = document.getElementById('new-category-input');
-  
+
   if (!categorySelect || !newCategoryInput) return;
-  
+
   if (categorySelect.value === 'new') {
     newCategoryInput.style.display = 'block';
     newCategoryInput.required = true;
@@ -1252,8 +1253,8 @@ function renderProducts(products) {
     const card = document.createElement('div');
     card.className = 'product-card';
     card.dataset.id = product._id;
-    card.dataset.name = product.name; 
-    
+    card.dataset.name = product.name;
+
     card.innerHTML = `
       <div class="product-img">
         ${getProductImageHTML(product)}
@@ -1267,13 +1268,13 @@ function renderProducts(products) {
         </div>
       </div>
     `;
-    
-    
+
+
     // Click to show details
     card.querySelector('.product-img, .product-content p, .price').addEventListener('click', () => {
       showProductDetails(product._id);
     });
-    
+
     productGrid.appendChild(card);
   });
 }
@@ -1295,10 +1296,10 @@ async function compressImage(file, maxWidth = 800, quality = 0.7) {
         const scale = Math.min(maxWidth / img.width, 1);
         canvas.width = img.width * scale;
         canvas.height = img.height * scale;
-        
+
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        
+
         canvas.toBlob(
           blob => resolve(new File([blob], file.name, { type: 'image/jpeg' })),
           'image/jpeg',
@@ -1348,17 +1349,17 @@ function inquire(productName) {
       </form>
     </div>
   `;
-  
+
   document.body.appendChild(modal);
-  
+
   modal.querySelector('.close-modal').addEventListener('click', () => {
     document.body.removeChild(modal);
   });
-  
+
   const form = modal.querySelector('#inquiry-form');
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const formData = {
       name: form.querySelector('input[type="text"]').value,
       email: form.querySelector('input[type="email"]').value,
@@ -1366,7 +1367,7 @@ function inquire(productName) {
       message: form.querySelector('textarea').value,
       product: productName
     };
-    
+
     try {
       await inquiryService.submitInquiry(formData);
       alert('Thank you for your inquiry! We will contact you shortly.');
@@ -1381,17 +1382,17 @@ function inquire(productName) {
 async function updateAuthUI() {
   try {
     let user = null;
-    
+
     // Always use session check to get user data
     const sessionData = await authService.checkSession();
     user = sessionData?.user || null;
-    
+
     // Update UI based on authentication status
     const authLinks = document.querySelector('.top-bar-user .auth-links');
     const userProfile = document.querySelector('.top-bar-user .user-profile');
     const mobileUserProfile = document.querySelector('.mobile-nav .mobile-user-profile');
     const mobileHeaderProfile = document.querySelector('.mobile-header .mobile-user-profile');
-    
+
     if (user) {
       if (authLinks) authLinks.style.display = 'none';
       if (userProfile) {
@@ -1416,7 +1417,7 @@ async function updateAuthUI() {
       if (mobileUserProfile) mobileUserProfile.style.display = 'none';
       if (mobileHeaderProfile) mobileHeaderProfile.style.display = 'none';
     }
-    
+
     return user;
   } catch (error) {
     console.error('Auth UI update error:', error);
@@ -1426,7 +1427,7 @@ async function updateAuthUI() {
 function initLogout() {
   const logoutBtn = document.getElementById('logout-btn');
   if (!logoutBtn) return;
-  
+
   logoutBtn.addEventListener('click', async () => {
     try {
       await authService.logout();
@@ -1444,7 +1445,7 @@ function initLogout() {
 function initMobileLogout() {
   const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
   const mobileLogoutHeader = document.getElementById('mobile-logout-header');
-  
+
   const logoutHandler = async (e) => {
     e.preventDefault();
     try {
@@ -1475,7 +1476,7 @@ async function showProductDetails(productId) {
     const loadingElement = document.createElement('div');
     loadingElement.className = 'loading-overlay';
     loadingElement.innerHTML = '<div class="loading">Loading product details...</div>';
-    
+
     // Show loading overlay
     productDetailsSection.appendChild(loadingElement);
     productDetailsContainer.style.display = 'none';
@@ -1487,11 +1488,11 @@ async function showProductDetails(productId) {
     });
 
     // Fetch product details
-    const response = await fetch(`${API_BASE_URL}/products/${productId}`, { 
+    const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
       headers: getAuthHeaders(),
-      credentials: 'include' 
+      credentials: 'include'
     });
-    
+
     if (!response.ok) throw await handleResponseError(response);
     const product = await response.json();
 
@@ -1509,45 +1510,45 @@ async function showProductDetails(productId) {
     document.getElementById('product-detail-category').textContent = product.category;
     document.getElementById('product-detail-description').textContent = product.description;
 
-  const specsContainer = document.getElementById('product-specs');
-if (specsContainer) {
-  if (product.specifications && product.specifications.trim() !== '') {
-    specsContainer.innerHTML = product.specifications;
-  } else {
-    specsContainer.innerHTML = '<p>No specifications available</p>';
-  }
-}
+    const specsContainer = document.getElementById('product-specs');
+    if (specsContainer) {
+      if (product.specifications && product.specifications.trim() !== '') {
+        specsContainer.innerHTML = product.specifications;
+      } else {
+        specsContainer.innerHTML = '<p>No specifications available</p>';
+      }
+    }
 
     // Set up WhatsApp link
     const whatsappLink = document.getElementById('whatsapp-order');
     const message = `Hi, I'm interested in this product: ${product.name} (Ksh ${product.price.toLocaleString()}). Product ID: ${product._id}`;
     whatsappLink.href = `https://wa.me/254719362202?text=${encodeURIComponent(message)}`;
-    
-const mainImage = document.getElementById('main-product-image');
-const thumbnailContainer = document.querySelector('.thumbnail-container');
-thumbnailContainer.innerHTML = '';
 
-// Use product images or placeholder
-const images = product.images && product.images.length > 0 
-  ? product.images 
-  : [product.image || 'https://via.placeholder.com/500?text=Product+Image'];
+    const mainImage = document.getElementById('main-product-image');
+    const thumbnailContainer = document.querySelector('.thumbnail-container');
+    thumbnailContainer.innerHTML = '';
 
-mainImage.src = images[0];
-mainImage.alt = product.name;
+    // Use product images or placeholder
+    const images = product.images && product.images.length > 0
+      ? product.images
+      : [product.image || 'https://via.placeholder.com/500?text=Product+Image'];
 
-images.forEach((img, index) => {
-  const thumbnail = document.createElement('div');
-  thumbnail.className = 'thumbnail' + (index === 0 ? ' active' : '');
-  thumbnail.innerHTML = `<img src="${img}" alt="${product.name} thumbnail">`;
-  
-  thumbnail.addEventListener('click', () => {
-    mainImage.src = img;
-    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-    thumbnail.classList.add('active');
-  });
-  
-  thumbnailContainer.appendChild(thumbnail);
-});
+    mainImage.src = images[0];
+    mainImage.alt = product.name;
+
+    images.forEach((img, index) => {
+      const thumbnail = document.createElement('div');
+      thumbnail.className = 'thumbnail' + (index === 0 ? ' active' : '');
+      thumbnail.innerHTML = `<img src="${img}" alt="${product.name} thumbnail">`;
+
+      thumbnail.addEventListener('click', () => {
+        mainImage.src = img;
+        document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+        thumbnail.classList.add('active');
+      });
+
+      thumbnailContainer.appendChild(thumbnail);
+    });
     // Set up Add to Cart button
     const addToCartBtn = document.getElementById('add-to-cart-detail');
     if (addToCartBtn) {
@@ -1560,7 +1561,7 @@ images.forEach((img, index) => {
 
     // NEW: Render reviews
     renderReviews(product.reviews || []);
-    
+
 
     // NEW: Render related products
     renderRelatedProducts(relatedProducts);
@@ -1568,7 +1569,7 @@ images.forEach((img, index) => {
     // Remove loading and show content
     productDetailsSection.removeChild(loadingElement);
     productDetailsContainer.style.display = 'block';
-    
+
   } catch (error) {
     console.error('Product details error:', error);
     document.getElementById('product-details').innerHTML = `
@@ -1587,14 +1588,14 @@ images.forEach((img, index) => {
 function renderReviews(reviews) {
   const reviewsContainer = document.getElementById('product-reviews');
   if (!reviewsContainer) return;
-  
+
   reviewsContainer.innerHTML = '';
-  
+
   if (!reviews.length) {
     reviewsContainer.innerHTML = '<p>No reviews yet. Be the first to review!</p>';
     return;
   }
-  
+
   reviews.forEach(review => {
     const reviewEl = document.createElement('div');
     reviewEl.className = 'review';
@@ -1616,19 +1617,19 @@ function renderReviews(reviews) {
 function renderRelatedProducts(products) {
   const container = document.getElementById('related-products');
   if (!container) return;
-  
+
   container.innerHTML = '';
-  
+
   if (!products.length) {
     container.innerHTML = '<p>No related products found</p>';
     return;
   }
-  
+
   products.slice(0, 4).forEach(product => {
     const card = document.createElement('div');
     card.className = 'related-product-card';
     card.dataset.id = product._id;
-    
+
     card.innerHTML = `
       <div class="related-product-img">
         ${getProductImageHTML(product)}
@@ -1638,7 +1639,7 @@ function renderRelatedProducts(products) {
         <div class="related-product-price">Ksh ${product.price.toLocaleString()}</div>
       </div>
     `;
-    
+
     card.addEventListener('click', () => showProductDetails(product._id));
     container.appendChild(card);
   });
@@ -1661,22 +1662,22 @@ async function initAdminPanel() {
   try {
     const user = await updateAuthUI();
     const adminSection = document.getElementById('admin');
-    
+
     if (adminSection && user?.role === 'admin') {
       adminSection.style.display = 'block';
-      
+
       // Load products and store them
       adminProducts = await productService.getProducts();
       await renderAdminProducts(adminProducts);
-      
+
       // Initialize search functionality
       initAdminSearch();
       initOfferForm();
       await loadAdminOffers();
-      
+
       // POPULATE THE DROPDOWN HERE
       await populateProductDropdown();
-      
+
       adminPanelInitialized = true;
       return true;
     }
@@ -1689,21 +1690,21 @@ async function initAdminPanel() {
 function initAdminSearch() {
   const searchInput = document.getElementById('admin-search-input');
   if (!searchInput) return;
-  
-  searchInput.addEventListener('input', function() {
+
+  searchInput.addEventListener('input', function () {
     const searchTerm = this.value.toLowerCase().trim();
-    
+
     if (!searchTerm) {
       renderAdminProducts(adminProducts);
       return;
     }
-    
-    const filteredProducts = adminProducts.filter(product => 
-      product.name.toLowerCase().includes(searchTerm) || 
+
+    const filteredProducts = adminProducts.filter(product =>
+      product.name.toLowerCase().includes(searchTerm) ||
       product.category.toLowerCase().includes(searchTerm) ||
       (product.description && product.description.toLowerCase().includes(searchTerm))
     );
-    
+
     renderAdminProducts(filteredProducts);
   });
 }
@@ -1718,14 +1719,14 @@ async function renderAdminProducts(products) {
       container.innerHTML = '<p>No products found</p>';
       return;
     }
-    
+
     container.innerHTML = '';
-    
+
     products.forEach(product => {
       const item = document.createElement('div');
       item.className = 'admin-product-item';
       item.dataset.id = product._id;
-      
+
       item.innerHTML = `
         <div class="admin-product-info">
           <strong>${product.name}</strong>
@@ -1735,10 +1736,10 @@ async function renderAdminProducts(products) {
           <button class="delete-product-btn">Delete</button>
         </div>
       `;
-      
+
       container.appendChild(item);
-      
-      item.querySelector('.delete-product-btn').addEventListener('click', async function() {
+
+      item.querySelector('.delete-product-btn').addEventListener('click', async function () {
         const productId = this.closest('.admin-product-item').dataset.id;
         if (confirm('Delete this product?')) {
           try {
@@ -1747,7 +1748,7 @@ async function renderAdminProducts(products) {
             adminProducts = adminProducts.filter(p => p._id !== productId);
             renderAdminProducts(adminProducts);
             loadProducts();
-             await populateProductDropdown();
+            await populateProductDropdown();
             alert('Product deleted');
           } catch {
             alert('Failed to delete product');
@@ -1755,7 +1756,7 @@ async function renderAdminProducts(products) {
         }
       });
     });
-    
+
   } catch {
     container.innerHTML = `<div class="error">Error loading products</div>`;
   }
@@ -1765,37 +1766,76 @@ function initProductForm() {
   const form = document.getElementById('add-product-form');
   if (!form) return;
 
+  // Add this function to handle multiple file previews
+  const imageInput = document.getElementById('product-image');
+  const imagePreview = document.getElementById('image-preview');
+
+  imageInput?.addEventListener('change', function () {
+    imagePreview.innerHTML = '';
+
+    if (this.files && this.files.length > 0) {
+      for (let i = 0; i < this.files.length; i++) {
+        const file = this.files[i];
+
+        // Validate file type and size
+        if (!file.type.startsWith('image/')) {
+          alert(`File ${file.name} is not an image. Only image files are allowed.`);
+          this.value = '';
+          imagePreview.innerHTML = '';
+          return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          alert(`File ${file.name} is too large. Maximum size is 5MB.`);
+          this.value = '';
+          imagePreview.innerHTML = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.style.maxWidth = '200px';
+          img.style.maxHeight = '200px';
+          img.style.margin = '5px';
+          imagePreview.appendChild(img);
+        }
+        reader.readAsDataURL(file);
+      }
+    }
+  });
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    // 1. Collect form data
+
+    // Collect form data
     const name = document.getElementById('product-name').value;
     const description = document.getElementById('product-description').value;
     const price = document.getElementById('product-price').value;
     const specifications = document.getElementById('product-specifications').value;
-    
-    // Handle category
     const categorySelect = document.getElementById('product-category');
     const category = categorySelect.value === 'new'
       ? document.getElementById('new-category-input').value
       : categorySelect.value;
-    
-    // 2. Create FormData
+
+    // Create FormData
     const formData = new FormData();
     formData.append('name', name);
     formData.append('description', description);
     formData.append('price', price);
     formData.append('category', category);
     formData.append('specifications', specifications);
-    
-   const imageInput = document.getElementById('product-image');
+
+    // Append all images
+    const imageInput = document.getElementById('product-image');
     for (let i = 0; i < imageInput.files.length; i++) {
-      formData.append('images', imageInput.files[i]); // Use 'images' instead of 'image'
+      formData.append('images', imageInput.files[i]);
     }
 
-    // 4. Send request
     try {
-      console.log('Submitting product form...');
+      console.log('Submitting product form with', imageInput.files.length, 'images');
+
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         headers: {
@@ -1805,30 +1845,25 @@ function initProductForm() {
         credentials: 'include'
       });
 
-      // 5. Handle response
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to add product');
       }
-      
+
       const result = await response.json();
       console.log('Product created:', result);
-      
-      if (!result.images || result.images.length === 0) {
-        console.warn('Product created but no images saved');
-      }
-      
+
       alert(`Product added successfully with ${result.images?.length || 0} images!`);
-      
-      // 6. Reset form
+
+      // Reset form
       form.reset();
-      document.getElementById('image-preview').innerHTML = '';
+      imagePreview.innerHTML = '';
       toggleNewCategoryInput();
-      
-      // 7. Refresh products
+
+      // Refresh products
       await loadProducts();
       await populateProductDropdown();
-      
+
       if (adminPanelInitialized) {
         adminProducts = await productService.getProducts();
         renderAdminProducts(adminProducts);
@@ -1838,7 +1873,8 @@ function initProductForm() {
       alert(`Error: ${error.message || 'Failed to add product'}`);
     }
   });
-    toggleNewCategoryInput();
+
+  toggleNewCategoryInput();
 }
 
 const imageInput = document.getElementById('product-image');
@@ -1889,30 +1925,30 @@ function initMobileAuth() {
   const closeMobileModal = document.querySelector('.close-mobile-modal');
   const mobileLoginBtn = document.querySelector('.mobile-login-btn');
   const mobileRegisterBtn = document.querySelector('.mobile-register-btn');
-  
+
   if (!mobileAccountBtn) return;
-  
+
   mobileAccountBtn.addEventListener('click', (e) => {
     e.preventDefault();
     if (mobileAuthModal) {
       mobileAuthModal.style.display = 'flex';
     }
   });
-  
+
   closeMobileModal?.addEventListener('click', () => {
     if (mobileAuthModal) mobileAuthModal.style.display = 'none';
   });
-  
+
   mobileLoginBtn?.addEventListener('click', () => {
     if (mobileAuthModal) mobileAuthModal.style.display = 'none';
     document.getElementById('login-link')?.click();
   });
-  
+
   mobileRegisterBtn?.addEventListener('click', () => {
     if (mobileAuthModal) mobileAuthModal.style.display = 'none';
     document.getElementById('register-link')?.click();
   });
-  
+
   window.addEventListener('click', (e) => {
     if (e.target === mobileAuthModal) {
       mobileAuthModal.style.display = 'none';
@@ -1952,12 +1988,12 @@ async function loadOffers() {
 async function populateProductDropdown() {
   const select = document.getElementById('offer-product-select');
   if (!select) return;
-  
+
   try {
     select.innerHTML = '<option value="">Select a product</option>';
-    
+
     // Filter out products with invalid IDs
-    const validProducts = allProducts.filter(p => 
+    const validProducts = allProducts.filter(p =>
       p._id && /^[0-9a-fA-F]{24}$/.test(p._id)
     );
 
@@ -1984,7 +2020,7 @@ function initCategoryDropdowns() {
         console.log('Mouse enter on dropdown');
         dropdown.classList.add('active');
       });
-      
+
       dropdown.addEventListener('mouseleave', () => {
         console.log('Mouse leave on dropdown');
         dropdown.classList.remove('active');
@@ -1995,24 +2031,24 @@ function initCategoryDropdowns() {
   else {
     console.log('Setting up mobile dropdown click');
     toggles.forEach(toggle => {
-      toggle.addEventListener('click', function(e) {
+      toggle.addEventListener('click', function (e) {
         console.log('Dropdown toggle clicked');
         e.preventDefault();
         e.stopPropagation();
         const dropdown = this.closest('.dropdown');
-        
+
         // Close all other dropdowns
         document.querySelectorAll('.dropdown').forEach(d => {
           if (d !== dropdown) d.classList.remove('active');
         });
-        
+
         // Toggle this dropdown
         dropdown.classList.toggle('active');
       });
     });
-    
+
     // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
       // Only close if click is outside dropdowns
       if (!e.target.closest('.dropdown')) {
         console.log('Document click - closing dropdowns');
@@ -2027,31 +2063,31 @@ function initCategoryDropdowns() {
 function initSubcategoryButtons() {
   const subcategoryButtons = document.querySelectorAll('.subcategory-btn');
   console.log(`Initializing ${subcategoryButtons.length} subcategory buttons`);
-  
+
   subcategoryButtons.forEach(btn => {
-    btn.addEventListener('click', async function(e) {
+    btn.addEventListener('click', async function (e) {
       console.log('Subcategory button clicked:', this.dataset.category);
       e.preventDefault();
       e.stopPropagation();
       const category = this.dataset.category;
-      
+
       // Update UI
       document.querySelectorAll('.category-btn, .subcategory-btn').forEach(b => {
         b.classList.remove('active');
       });
       this.classList.add('active');
-      
+
       // Make sure the parent dropdown toggle also gets active class
       const dropdown = this.closest('.dropdown');
       const dropdownToggle = dropdown.querySelector('.dropdown-toggle');
       dropdownToggle.classList.add('active');
-      
+
       // Load products
       try {
         console.log(`Loading products for category: ${category}`);
         const products = await productService.getProductsByCategory(category);
         renderProducts(products);
-        
+
         // Scroll to products section on mobile
         if (window.innerWidth <= 768) {
           const productsSection = document.getElementById('products');
@@ -2062,7 +2098,7 @@ function initSubcategoryButtons() {
             });
           }
         }
-        
+
         // Close the dropdown after selection on mobile
         if (window.innerWidth <= 768) {
           dropdown.classList.remove('active');
@@ -2079,7 +2115,7 @@ function initPasswordToggle() {
   document.querySelectorAll('.password-container').forEach(container => {
     const input = container.querySelector('input');
     const icon = container.querySelector('.password-toggle');
-    
+
     icon.addEventListener('click', () => {
       const isPassword = input.type === 'password';
       input.type = isPassword ? 'text' : 'password';
@@ -2092,7 +2128,7 @@ function initPasswordToggle() {
   document.querySelectorAll('.password-container').forEach(container => {
     const input = container.querySelector('input');
     const icon = container.querySelector('.password-toggle');
-    
+
     icon.addEventListener('click', () => {
       const isPassword = input.type === 'password';
       input.type = isPassword ? 'text' : 'password';
@@ -2127,14 +2163,14 @@ async function testCloudinary() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
   try {
     // First check auth state
     const user = await updateAuthUI();
-    
+
     // Then initialize cart
     cartInstance = initCart();
-    
+
     // Then load products
     await loadProducts();
 
@@ -2154,36 +2190,36 @@ document.addEventListener('DOMContentLoaded', async function() {
     initCategoryDropdowns();
     initSubcategoryButtons();
     initPasswordToggle();
-    
-    
+
+
     if (user?.role === 'admin') {
       await initAdminPanel();
       initProductForm();
     }
-    
+
     // Mobile cart button
     document.getElementById('mobile-cart-btn')?.addEventListener('click', () => {
       cartInstance?.openCart();
     });
-   // Mobile menu toggle
-const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-const mobileNav = document.querySelector('.mobile-nav');
+    // Mobile menu toggle
+    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+    const mobileNav = document.querySelector('.mobile-nav');
 
-if (mobileNav) {
-  const mobileNavClose = document.createElement('span');
-  mobileNavClose.className = 'mobile-nav-close';
-  mobileNavClose.innerHTML = '&times;';
-  mobileNav.appendChild(mobileNavClose);
+    if (mobileNav) {
+      const mobileNavClose = document.createElement('span');
+      mobileNavClose.className = 'mobile-nav-close';
+      mobileNavClose.innerHTML = '&times;';
+      mobileNav.appendChild(mobileNavClose);
 
-  mobileMenuToggle?.addEventListener('click', () => {
-    mobileNav.classList.add('active');
-  });
+      mobileMenuToggle?.addEventListener('click', () => {
+        mobileNav.classList.add('active');
+      });
 
-  mobileNavClose.addEventListener('click', () => {
-    mobileNav.classList.remove('active');
-  });
-}
-    
+      mobileNavClose.addEventListener('click', () => {
+        mobileNav.classList.remove('active');
+      });
+    }
+
   } catch (error) {
     console.error('Initialization error:', error);
     alert(`Initialization failed: ${error.message}`);
