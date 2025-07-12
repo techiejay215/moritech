@@ -3641,3 +3641,62 @@ footer {
   font-weight: 600;
   color: #4a6cf7;
 }
+
+.specifications-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.specifications-content {
+  margin-top: 1rem;
+  line-height: 1.6;
+}
+
+.related-products-section {
+  margin-top: 3rem;
+}
+
+.related-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.related-product-card {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.related-product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.related-product-img {
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f8f8;
+}
+
+.related-product-info {
+  padding: 1rem;
+}
+
+.related-product-info h4 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.related-product-price {
+  font-weight: bold;
+  color: #333;
+}

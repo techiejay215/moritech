@@ -65,7 +65,9 @@ const productSchema = new mongoose.Schema({
   price: Number,
   category: String,
   description: String,
-  image: String
+  image: String,
+  specifications: String
+  
 });
 const Product = mongoose.model('Product', productSchema);
 

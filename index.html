@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -8,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <!-- Top Bar -->
   <div class="top-bar">
@@ -30,9 +32,9 @@
           </div>
         </div>
       </div>
+    </div>
   </div>
-  </div>
-  
+
   <!-- Desktop Header -->
   <header class="desktop-header">
     <div class="container header-container">
@@ -46,10 +48,10 @@
           <i class="fas fa-shopping-cart"></i>
           <span class="cart-count">0</span>
         </div>
-         <div class="search-container header-search">
-        <i class="fas fa-search"></i>
-        <input type="text" id="header-search-input" placeholder="Search products...">
-      </div>
+        <div class="search-container header-search">
+          <i class="fas fa-search"></i>
+          <input type="text" id="header-search-input" placeholder="Search products...">
+        </div>
       </div>
       <nav>
         <ul>
@@ -62,7 +64,7 @@
       </nav>
     </div>
   </header>
-  
+
   <!-- Updated Mobile Header -->
   <div class="mobile-header">
     <div class="mobile-header-top">
@@ -80,13 +82,13 @@
         </div>
       </div>
     </div>
-    
+
     <div class="mobile-header-bottom">
       <div class="mobile-search">
         <i class="fas fa-search"></i>
         <input type="text" id="mobile-search-input" placeholder="Search products...">
       </div>
-      
+
       <div class="mobile-header-icons">
         <div class="mobile-user-profile" style="display:none">
           <span id="mobile-welcome-header">Welcome, User</span>
@@ -108,7 +110,7 @@
       </div>
       <span class="mobile-nav-close">&times;</span>
     </div>
-    
+
     <ul>
       <li><a href="#home">Home</a></li>
       <li><a href="#services">Services</a></li>
@@ -116,7 +118,7 @@
       <li><a href="#about">About</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
-    
+
     <div class="mobile-nav-footer">
       <div class="mobile-user-profile" style="display:none">
         <span id="mobile-welcome">Welcome, User</span>
@@ -124,12 +126,12 @@
       </div>
     </div>
   </div>
-  
+
   <!-- UPDATED Categories Bar with Dropdowns -->
   <div class="categories">
     <div class="container categories-container">
       <button class="category-btn active" data-category="all">All Categories</button>
-      
+
       <!-- Laptops with Subgroups -->
       <div class="dropdown">
         <button class="category-btn dropdown-toggle" data-category="laptops">
@@ -143,7 +145,7 @@
           <button class="subcategory-btn" data-category="samsung-laptops">Samsung</button>
         </div>
       </div>
-      
+
       <!-- Printers with Subgroups -->
       <div class="dropdown">
         <button class="category-btn dropdown-toggle" data-category="printers">
@@ -157,7 +159,7 @@
           <button class="subcategory-btn" data-category="ecosys-printers">Ecosys</button>
         </div>
       </div>
-      
+
       <!-- Desktops with Subgroups -->
       <div class="dropdown">
         <button class="category-btn dropdown-toggle" data-category="desktops">
@@ -169,7 +171,7 @@
           <button class="subcategory-btn" data-category="lenovo-desktops">Lenovo</button>
         </div>
       </div>
-      
+
       <!-- Monitors with Subgroups -->
       <div class="dropdown">
         <button class="category-btn dropdown-toggle" data-category="monitors">
@@ -182,7 +184,7 @@
           <button class="subcategory-btn" data-category="fujitsu-monitors">Fujitsu</button>
         </div>
       </div>
-      
+
       <!-- Other Categories -->
       <button class="category-btn" data-category="toners">Toners</button>
       <button class="category-btn" data-category="networking">Networking</button>
@@ -192,10 +194,10 @@
       <button class="category-btn" data-category="ram">RAM</button>
     </div>
   </div>
-  
+
   <!-- Hero Section -->
   <section id="home" class="hero">
-     <div id="default-slider" class="slider-container"></div>
+    <div id="default-slider" class="slider-container"></div>
     <div class="slider-container">
       <div class="slider">
         <div class="slide slide-1 active"></div>
@@ -203,116 +205,116 @@
         <div class="slide slide-3"></div>
         <div class="slide slide-4"></div>
       </div>
-      
+
     </div>
-    
+
     <div class="slider-nav">
       <button class="slider-btn prev-btn"><i class="fas fa-chevron-left"></i></button>
       <button class="slider-btn next-btn"><i class="fas fa-chevron-right"></i></button>
     </div>
-    
-    <div class="slider-controls" >
+
+    <div class="slider-controls">
       <div class="slider-dot active" data-slide="0"></div>
       <div class="slider-dot" data-slide="1"></div>
       <div class="slider-dot" data-slide="2"></div>
       <div class="slider-dot" data-slide="3"></div>
     </div>
-    
+
     <div class="container hero-content">
       <h2>Premium IT Solutions and computer shop in Kisii</h2>
       <p>Your trusted partner for computers, accessories, and professional IT solutions in Kisii and beyond</p>
       <a href="#products" class="btn">Explore Products</a>
     </div>
   </section>
-  
-<section class="offers-section">
-  <div class="container">
-    <div class="section-title">
-      <h2>Special Offers</h2>
-    </div>
-    
-    <div class="offers-slider">
-      <div class="offers-container">
-        <!-- Offers will be loaded by JavaScript -->
+
+  <section class="offers-section">
+    <div class="container">
+      <div class="section-title">
+        <h2>Special Offers</h2>
       </div>
-      
-      <div class="offers-controls">
-        <button class="offers-prev"><i class="fas fa-chevron-left"></i></button>
-        <button class="offers-next"><i class="fas fa-chevron-right"></i></button>
+
+      <div class="offers-slider">
+        <div class="offers-container">
+          <!-- Offers will be loaded by JavaScript -->
+        </div>
+
+        <div class="offers-controls">
+          <button class="offers-prev"><i class="fas fa-chevron-left"></i></button>
+          <button class="offers-next"><i class="fas fa-chevron-right"></i></button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
-  
+  </section>
+
   <!-- Products Section -->
   <section id="products" class="section">
     <div class="container">
       <div class="section-title">
         <h2>Our Products</h2>
       </div>
-     
-      
+
+
       <div class="product-grid">
         <!-- Products will be loaded by JavaScript -->
       </div>
     </div>
   </section>
 
-<!-- Inside product-details section -->
-<section id="product-details" class="section" style="display:none;">
-  <div class="container">
-    <button id="back-to-products" class="btn back-btn">
-      <i class="fas fa-arrow-left"></i> Back to Products
-    </button>
-    
-    <div class="product-details-container">
-      <div class="product-gallery">
-        <div class="main-image">
-          <img id="main-product-image" src="" alt="Main Product Image">
+  <!-- Inside product-details section -->
+  <section id="product-details" class="section" style="display:none;">
+    <div class="container">
+      <button id="back-to-products" class="btn back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Products
+      </button>
+
+      <div class="product-details-container">
+        <div class="product-gallery">
+          <div class="main-image">
+            <img id="main-product-image" src="" alt="Main Product Image">
+          </div>
+          <div class="thumbnail-container">
+            <!-- Thumbnails will be inserted here -->
+          </div>
         </div>
-        <div class="thumbnail-container">
-          <!-- Thumbnails will be inserted here -->
+
+        <div class="product-info">
+          <h2 id="product-detail-name"></h2>
+          <div class="price-category">
+            <span id="product-detail-price" class="price"></span>
+            <span id="product-detail-category" class="category"></span>
+          </div>
+          <p id="product-detail-description" class="description"></p>
+
+          <!-- NEW: Specifications section -->
+          <div class="specifications-section">
+            <h3>Specifications</h3>
+            <div id="product-specs" class="specifications-content"></div>
+          </div>
+
+          <div class="action-buttons">
+            <button id="add-to-cart-detail" class="btn cart-btn">
+              <i class="fas fa-shopping-cart"></i> Add to Cart
+            </button>
+            <a id="whatsapp-order" class="btn whatsapp-btn" target="_blank">
+              <i class="fab fa-whatsapp"></i> Order on WhatsApp
+            </a>
+          </div>
         </div>
-      </div>
-      
-      <div class="product-info">
-        <h2 id="product-detail-name"></h2>
-        <div class="price-category">
-          <span id="product-detail-price" class="price"></span>
-          <span id="product-detail-category" class="category"></span>
+
+        <!-- NEW: Reviews section -->
+        <div class="reviews-section">
+          <h3>Customer Reviews</h3>
+          <div id="product-reviews" class="reviews-container"></div>
         </div>
-        <p id="product-detail-description" class="description"></p>
-        
-        <!-- NEW: Specifications section -->
-        <div class="specifications-section">
-          <h3>Specifications</h3>
-          <div id="product-specs" class="specifications-content"></div>
+
+        <!-- NEW: Related products section -->
+        <div class="related-products-section">
+          <h3>Related Products</h3>
+          <div id="related-products" class="related-products-grid"></div>
         </div>
-        
-        <div class="action-buttons">
-          <button id="add-to-cart-detail" class="btn cart-btn">
-            <i class="fas fa-shopping-cart"></i> Add to Cart
-          </button>
-          <a id="whatsapp-order" class="btn whatsapp-btn" target="_blank">
-            <i class="fab fa-whatsapp"></i> Order on WhatsApp
-          </a>
-        </div>
-      </div>
-      
-      <!-- NEW: Reviews section -->
-      <div class="reviews-section">
-        <h3>Customer Reviews</h3>
-        <div id="product-reviews" class="reviews-container"></div>
-      </div>
-      
-      <!-- NEW: Related products section -->
-      <div class="related-products-section">
-        <h3>Related Products</h3>
-        <div id="related-products" class="related-products-grid"></div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
   <!-- Services Section -->
   <section id="services" class="section">
@@ -352,7 +354,7 @@
       </ul>
     </div>
   </section>
-  
+
   <!-- About Section -->
   <section id="about" class="section">
     <div class="container">
@@ -360,20 +362,25 @@
         <h2>About Us</h2>
       </div>
       <div class="about-content">
-        <p>Moritech Technologies Limited is a premier IT solutions provider based in Kisii Town, Kenya. Since our establishment, we've been committed to delivering top-quality computer products and professional IT services to individuals, businesses, and educational institutions throughout the region.</p>
-        <p>Our team of certified technicians brings years of experience in hardware repair, software solutions, and network management. We pride ourselves on offering affordable, reliable, and timely services that meet the evolving technological needs of our clients.</p>
-        <p>At Moritech Technologies, we believe in building lasting relationships with our customers through exceptional service, technical expertise, and genuine care for your technology challenges.</p>
+        <p>Moritech Technologies Limited is a premier IT solutions provider based in Kisii Town, Kenya. Since our
+          establishment, we've been committed to delivering top-quality computer products and professional IT services
+          to individuals, businesses, and educational institutions throughout the region.</p>
+        <p>Our team of certified technicians brings years of experience in hardware repair, software solutions, and
+          network management. We pride ourselves on offering affordable, reliable, and timely services that meet the
+          evolving technological needs of our clients.</p>
+        <p>At Moritech Technologies, we believe in building lasting relationships with our customers through exceptional
+          service, technical expertise, and genuine care for your technology challenges.</p>
       </div>
     </div>
   </section>
-  
+
   <!-- Contact Section -->
   <section id="contact" class="section">
     <div class="container">
       <div class="section-title">
         <h2>Contact Us</h2>
       </div>
-      
+
       <div class="contact-container">
         <div class="contact-info">
           <h3>Get In Touch</h3>
@@ -413,15 +420,12 @@
             </div>
           </div>
         </div>
-        
+
         <div class="map">
           <i class="fas fa-map-marked-alt" style="font-size: 50px;"></i>
           <p></p>
-          <img 
-            src="https://via.placeholder.com/400x300?text=Map+Location" 
-            alt="Kisii CBD Map" 
-            style="width: 100%; max-width: 400px; margin-top: 10px; border-radius: 10px;"
-          />
+          <img src="https://via.placeholder.com/400x300?text=Map+Location" alt="Kisii CBD Map"
+            style="width: 100%; max-width: 400px; margin-top: 10px; border-radius: 10px;" />
         </div>
       </div>
     </div>
@@ -436,7 +440,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Footer -->
   <footer>
     <div class="container footer-content">
@@ -451,7 +455,7 @@
       <p>Proudly serving Kisii and beyond since 2015</p>
     </div>
   </footer>
-  
+
   <!-- Mobile Bottom Navigation -->
   <div class="bottom-nav">
     <a href="#home" class="nav-item active">
@@ -466,72 +470,69 @@
       <i class="fas fa-user"></i>
       <span>Account</span>
     </a>
-   <a href="https://wa.me/254719362202" class="nav-item whatsapp-nav" target="_blank">
-  <i class="fab fa-whatsapp"></i>
-  <span>WhatsApp</span>
-</a>
+    <a href="https://wa.me/254719362202" class="nav-item whatsapp-nav" target="_blank">
+      <i class="fab fa-whatsapp"></i>
+      <span>WhatsApp</span>
+    </a>
   </div>
-  
- <!-- Authentication Modal -->
-<div id="auth-modal" class="modal">
-  <div class="modal-content">
-    <span class="close-modal">&times;</span>
 
-    <!-- Tabs -->
-    <div class="auth-tabs">
-      <button class="tab-btn active" data-tab="login">Login</button>
-      <button class="tab-btn" data-tab="register">Register</button>
-    </div>
+  <!-- Authentication Modal -->
+  <div id="auth-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
 
-    <!-- Login Tab -->
-    <div class="tab-content active" id="login-tab">
-      <h3>Login to Your Account</h3>
-      <form id="login-form">
-        <input type="email" name="email" placeholder="Email" required>
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="tab-btn active" data-tab="login">Login</button>
+        <button class="tab-btn" data-tab="register">Register</button>
+      </div>
 
-        <div class="password-container">
-          <input type="password" name="password" placeholder="Password" required>
-          <i class="fas fa-eye password-toggle"></i>
-        </div>
+      <!-- Login Tab -->
+      <div class="tab-content active" id="login-tab">
+        <h3>Login to Your Account</h3>
+        <form id="login-form">
+          <input type="email" name="email" placeholder="Email" required>
 
-        <button type="submit">Login</button>
-        <a href="#" id="forgotPasswordLink">Forgot Password?</a>
-      </form>
+          <div class="password-container">
+            <input type="password" name="password" placeholder="Password" required>
+            <i class="fas fa-eye password-toggle"></i>
+          </div>
 
-      <!-- Forgot Password Form -->
-      <form id="resetPasswordForm" 
-            action="/api/auth/forgot-password" 
-            method="POST" 
-            style="display:none;">
-        <input type="email" name="email" placeholder="Your Email" required>
-        <button type="submit">Send Reset Link</button>
-        <a href="#" id="backToLogin">Back to Login</a>
-      </form>
-    </div>
+          <button type="submit">Login</button>
+          <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+        </form>
 
-    <!-- Register Tab -->
-    <div class="tab-content" id="register-tab">
-      <h3>Create New Account</h3>
-      <form id="register-form">
-        <input type="text" name="name" placeholder="Full Name" required>
-        <input type="email" name="email" placeholder="Email" required>
-        <input type="tel" name="phone" placeholder="Phone">
+        <!-- Forgot Password Form -->
+        <form id="resetPasswordForm" action="/api/auth/forgot-password" method="POST" style="display:none;">
+          <input type="email" name="email" placeholder="Your Email" required>
+          <button type="submit">Send Reset Link</button>
+          <a href="#" id="backToLogin">Back to Login</a>
+        </form>
+      </div>
 
-        <div class="password-container">
-          <input type="password" name="password" placeholder="Password" required>
-          <i class="fas fa-eye password-toggle"></i>
-        </div>
+      <!-- Register Tab -->
+      <div class="tab-content" id="register-tab">
+        <h3>Create New Account</h3>
+        <form id="register-form">
+          <input type="text" name="name" placeholder="Full Name" required>
+          <input type="email" name="email" placeholder="Email" required>
+          <input type="tel" name="phone" placeholder="Phone">
 
-        <div class="password-container">
-          <input type="password" name="confirmPassword" placeholder="Confirm Password" required>
-          <i class="fas fa-eye password-toggle"></i>
-        </div>
+          <div class="password-container">
+            <input type="password" name="password" placeholder="Password" required>
+            <i class="fas fa-eye password-toggle"></i>
+          </div>
 
-        <button type="submit">Register</button>
-      </form>
+          <div class="password-container">
+            <input type="password" name="confirmPassword" placeholder="Confirm Password" required>
+            <i class="fas fa-eye password-toggle"></i>
+          </div>
+
+          <button type="submit">Register</button>
+        </form>
+      </div>
     </div>
   </div>
-</div>
 
   <!-- Shopping Cart Sidebar -->
   <div id="cart-sidebar">
@@ -551,130 +552,127 @@
       <button class="checkout-btn">Proceed to Checkout</button>
     </div>
   </div>
-  
+
   <!-- Admin Panel -->
-<section id="admin" class="section" style="display: none;">
-  <div class="container">
-    <h2>Admin Panel</h2>
+  <section id="admin" class="section" style="display: none;">
+    <div class="container">
+      <h2>Admin Panel</h2>
 
-    <div class="admin-search-container">
-      <i class="fas fa-search"></i>
-      <input type="text" id="admin-search-input" placeholder="Search products...">
-    </div>
-
-    <div class="admin-form">
-      <h3>Add New Product</h3>
-      <form id="add-product-form" enctype="multipart/form-data">
-        <div class="form-group">
-          <label for="product-name">Product Name</label>
-          <input type="text" id="product-name" name="name" placeholder="Product Name" required>
-        </div>
-
-        <div class="form-group">
-          <label for="product-description">Description</label>
-          <textarea id="product-description" name="description" placeholder="Description" required></textarea>
-        </div>
-
-        <div class="form-group">
-          <label for="product-price">Price</label>
-          <input type="number" id="product-price" name="price" placeholder="Price" step="0.01" required>
-        </div>
-
-        <div class="form-group">
-          <label for="product-category">Category</label>
-          <select id="product-category" name="category" required>
-            <option value="">Select Category</option>
-            <option value="laptops">Laptops</option>
-            <option value="desktops">Desktops</option>
-            <option value="monitors">Monitors</option>
-            <option value="accessories">Accessories</option>
-            <option value="storage">Storage</option>
-            <option value="printers">Printers</option>
-            <option value="ram">RAM</option>
-            <option value="toners">Toners</option>
-            <option value="networking">Networking</option>
-            <option value="software">Software</option>
-            <option value="new">Add New Category...</option>
-          </select>
-          <input 
-            type="text" 
-            id="new-category-input" 
-            name="newCategory" 
-            placeholder="Enter new category name" 
-            style="display: none; margin-top: 10px;">
-        </div>
-
-        <div class="form-group">
-          <label for="product-image">Product Image</label>
-          <input 
-            type="file" 
-            id="product-image" 
-            name="image" 
-            accept="image/*" 
-            required>
-          <div id="image-preview"></div>
-        </div>
-
-        <button type="submit">Add Product</button>
-      </form>
-    </div>
-
-    <div class="admin-products-list">
-      <h3>Manage Products</h3>
-      <div class="products-list-container">
-        <!-- Products will be listed here -->
+      <div class="admin-search-container">
+        <i class="fas fa-search"></i>
+        <input type="text" id="admin-search-input" placeholder="Search products...">
       </div>
-    </div>
 
-    <!-- Admin Offers Section -->
-    <div class="admin-offers">
-      <h3>Manage Offers</h3>
-      
       <div class="admin-form">
-        <h4>Add New Offer</h4>
-        <form id="add-offer-form">
+        <h3>Add New Product</h3>
+        <form id="add-product-form" enctype="multipart/form-data">
           <div class="form-group">
-            <label for="offer-name">Product Name</label>
-            <input type="text" id="offer-name" name="name" required>
+            <label for="product-name">Product Name</label>
+            <input type="text" id="product-name" name="name" placeholder="Product Name" required>
           </div>
-         <div class="form-group">
-  <label for="offer-product-select">Select Product</label>
-  <select id="offer-product-select" name="productId" required>
-    <option value="">Select a product</option>
-    <!-- Products will be populated by JavaScript -->
-  </select>
-</div>
-          
+
           <div class="form-group">
-            <label for="offer-old-price">Original Price (Ksh)</label>
-            <input type="number" id="offer-old-price" name="oldPrice" required>
+            <label for="product-description">Description</label>
+            <textarea id="product-description" name="description" placeholder="Description" required></textarea>
           </div>
-          
           <div class="form-group">
-            <label for="offer-price">Offer Price (Ksh)</label>
-            <input type="number" id="offer-price" name="price" required>
+            <label for="product-specifications">Specifications</label>
+            <textarea id="product-specifications" name="specifications"
+              placeholder="Enter specifications (HTML allowed)"></textarea>
           </div>
-          
+
           <div class="form-group">
-            <label for="offer-image">Image</label>
-            <input type="file" id="offer-image" name="image" accept="image/*">
-            <div id="offer-image-preview"></div>
+            <label for="product-price">Price</label>
+            <input type="number" id="product-price" name="price" placeholder="Price" step="0.01" required>
           </div>
-          
-          <button type="submit">Add Offer</button>
+
+          <div class="form-group">
+            <label for="product-category">Category</label>
+            <select id="product-category" name="category" required>
+              <option value="">Select Category</option>
+              <option value="laptops">Laptops</option>
+              <option value="desktops">Desktops</option>
+              <option value="monitors">Monitors</option>
+              <option value="accessories">Accessories</option>
+              <option value="storage">Storage</option>
+              <option value="printers">Printers</option>
+              <option value="ram">RAM</option>
+              <option value="toners">Toners</option>
+              <option value="networking">Networking</option>
+              <option value="software">Software</option>
+              <option value="new">Add New Category...</option>
+            </select>
+            <input type="text" id="new-category-input" name="newCategory" placeholder="Enter new category name"
+              style="display: none; margin-top: 10px;">
+          </div>
+
+          <div class="form-group">
+            <label for="product-image">Product Image</label>
+            <input type="file" id="product-image" name="image" accept="image/*" required>
+            <div id="image-preview"></div>
+          </div>
+
+          <button type="submit">Add Product</button>
         </form>
       </div>
-      
-      <div class="admin-offers-list">
-        <h4>Current Offers</h4>
-        <div class="offers-list-container">
-          <!-- Offers will be listed here -->
+
+      <div class="admin-products-list">
+        <h3>Manage Products</h3>
+        <div class="products-list-container">
+          <!-- Products will be listed here -->
+        </div>
+      </div>
+
+      <!-- Admin Offers Section -->
+      <div class="admin-offers">
+        <h3>Manage Offers</h3>
+
+        <div class="admin-form">
+          <h4>Add New Offer</h4>
+          <form id="add-offer-form">
+            <div class="form-group">
+              <label for="offer-name">Product Name</label>
+              <input type="text" id="offer-name" name="name" required>
+            </div>
+            <div class="form-group">
+              <label for="offer-product-select">Select Product</label>
+              <select id="offer-product-select" name="productId" required>
+                <option value="">Select a product</option>
+                <!-- Products will be populated by JavaScript -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="offer-old-price">Original Price (Ksh)</label>
+              <input type="number" id="offer-old-price" name="oldPrice" required>
+            </div>
+
+            <div class="form-group">
+              <label for="offer-price">Offer Price (Ksh)</label>
+              <input type="number" id="offer-price" name="price" required>
+            </div>
+
+            <div class="form-group">
+              <label for="offer-image">Image</label>
+              <input type="file" id="offer-image" name="image" accept="image/*">
+              <div id="offer-image-preview"></div>
+            </div>
+
+            <button type="submit">Add Offer</button>
+          </form>
+        </div>
+
+        <div class="admin-offers-list">
+          <h4>Current Offers</h4>
+          <div class="offers-list-container">
+            <!-- Offers will be listed here -->
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
   <script src="script.js"></script>
 </body>
+
 </html>

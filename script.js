@@ -1511,6 +1511,7 @@ async function showProductDetails(productId) {
     if (specsContainer) {
       specsContainer.innerHTML = product.specifications || '<p>No specifications available</p>';
     }
+    
 
     // Set up WhatsApp link
     const whatsappLink = document.getElementById('whatsapp-order');
@@ -1556,6 +1557,7 @@ async function showProductDetails(productId) {
 
     // NEW: Render reviews
     renderReviews(product.reviews || []);
+    
 
     // NEW: Render related products
     renderRelatedProducts(relatedProducts);
@@ -1783,7 +1785,8 @@ function initProductForm() {
       name: document.getElementById('product-name').value,
       description: document.getElementById('product-description').value,
       price: document.getElementById('product-price').value,
-      category: category
+      category: category,
+      specifications: document.getElementById('product-specifications').value
     };
 
     // Handle image upload separately
@@ -2080,6 +2083,21 @@ function initPasswordToggle() {
     });
   });
 }
+async function getRelatedProducts(currentId, category) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/products/related/${currentId}?category=${encodeURIComponent(category)}`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+
+    if (!response.ok) throw await handleResponseError(response);
+    return await response.json();
+  } catch (error) {
+    console.error('Related products error:', error);
+    return [];
+  }
+}
+
 
 document.addEventListener('DOMContentLoaded', async function() {
   try {
