@@ -1788,10 +1788,9 @@ function initProductForm() {
     formData.append('category', category);
     formData.append('specifications', specifications);
     
-    // 3. Append images
-    const imageInput = document.getElementById('product-image');
+   const imageInput = document.getElementById('product-image');
     for (let i = 0; i < imageInput.files.length; i++) {
-      formData.append('images', imageInput.files[i]);
+      formData.append('images', imageInput.files[i]); // Use 'images' instead of 'image'
     }
 
     // 4. Send request
@@ -1842,35 +1841,46 @@ function initProductForm() {
     toggleNewCategoryInput();
 }
 
-  const imageInput = document.getElementById('product-image');
-  const imagePreview = document.getElementById('image-preview');
-  
-  if (imageInput && imagePreview) {
-    imageInput.addEventListener('change', function() {
-      imagePreview.innerHTML = '';
-      
-      if (this.files && this.files[0]) {
-        const file = this.files[0];
-        
-        if (file.size > 2 * 1024 * 1024) {
-          const warning = document.createElement('div');
-          warning.className = 'file-warning';
-          warning.textContent = `Large image (${Math.round(file.size/1024/1024)}MB). Compressing...`;
-          imagePreview.appendChild(warning);
+const imageInput = document.getElementById('product-image');
+const imagePreview = document.getElementById('image-preview');
+
+if (imageInput && imagePreview) {
+  imageInput.addEventListener('change', function () {
+    imagePreview.innerHTML = '';
+
+    if (this.files && this.files.length > 0) {
+      for (const file of this.files) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          alert(`❌ File "${file.name}" is not an image. Only image files are allowed.`);
+          this.value = '';
+          imagePreview.innerHTML = '';
+          return;
         }
-        
+
+        // Validate file size
+        if (file.size > 5 * 1024 * 1024) { // 5MB
+          alert(`❌ File "${file.name}" is too large. Max allowed size is 5MB.`);
+          this.value = '';
+          imagePreview.innerHTML = '';
+          return;
+        }
+
+        // Show preview
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
           const img = document.createElement('img');
           img.src = e.target.result;
           img.style.maxWidth = '200px';
           img.style.maxHeight = '200px';
+          img.style.margin = '5px';
           imagePreview.appendChild(img);
-        }
+        };
         reader.readAsDataURL(file);
       }
-    });
-  }
+    }
+  });
+}
 
 // MOBILE AUTHENTICATION HANDLING
 function initMobileAuth() {
