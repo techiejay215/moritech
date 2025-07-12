@@ -52,7 +52,7 @@ router.post(
   '/',
   protect,
   admin,
-  upload.single('image'),
+ upload.array('images', 5),
   productValidationRules,
   productController.createProduct
 );
@@ -62,7 +62,7 @@ router.put(
   '/:id',
   protect,
   admin,
-  upload.single('image'),
+  upload.array('images', 5),
   productValidationRules,
   productController.updateProduct
 );
