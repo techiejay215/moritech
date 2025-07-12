@@ -615,25 +615,28 @@ function initOfferForm() {
   const form = document.getElementById('add-offer-form');
   if (!form) return;
   
-  const imageInput = document.getElementById('offer-image');
-  const imagePreview = document.getElementById('offer-image-preview');
+  // 🔄 Update image preview to handle multiple images
+const imageInput = document.getElementById('product-image');
+const imagePreview = document.getElementById('image-preview');
+
+imageInput?.addEventListener('change', function() {
+  imagePreview.innerHTML = '';
   
-  // Image preview
-  imageInput?.addEventListener('change', function() {
-    imagePreview.innerHTML = '';
-    
-    if (this.files && this.files[0]) {
+  if (this.files && this.files.length > 0) {
+    for (let i = 0; i < this.files.length; i++) {
       const reader = new FileReader();
       reader.onload = function(e) {
         const img = document.createElement('img');
         img.src = e.target.result;
         img.style.maxWidth = '200px';
+        img.style.maxHeight = '200px';
+        img.style.margin = '5px';
         imagePreview.appendChild(img);
       }
-      reader.readAsDataURL(this.files[0]);
+      reader.readAsDataURL(this.files[i]);
     }
-  });
-  
+  }
+});
   // Form submission
   form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -1277,8 +1280,8 @@ function renderProducts(products) {
 
 // Helper function for product image
 function getProductImageHTML(product) {
-  if (product.image) {
-    return `<img src="${product.image}" alt="${product.name}">`;
+  if (product.images && product.images.length > 0) {
+    return `<img src="${product.images[0]}" alt="${product.name}">`;
   }
   return `<div class="product-icon"><i class="${getProductIcon(product.category)}"></i></div>`;
 }
@@ -1506,45 +1509,45 @@ async function showProductDetails(productId) {
     document.getElementById('product-detail-category').textContent = product.category;
     document.getElementById('product-detail-description').textContent = product.description;
 
-    // NEW: Display specifications
-    const specsContainer = document.getElementById('product-specs');
-    if (specsContainer) {
-      specsContainer.innerHTML = product.specifications || '<p>No specifications available</p>';
-    }
-    
+  const specsContainer = document.getElementById('product-specs');
+if (specsContainer) {
+  if (product.specifications && product.specifications.trim() !== '') {
+    specsContainer.innerHTML = product.specifications;
+  } else {
+    specsContainer.innerHTML = '<p>No specifications available</p>';
+  }
+}
 
     // Set up WhatsApp link
     const whatsappLink = document.getElementById('whatsapp-order');
     const message = `Hi, I'm interested in this product: ${product.name} (Ksh ${product.price.toLocaleString()}). Product ID: ${product._id}`;
     whatsappLink.href = `https://wa.me/254719362202?text=${encodeURIComponent(message)}`;
     
-    // Set up image gallery
-    const mainImage = document.getElementById('main-product-image');
-    const thumbnailContainer = document.querySelector('.thumbnail-container');
-    thumbnailContainer.innerHTML = '';
-    
-    // Use product images or placeholder
-    const images = product.images && product.images.length > 0 
-      ? product.images 
-      : [product.image || 'https://via.placeholder.com/500?text=Product+Image'];
-    
-    mainImage.src = images[0];
-    mainImage.alt = product.name;
-    
-    images.forEach((img, index) => {
-      const thumbnail = document.createElement('div');
-      thumbnail.className = 'thumbnail' + (index === 0 ? ' active' : '');
-      thumbnail.innerHTML = `<img src="${img}" alt="${product.name} thumbnail">`;
-      
-      thumbnail.addEventListener('click', () => {
-        mainImage.src = img;
-        document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-        thumbnail.classList.add('active');
-      });
-      
-      thumbnailContainer.appendChild(thumbnail);
-    });
-    
+const mainImage = document.getElementById('main-product-image');
+const thumbnailContainer = document.querySelector('.thumbnail-container');
+thumbnailContainer.innerHTML = '';
+
+// Use product images or placeholder
+const images = product.images && product.images.length > 0 
+  ? product.images 
+  : [product.image || 'https://via.placeholder.com/500?text=Product+Image'];
+
+mainImage.src = images[0];
+mainImage.alt = product.name;
+
+images.forEach((img, index) => {
+  const thumbnail = document.createElement('div');
+  thumbnail.className = 'thumbnail' + (index === 0 ? ' active' : '');
+  thumbnail.innerHTML = `<img src="${img}" alt="${product.name} thumbnail">`;
+  
+  thumbnail.addEventListener('click', () => {
+    mainImage.src = img;
+    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+    thumbnail.classList.add('active');
+  });
+  
+  thumbnailContainer.appendChild(thumbnail);
+});
     // Set up Add to Cart button
     const addToCartBtn = document.getElementById('add-to-cart-detail');
     if (addToCartBtn) {
@@ -1767,69 +1770,63 @@ function initProductForm() {
     categorySelect.addEventListener('change', toggleNewCategoryInput);
   }
   
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  // Replace the form submission handler in initProductForm()
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  // Handle category
+  let category = document.getElementById('product-category').value;
+  if (category === 'new') {
+    category = document.getElementById('new-category-input').value.trim();
+    if (!category) {
+      alert('Please enter a new category name');
+      return;
+    }
+  }
+  
+  const formData = new FormData();
+  formData.append('name', document.getElementById('product-name').value);
+  formData.append('description', document.getElementById('product-description').value);
+  formData.append('price', document.getElementById('product-price').value);
+  formData.append('category', category);
+  formData.append('specifications', document.getElementById('product-specifications').value);
+  
+  // Append all images
+  for (let i = 0; i < imageInput.files.length; i++) {
+    // Compress each image before upload
+    const compressedFile = await compressImage(imageInput.files[i]);
+    formData.append('images', compressedFile);
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/products`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      },
+      body: formData,
+      credentials: 'include'
+    });
+
+    if (!response.ok) throw await handleResponseError(response);
     
-    // Handle category
-    let category = document.getElementById('product-category').value;
-    if (category === 'new') {
-      category = document.getElementById('new-category-input').value.trim();
-      if (!category) {
-        alert('Please enter a new category name');
-        return;
-      }
-    }
+    alert('Product added successfully!');
+    form.reset();
+    imagePreview.innerHTML = '';
+    toggleNewCategoryInput();
     
-    // Create product data object
-    const productData = {
-      name: document.getElementById('product-name').value,
-      description: document.getElementById('product-description').value,
-      price: document.getElementById('product-price').value,
-      category: category,
-      specifications: document.getElementById('product-specifications').value
-    };
-
-    // Handle image upload separately
-    const imageInput = document.getElementById('product-image');
-    if (imageInput.files.length > 0) {
-      try {
-        const originalFile = imageInput.files[0];
-        const compressedFile = await compressImage(originalFile);
-        productData.image = await uploadImageToCloudinary(compressedFile);
-      } catch (error) {
-        alert('Error uploading image: ' + error.message);
-        return;
-      }
+    // Reload products
+    await loadProducts();
+    await populateProductDropdown();
+    
+    if (adminPanelInitialized) {
+      adminProducts = await productService.getProducts();
+      renderAdminProducts(adminProducts);
     }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/products`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(productData),
-        credentials: 'include'
-      });
-
-      if (!response.ok) throw await handleResponseError(response);
-      
-      alert('Product added successfully!');
-      form.reset();
-      
-      // Reset image preview
-      const imagePreview = document.getElementById('image-preview');
-      if (imagePreview) imagePreview.innerHTML = '';
-      
-      toggleNewCategoryInput();
-      loadProducts();
-      await populateProductDropdown();
-      if (adminPanelInitialized) {
-        adminProducts = await productService.getProducts();
-        renderAdminProducts(adminProducts);
-      }
-    } catch (error) {
-      alert(error.message || 'Failed to add product');
-    }
-  });
+  } catch (error) {
+    alert(error.message || 'Failed to add product');
+  }
+});
 
   const imageInput = document.getElementById('product-image');
   const imagePreview = document.getElementById('image-preview');

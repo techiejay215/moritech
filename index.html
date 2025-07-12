@@ -266,53 +266,52 @@
       <button id="back-to-products" class="btn back-btn">
         <i class="fas fa-arrow-left"></i> Back to Products
       </button>
-
-      <div class="product-details-container">
-        <div class="product-gallery">
-          <div class="main-image">
-            <img id="main-product-image" src="" alt="Main Product Image">
-          </div>
-          <div class="thumbnail-container">
-            <!-- Thumbnails will be inserted here -->
-          </div>
+      <!-- 🔄 Update product gallery in product details -->
+      <div class="product-gallery">
+        <div class="main-image">
+          <img id="main-product-image" src="" alt="Main Product Image">
         </div>
-
-        <div class="product-info">
-          <h2 id="product-detail-name"></h2>
-          <div class="price-category">
-            <span id="product-detail-price" class="price"></span>
-            <span id="product-detail-category" class="category"></span>
-          </div>
-          <p id="product-detail-description" class="description"></p>
-
-          <!-- NEW: Specifications section -->
-          <div class="specifications-section">
-            <h3>Specifications</h3>
-            <div id="product-specs" class="specifications-content"></div>
-          </div>
-
-          <div class="action-buttons">
-            <button id="add-to-cart-detail" class="btn cart-btn">
-              <i class="fas fa-shopping-cart"></i> Add to Cart
-            </button>
-            <a id="whatsapp-order" class="btn whatsapp-btn" target="_blank">
-              <i class="fab fa-whatsapp"></i> Order on WhatsApp
-            </a>
-          </div>
-        </div>
-
-        <!-- NEW: Reviews section -->
-        <div class="reviews-section">
-          <h3>Customer Reviews</h3>
-          <div id="product-reviews" class="reviews-container"></div>
-        </div>
-
-        <!-- NEW: Related products section -->
-        <div class="related-products-section">
-          <h3>Related Products</h3>
-          <div id="related-products" class="related-products-grid"></div>
+        <div class="thumbnail-container">
+          <!-- Thumbnails will be inserted here -->
         </div>
       </div>
+
+      <div class="product-info">
+        <h2 id="product-detail-name"></h2>
+        <div class="price-category">
+          <span id="product-detail-price" class="price"></span>
+          <span id="product-detail-category" class="category"></span>
+        </div>
+        <p id="product-detail-description" class="description"></p>
+
+        <!-- NEW: Specifications section -->
+        <div class="specifications-section">
+          <h3>Specifications</h3>
+          <div id="product-specs" class="specifications-content"></div>
+        </div>
+
+        <div class="action-buttons">
+          <button id="add-to-cart-detail" class="btn cart-btn">
+            <i class="fas fa-shopping-cart"></i> Add to Cart
+          </button>
+          <a id="whatsapp-order" class="btn whatsapp-btn" target="_blank">
+            <i class="fab fa-whatsapp"></i> Order on WhatsApp
+          </a>
+        </div>
+      </div>
+
+      <!-- NEW: Reviews section -->
+      <div class="reviews-section">
+        <h3>Customer Reviews</h3>
+        <div id="product-reviews" class="reviews-container"></div>
+      </div>
+
+      <!-- NEW: Related products section -->
+      <div class="related-products-section">
+        <h3>Related Products</h3>
+        <div id="related-products" class="related-products-grid"></div>
+      </div>
+    </div>
     </div>
   </section>
 
@@ -577,8 +576,7 @@
           </div>
           <div class="form-group">
             <label for="product-specifications">Specifications</label>
-            <textarea id="product-specifications" name="specifications"
-              placeholder="Enter specifications"></textarea>
+            <textarea id="product-specifications" name="specifications" placeholder="Enter specifications"></textarea>
           </div>
 
           <div class="form-group">
@@ -606,10 +604,11 @@
               style="display: none; margin-top: 10px;">
           </div>
 
+          <!-- 🔄 Update product image input to allow multiple -->
           <div class="form-group">
-            <label for="product-image">Product Image</label>
-            <input type="file" id="product-image" name="image" accept="image/*" required>
-            <div id="image-preview"></div>
+            <label for="product-image">Product Images</label>
+            <input type="file" id="product-image" name="images" accept="image/*" multiple required>
+            <div id="image-preview" style="display: flex; flex-wrap: wrap;"></div>
           </div>
 
           <button type="submit">Add Product</button>

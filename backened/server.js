@@ -1,7 +1,7 @@
 // 📦 Load environment variables
 require('dotenv').config();
 
-// 🧩 Core dependencies
+// � Core dependencies
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
@@ -59,15 +59,14 @@ const validateObjectId = (req, res, next) => {
   next();
 };
 
-// Add Product model above Offer model
+// 📦 Update Product Schema
 const productSchema = new mongoose.Schema({
   name: String,
   price: Number,
   category: String,
   description: String,
-  image: String,
-  specifications: String
-  
+  specifications: String,
+  images: [String] // Changed from 'image' to 'images' array
 });
 const Product = mongoose.model('Product', productSchema);
 
@@ -144,11 +143,12 @@ const offerSchema = new mongoose.Schema({
 // Create Offer model
 const Offer = mongoose.model('Offer', offerSchema);
 
-// Multer configurations
+// 🔄 Update Multer Configuration (for multiple files)
 const memoryUpload = multer({ 
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB
+    fileSize: 5 * 1024 * 1024, // 5MB per file
+    files: 5 // Allow up to 5 files
   },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
@@ -232,10 +232,50 @@ app.use(protectedPaths, (req, res, next) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/inquiries', require('./routes/inquiryRoutes'));
-app.use('/api/products', require('./routes/productRoutes'));
+// app.use('/api/products', require('./routes/productRoutes')); // Removed to implement locally
 app.use('/api/offers/:id', validateObjectId);
 
-// Added product detail route after existing routes
+// 🔄 Update Product Routes to use multiple files
+app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
+  try {
+    const { name, price, category, description, specifications } = req.body;
+    let images = [];
+
+    // Handle multiple image uploads
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const result = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            { folder: 'moritech-products' },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          uploadStream.end(file.buffer);
+        });
+        images.push(result.secure_url);
+      }
+    }
+
+    const newProduct = new Product({
+      name,
+      price,
+      category,
+      description,
+      specifications,
+      images // Store array of image URLs
+    });
+
+    await newProduct.save();
+    res.status(201).json(newProduct);
+  } catch (error) {
+    console.error('❌ Product creation error:', error);
+    res.status(500).json({ message: 'Failed to create product' });
+  }
+});
+
+// Added product detail route
 app.get('/api/products/:id', validateObjectId, async (req, res) => {
   console.log(`Fetching product with ID: ${req.params.id}`);
   try {
@@ -244,6 +284,11 @@ app.get('/api/products/:id', validateObjectId, async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
     res.json(product);
+    const responseProduct = product.toObject();
+    if (!responseProduct.specifications) {
+      responseProduct.specifications = "";
+    }
+    res.json(responseProduct);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch product' });
   }
