@@ -3700,3 +3700,31 @@ footer {
   font-weight: bold;
   color: #333;
 }
+/* Add to style.css */
+.specs-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+}
+
+.specs-table tr {
+  border-bottom: 1px solid #eee;
+}
+
+.specs-table tr:last-child {
+  border-bottom: none;
+}
+
+.specs-table td {
+  padding: 10px 5px;
+}
+
+.spec-key {
+  font-weight: 600;
+  color: #333;
+  width: 35%;
+}
+
+.spec-value {
+  color: #666;
+}

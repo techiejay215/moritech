@@ -320,20 +320,20 @@ const productService = {
     }
   },
   async deleteProduct(id) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-      credentials: 'include'
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
 
-    if (!response.ok) throw await handleResponseError(response);
-    return true;
-  } catch (error) {
-    console.error('Product delete error:', error);
-    throw error;
-  }
-},
+      if (!response.ok) throw await handleResponseError(response);
+      return true;
+    } catch (error) {
+      console.error('Product delete error:', error);
+      throw error;
+    }
+  },
 
   async searchProducts(query) {
     try {
@@ -448,24 +448,24 @@ const offerService = {
       throw error;
     }
   },
-async deleteOffer(id) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/offers/${id}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-      credentials: 'include'
-    });
+  async deleteOffer(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/offers/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
 
-    // Consider 204 (No Content) as successful
-    if (response.ok || response.status === 204) {
-      return true;
+      // Consider 204 (No Content) as successful
+      if (response.ok || response.status === 204) {
+        return true;
+      }
+      throw await handleResponseError(response);
+    } catch (error) {
+      console.error('Delete offer error:', error);
+      throw error;
     }
-    throw await handleResponseError(response);
-  } catch (error) {
-    console.error('Delete offer error:', error);
-    throw error;
   }
-}
 };
 
 async function initSlider() {
@@ -1225,7 +1225,7 @@ function setupProductEventDelegation() {
     if (addToCartBtn) {
       const card = addToCartBtn.closest('.product-card');
       window.cartInstance?.addToCart(card.dataset.id);
-    } 
+    }
     else if (inquireBtn) {
       const card = inquireBtn.closest('.product-card');
       inquire(card.dataset.name);
@@ -1526,10 +1526,26 @@ async function showProductDetails(productId) {
     document.getElementById('product-detail-category').textContent = product.category;
     document.getElementById('product-detail-description').textContent = product.description;
 
+    // Update the showProductDetails function - find the specsContainer part
     const specsContainer = document.getElementById('product-specs');
     if (specsContainer) {
       if (product.specifications && product.specifications.trim() !== '') {
-        specsContainer.innerHTML = product.specifications;
+        // Create a table structure for specifications
+        specsContainer.innerHTML = `
+      <table class="specs-table">
+        <tbody>
+          ${product.specifications.split('\n').filter(line => line.trim()).map(line => {
+          const [key, value] = line.split(':').map(part => part.trim());
+          return `
+              <tr>
+                <td class="spec-key">${key || ''}</td>
+                <td class="spec-value">${value || ''}</td>
+              </tr>
+            `;
+        }).join('')}
+        </tbody>
+      </table>
+    `;
       } else {
         specsContainer.innerHTML = '<p>No specifications available</p>';
       }
@@ -1668,10 +1684,10 @@ function setupBackButton() {
     backBtn.addEventListener('click', () => {
       // Hide product details
       document.getElementById('product-details').style.display = 'none';
-      
+
       // Show products section
       document.getElementById('products').style.display = 'block';
-      
+
       // Scroll to top
       window.scrollTo(0, 0);
     });
@@ -1847,16 +1863,16 @@ function initProductForm() {
     formData.append('specifications', specifications);
 
     // Append all images
-   const imageInput = document.getElementById('product-image');
-  if (imageInput.files && imageInput.files.length > 0) {
-    for (let i = 0; i < imageInput.files.length; i++) {
-      const file = imageInput.files[i];
-      // Validate file type and size
-      if (file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024) {
-        formData.append('images', file);
+    const imageInput = document.getElementById('product-image');
+    if (imageInput.files && imageInput.files.length > 0) {
+      for (let i = 0; i < imageInput.files.length; i++) {
+        const file = imageInput.files[i];
+        // Validate file type and size
+        if (file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024) {
+          formData.append('images', file);
+        }
       }
     }
-  }
 
     try {
       console.log('Submitting product form with', imageInput.files.length, 'images');
