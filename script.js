@@ -1801,60 +1801,60 @@ function initProductForm() {
   const form = document.getElementById('add-product-form');
   if (!form) return;
 
-  // Add this function to handle multiple file previews
-  const imageInput = document.getElementById('product-image');
-  const imagePreview = document.getElementById('image-preview');
+  const newForm = form.cloneNode(true);
+  form.parentNode.replaceChild(newForm, form);
 
+  const imageInput = newForm.querySelector('#product-image');
+  const imagePreview = newForm.querySelector('#image-preview');
+
+  // ✅ Image preview logic
   imageInput?.addEventListener('change', function () {
     imagePreview.innerHTML = '';
 
-    if (this.files && this.files.length > 0) {
-      for (let i = 0; i < this.files.length; i++) {
-        const file = this.files[i];
-
-        // Validate file type and size
-        if (!file.type.startsWith('image/')) {
-          alert(`File ${file.name} is not an image. Only image files are allowed.`);
-          this.value = '';
-          imagePreview.innerHTML = '';
-          return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-          alert(`File ${file.name} is too large. Maximum size is 5MB.`);
-          this.value = '';
-          imagePreview.innerHTML = '';
-          return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          img.style.maxWidth = '200px';
-          img.style.maxHeight = '200px';
-          img.style.margin = '5px';
-          imagePreview.appendChild(img);
-        }
-        reader.readAsDataURL(file);
+    for (const file of this.files) {
+      if (!file.type.startsWith('image/')) {
+        alert(`❌ File "${file.name}" is not an image.`);
+        this.value = '';
+        imagePreview.innerHTML = '';
+        return;
       }
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`❌ File "${file.name}" is too large. Max size: 5MB.`);
+        this.value = '';
+        imagePreview.innerHTML = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.style.maxWidth = '200px';
+        img.style.maxHeight = '200px';
+        img.style.margin = '5px';
+        imagePreview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
     }
   });
 
-  form.addEventListener('submit', async (e) => {
+  // ✅ Submit handler
+  newForm.addEventListener('submit', async function (e) {
     e.preventDefault();
 
-    // Collect form data
-    const name = document.getElementById('product-name').value;
-    const description = document.getElementById('product-description').value;
-    const price = document.getElementById('product-price').value;
-    const specifications = document.getElementById('product-specifications').value;
-    const categorySelect = document.getElementById('product-category');
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+
+    const name = newForm.querySelector('#product-name').value;
+    const description = newForm.querySelector('#product-description').value;
+    const price = newForm.querySelector('#product-price').value;
+    const specifications = newForm.querySelector('#product-specifications').value;
+    const categorySelect = newForm.querySelector('#product-category');
     const category = categorySelect.value === 'new'
-      ? document.getElementById('new-category-input').value
+      ? newForm.querySelector('#new-category-input').value
       : categorySelect.value;
 
-    // Create FormData
     const formData = new FormData();
     formData.append('name', name);
     formData.append('description', description);
@@ -1862,12 +1862,8 @@ function initProductForm() {
     formData.append('category', category);
     formData.append('specifications', specifications);
 
-    // Append all images
-    const imageInput = document.getElementById('product-image');
-    if (imageInput.files && imageInput.files.length > 0) {
-      for (let i = 0; i < imageInput.files.length; i++) {
-        const file = imageInput.files[i];
-        // Validate file type and size
+    if (imageInput?.files.length > 0) {
+      for (const file of imageInput.files) {
         if (file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024) {
           formData.append('images', file);
         }
@@ -1875,8 +1871,6 @@ function initProductForm() {
     }
 
     try {
-      console.log('Submitting product form with', imageInput.files.length, 'images');
-
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         headers: {
@@ -1892,16 +1886,12 @@ function initProductForm() {
       }
 
       const result = await response.json();
-      console.log('Product created:', result);
+      alert(`✅ Product added with ${result.images?.length || 0} images`);
 
-      alert(`Product added successfully with ${result.images?.length || 0} images!`);
-
-      // Reset form
-      form.reset();
+      newForm.reset();
       imagePreview.innerHTML = '';
       toggleNewCategoryInput();
 
-      // Refresh products
       await loadProducts();
       await populateProductDropdown();
 
@@ -1909,54 +1899,16 @@ function initProductForm() {
         adminProducts = await productService.getProducts();
         renderAdminProducts(adminProducts);
       }
+
     } catch (error) {
       console.error('Add product error:', error);
-      alert(`Error: ${error.message || 'Failed to add product'}`);
+      alert(`❌ ${error.message}`);
+    } finally {
+      submitBtn.disabled = false;
     }
   });
 
   toggleNewCategoryInput();
-}
-
-const imageInput = document.getElementById('product-image');
-const imagePreview = document.getElementById('image-preview');
-
-if (imageInput && imagePreview) {
-  imageInput.addEventListener('change', function () {
-    imagePreview.innerHTML = '';
-
-    if (this.files && this.files.length > 0) {
-      for (const file of this.files) {
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-          alert(`❌ File "${file.name}" is not an image. Only image files are allowed.`);
-          this.value = '';
-          imagePreview.innerHTML = '';
-          return;
-        }
-
-        // Validate file size
-        if (file.size > 5 * 1024 * 1024) { // 5MB
-          alert(`❌ File "${file.name}" is too large. Max allowed size is 5MB.`);
-          this.value = '';
-          imagePreview.innerHTML = '';
-          return;
-        }
-
-        // Show preview
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          img.style.maxWidth = '200px';
-          img.style.maxHeight = '200px';
-          img.style.margin = '5px';
-          imagePreview.appendChild(img);
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-  });
 }
 
 // MOBILE AUTHENTICATION HANDLING
