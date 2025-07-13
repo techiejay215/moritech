@@ -351,42 +351,47 @@ const productService = {
   },
 
   async getProductsByCategory(category) {
-    try {
-      const isSubcategory = [
-        'hp-laptops', 'lenovo-laptops', 'dell-laptops', 'asus-laptops', 'samsung-laptops',
-        'hp-printers', 'canon-printers', 'epson-printers', 'kyocera-printers', 'ecosys-printers',
-        'hp-desktops', 'dell-desktops', 'lenovo-desktops',
-        'hp-monitors', 'lenovo-monitors', 'samsung-monitors', 'fujitsu-monitors'
-      ].includes(category);
+  try {
+    const isSubcategory = [
+      'hp-laptops', 'lenovo-laptops', 'dell-laptops', 'asus-laptops', 'samsung-laptops',
+      'hp-printers', 'canon-printers', 'epson-printers', 'kyocera-printers', 'ecosys-printers',
+      'hp-desktops', 'dell-desktops', 'lenovo-desktops',
+      'hp-monitors', 'lenovo-monitors', 'samsung-monitors', 'fujitsu-monitors'
+    ].includes(category);
 
-      if (isSubcategory) {
-        const mainCategory = category.split('-')[1];
-        const allResponse = await fetch(`${API_BASE_URL}/products/category/${mainCategory}`, {
-          headers: getAuthHeaders(),
-          credentials: 'include'
-        });
-
-        if (!allResponse.ok) throw await handleResponseError(allResponse);
-        const allProducts = await allResponse.json();
-
-        const brand = category.split('-')[0];
-        return allProducts.filter(product =>
-          product.brand && product.brand.toLowerCase() === brand
-        );
-      }
-
-      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
+    if (isSubcategory) {
+      // Split into brand and main category
+      const [brand, mainCategory] = category.split('-');
+      
+      const allResponse = await fetch(`${API_BASE_URL}/products/category/${mainCategory}`, {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
 
-      if (!response.ok) throw await handleResponseError(response);
-      return await response.json();
-    } catch (error) {
-      console.error('Category error:', error);
-      throw error;
+      if (!allResponse.ok) throw await handleResponseError(allResponse);
+      const allProducts = await allResponse.json();
+
+      // Filter by brand
+      return allProducts.filter(product => {
+        // Use product name if brand field doesn't exist
+        const productBrand = product.brand || product.name.split(' ')[0];
+        return productBrand.toLowerCase().includes(brand);
+      });
     }
-  },
+
+    // Handle regular categories
+    const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+
+    if (!response.ok) throw await handleResponseError(response);
+    return await response.json();
+  } catch (error) {
+    console.error('Category error:', error);
+    throw error;
+  }
+},
 
   async getRelatedProducts(currentId, category) {
     try {
@@ -800,7 +805,7 @@ function initSearch() {
       document.querySelectorAll('section').forEach(section => {
         section.style.display = (section.id === 'products') ? 'block' : 'none';
       });
-      
+
       window.scrollTo({
         top: productsSection.offsetTop - 100,
         behavior: 'smooth'
@@ -1292,11 +1297,17 @@ function renderProducts(products) {
     return;
   }
 
-  products.forEach(product => {
+  currentProducts = products; // Save for pagination
+  const startIndex = (currentPage - 1) * productsPerPage;
+  const endIndex = Math.min(startIndex + productsPerPage, currentProducts.length);
+  const productsToRender = currentProducts.slice(startIndex, endIndex);
+
+  productsToRender.forEach(product => {
     if (!product._id || !/^[0-9a-fA-F]{24}$/.test(product._id)) {
       console.warn('Skipping product with invalid ID:', product);
       return;
     }
+
     const card = document.createElement('div');
     card.className = 'product-card';
     card.dataset.id = product._id;
@@ -1316,15 +1327,67 @@ function renderProducts(products) {
       </div>
     `;
 
-
     // Click to show details
-    card.querySelector('.product-img, .product-content p, .price').addEventListener('click', () => {
-      showProductDetails(product._id);
-    });
+    card.querySelector('.product-img').addEventListener('click', () => showProductDetails(product._id));
+    card.querySelector('.product-content p').addEventListener('click', () => showProductDetails(product._id));
+    card.querySelector('.price').addEventListener('click', () => showProductDetails(product._id));
 
     productGrid.appendChild(card);
   });
+
+  // Clear old pagination before rendering new one
+  const oldPagination = document.querySelector('.pagination');
+  if (oldPagination) oldPagination.remove();
+
+  renderPaginationControls();
 }
+
+function renderPaginationControls() {
+  const productGrid = document.querySelector('.product-grid');
+  if (!productGrid || !currentProducts || currentProducts.length <= productsPerPage) return;
+
+  const totalPages = Math.ceil(currentProducts.length / productsPerPage);
+
+  const pagination = document.createElement('div');
+  pagination.className = 'pagination';
+
+  // Previous button
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'pagination-btn prev';
+  prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderProducts(currentProducts);
+      window.scrollTo({ top: document.getElementById('products').offsetTop - 100, behavior: 'smooth' });
+    }
+  });
+
+  // Page info
+  const pageInfo = document.createElement('span');
+  pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+
+  // Next button
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'pagination-btn next';
+  nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.addEventListener('click', () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderProducts(currentProducts);
+      window.scrollTo({ top: document.getElementById('products').offsetTop - 100, behavior: 'smooth' });
+    }
+  });
+
+  pagination.appendChild(prevBtn);
+  pagination.appendChild(pageInfo);
+  pagination.appendChild(nextBtn);
+
+  productGrid.parentNode.insertBefore(pagination, productGrid.nextSibling);
+}
+
 
 // Helper function for product image
 function getProductImageHTML(product) {
