@@ -319,6 +319,21 @@ const productService = {
       throw error;
     }
   },
+  async deleteProduct(id) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+
+    if (!response.ok) throw await handleResponseError(response);
+    return true;
+  } catch (error) {
+    console.error('Product delete error:', error);
+    throw error;
+  }
+},
 
   async searchProducts(query) {
     try {
@@ -618,7 +633,7 @@ function initOfferForm() {
   if (!form) return;
 
   // 🔄 Update image preview to handle multiple images
-  const imageInput = document.getElementById('product-image');
+  const imageInput = document.getElementById('offer-image');
   const imagePreview = document.getElementById('image-preview');
 
   imageInput?.addEventListener('change', function () {

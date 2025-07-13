@@ -131,7 +131,7 @@ const offerSchema = new mongoose.Schema({
   },
   image: { 
     type: String, 
-    required: true,
+    required: false,
     validate: {
       validator: function(value) {
         return /^https?:\/\/.+\..+/.test(value);
