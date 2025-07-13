@@ -543,12 +543,12 @@ app.delete('/api/offers/:id', async (req, res) => {
     // Optionally: Delete the image from Cloudinary
     // await cloudinary.uploader.destroy(deletedOffer.image);
     
-    res.json({ message: 'Offer deleted successfully' });
+   // Send 204 No Content status instead of JSON
+    res.status(204).send(); // Changed from res.json(...)
   } catch (error) {
     res.status(500).json({ message: 'Failed to delete offer' });
   }
 });
-
 // ========================
 // UTILITY ROUTES
 // ========================

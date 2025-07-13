@@ -448,21 +448,24 @@ const offerService = {
       throw error;
     }
   },
-  async deleteOffer(id) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/offers/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-        credentials: 'include'
-      });
+async deleteOffer(id) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/offers/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
 
-      if (!response.ok) throw await handleResponseError(response);
+    // Consider 204 (No Content) as successful
+    if (response.ok || response.status === 204) {
       return true;
-    } catch (error) {
-      console.error('Delete offer error:', error);
-      throw error;
     }
+    throw await handleResponseError(response);
+  } catch (error) {
+    console.error('Delete offer error:', error);
+    throw error;
   }
+}
 };
 
 async function initSlider() {
