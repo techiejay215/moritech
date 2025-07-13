@@ -787,12 +787,26 @@ function initCategoryFilter() {
   });
 }
 
-// Update initSearch() function in script.js
 function initSearch() {
   const desktopSearch = document.getElementById('search-input');
   const mobileSearch = document.getElementById('mobile-search-input');
-
   const headerSearch = document.getElementById('header-search-input');
+
+  // Function to scroll to products section
+  const scrollToProducts = () => {
+    const productsSection = document.getElementById('products');
+    if (productsSection) {
+      // Make sure products section is visible
+      document.querySelectorAll('section').forEach(section => {
+        section.style.display = (section.id === 'products') ? 'block' : 'none';
+      });
+      
+      window.scrollTo({
+        top: productsSection.offsetTop - 100,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   function setupSearch(inputElement) {
     if (!inputElement) return;
@@ -811,10 +825,27 @@ function initSearch() {
         try {
           const products = await productService.searchProducts(searchTerm);
           renderProducts(products);
+          scrollToProducts(); // Scroll to products after search
         } catch {
           alert('Search failed. Please try again.');
         }
       }, 500);
+    });
+
+    // Add Enter key support for instant search
+    inputElement.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        clearTimeout(searchTimeout);
+        const searchTerm = inputElement.value.trim();
+        if (searchTerm.length >= 2) {
+          productService.searchProducts(searchTerm)
+            .then(products => {
+              renderProducts(products);
+              scrollToProducts();
+            })
+            .catch(() => alert('Search failed'));
+        }
+      }
     });
   }
 
