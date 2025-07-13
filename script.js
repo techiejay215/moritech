@@ -5,6 +5,9 @@ window.cartInstance = null;
 let adminPanelInitialized = false;
 let refreshingToken = null; // For handling concurrent refresh requests
 let allProducts = [];
+let currentPage = 1;
+const productsPerPage = 12;
+let currentProducts = [];
 
 function getAuthHeaders(contentType = 'application/json') {
   const headers = {
@@ -351,47 +354,47 @@ const productService = {
   },
 
   async getProductsByCategory(category) {
-  try {
-    const isSubcategory = [
-      'hp-laptops', 'lenovo-laptops', 'dell-laptops', 'asus-laptops', 'samsung-laptops',
-      'hp-printers', 'canon-printers', 'epson-printers', 'kyocera-printers', 'ecosys-printers',
-      'hp-desktops', 'dell-desktops', 'lenovo-desktops',
-      'hp-monitors', 'lenovo-monitors', 'samsung-monitors', 'fujitsu-monitors'
-    ].includes(category);
+    try {
+      const isSubcategory = [
+        'hp-laptops', 'lenovo-laptops', 'dell-laptops', 'asus-laptops', 'samsung-laptops',
+        'hp-printers', 'canon-printers', 'epson-printers', 'kyocera-printers', 'ecosys-printers',
+        'hp-desktops', 'dell-desktops', 'lenovo-desktops',
+        'hp-monitors', 'lenovo-monitors', 'samsung-monitors', 'fujitsu-monitors'
+      ].includes(category);
 
-    if (isSubcategory) {
-      // Split into brand and main category
-      const [brand, mainCategory] = category.split('-');
-      
-      const allResponse = await fetch(`${API_BASE_URL}/products/category/${mainCategory}`, {
+      if (isSubcategory) {
+        // Split into brand and main category
+        const [brand, mainCategory] = category.split('-');
+
+        const allResponse = await fetch(`${API_BASE_URL}/products/category/${mainCategory}`, {
+          headers: getAuthHeaders(),
+          credentials: 'include'
+        });
+
+        if (!allResponse.ok) throw await handleResponseError(allResponse);
+        const allProducts = await allResponse.json();
+
+        // Filter by brand
+        return allProducts.filter(product => {
+          // Use product name if brand field doesn't exist
+          const productBrand = product.brand || product.name.split(' ')[0];
+          return productBrand.toLowerCase().includes(brand);
+        });
+      }
+
+      // Handle regular categories
+      const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
         headers: getAuthHeaders(),
         credentials: 'include'
       });
 
-      if (!allResponse.ok) throw await handleResponseError(allResponse);
-      const allProducts = await allResponse.json();
-
-      // Filter by brand
-      return allProducts.filter(product => {
-        // Use product name if brand field doesn't exist
-        const productBrand = product.brand || product.name.split(' ')[0];
-        return productBrand.toLowerCase().includes(brand);
-      });
+      if (!response.ok) throw await handleResponseError(response);
+      return await response.json();
+    } catch (error) {
+      console.error('Category error:', error);
+      throw error;
     }
-
-    // Handle regular categories
-    const response = await fetch(`${API_BASE_URL}/products/category/${encodeURIComponent(category)}`, {
-      headers: getAuthHeaders(),
-      credentials: 'include'
-    });
-
-    if (!response.ok) throw await handleResponseError(response);
-    return await response.json();
-  } catch (error) {
-    console.error('Category error:', error);
-    throw error;
-  }
-},
+  },
 
   async getRelatedProducts(currentId, category) {
     try {
@@ -764,6 +767,8 @@ function initCategoryFilter() {
         const products = category === 'all'
           ? await productService.getProducts()
           : await productService.getProductsByCategory(category);
+        currentProducts = products;
+        currentPage = 1;
 
         renderProducts(products);
       } catch {
@@ -829,6 +834,8 @@ function initSearch() {
       searchTimeout = setTimeout(async () => {
         try {
           const products = await productService.searchProducts(searchTerm);
+          currentProducts = products;
+          currentPage = 1;
           renderProducts(products);
           scrollToProducts(); // Scroll to products after search
         } catch {
@@ -2046,6 +2053,8 @@ async function loadProducts() {
   try {
     const products = await productService.getProducts();
     allProducts = products; // Store products globally
+    currentProducts = allProducts; // Set initial products
+    currentPage = 1; // Reset to first page
     renderProducts(products);
   } catch (error) {
     console.error('Failed to load products:', error);
