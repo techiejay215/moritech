@@ -178,6 +178,7 @@ const app = express();
 const corsOptions = {
   origin: [
     'https://moritech-technologies.netlify.app',
+    'https://moritechtechnologies.co.ke'
     'http://localhost:3000',
     'http://127.0.0.1:5500'
   ],
