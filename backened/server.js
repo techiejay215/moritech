@@ -49,13 +49,13 @@ mongoose.connection.on('connected', () => {
 // 🆔 ObjectID Validation Middleware
 const validateObjectId = (req, res, next) => {
   const id = req.params.id || req.body.productId;
-  
+
   if (id && !mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ 
-      message: 'Invalid ID format' 
+    return res.status(400).json({
+      message: 'Invalid ID format'
     });
   }
-  
+
   next();
 };
 
@@ -64,11 +64,11 @@ const adminRequired = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Authentication required' });
   }
-  
+
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Admin access required' });
   }
-  
+
   next();
 };
 
@@ -85,21 +85,21 @@ const Product = mongoose.model('Product', productSchema);
 
 // Define Offer Schema
 const offerSchema = new mongoose.Schema({
-  productId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Product', 
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
     required: true,
     validate: [
       // Format validation
       {
-        validator: function(v) {
+        validator: function (v) {
           return mongoose.Types.ObjectId.isValid(v);
         },
         message: 'Invalid product ID format'
       },
       // Existence validation
       {
-        validator: async function(v) {
+        validator: async function (v) {
           const product = await mongoose.model('Product').findById(v);
           return product !== null;
         },
@@ -107,33 +107,33 @@ const offerSchema = new mongoose.Schema({
       }
     ]
   },
-  name: { 
-    type: String, 
+  name: {
+    type: String,
     required: true,
     trim: true,
     maxlength: 100
   },
-  oldPrice: { 
-    type: Number, 
+  oldPrice: {
+    type: Number,
     required: true,
     min: 0,
     validate: {
-      validator: function(value) {
+      validator: function (value) {
         return value > this.price;
       },
       message: 'Old price must be greater than current price'
     }
   },
-  price: { 
-    type: Number, 
+  price: {
+    type: Number,
     required: true,
     min: 0
   },
-  image: { 
-    type: String, 
+  image: {
+    type: String,
     required: false,
     validate: {
-      validator: function(value) {
+      validator: function (value) {
         return /^https?:\/\/.+\..+/.test(value);
       },
       message: 'Invalid image URL'
@@ -157,7 +157,7 @@ const offerSchema = new mongoose.Schema({
 const Offer = mongoose.model('Offer', offerSchema);
 
 // 🔄 Update Multer Configuration (for multiple files)
-const memoryUpload = multer({ 
+const memoryUpload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB per file
@@ -231,7 +231,7 @@ app.use((req, res, next) => {
 
 // 🔐 Route Protection Middleware
 const protectedPaths = [
-  '/api/cart', 
+  '/api/cart',
   '/api/inquiries',
   '/api/upload',
   '/api/offers' // Added offers to protected paths
@@ -257,17 +257,17 @@ app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
   try {
     console.log('--- NEW PRODUCT REQUEST ---');
     const { name, price, category, description, specifications } = req.body;
-    
+
     // Validate required fields
     if (!name || !price || !category) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
     const imageUrls = [];
-    
+
     if (req.files && req.files.length > 0) {
       console.log(`Processing ${req.files.length} images...`);
-      
+
       // Process images in parallel for better performance
       const uploadPromises = req.files.map(file => {
         return new Promise((resolve, reject) => {
@@ -282,7 +282,7 @@ app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
               }
             }
           );
-          
+
           // Use Buffer.from for Node.js compatibility
           uploadStream.end(Buffer.from(file.buffer));
         });
@@ -290,7 +290,7 @@ app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
 
       // Wait for all uploads to complete
       const results = await Promise.all(uploadPromises);
-      
+
       // Filter out any failed uploads
       imageUrls.push(...results.filter(url => url !== null));
     } else {
@@ -308,11 +308,11 @@ app.post('/api/products', memoryUpload.array('images', 5), async (req, res) => {
 
     const savedProduct = await newProduct.save();
     console.log(`✅ Product created with ${imageUrls.length} images`);
-    
+
     res.status(201).json(savedProduct);
   } catch (error) {
     console.error('❌ PRODUCT CREATION ERROR:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Failed to create product',
       error: error.message
     });
@@ -347,12 +347,12 @@ app.get('/api/products/related/:id', validateObjectId, async (req, res) => {
     if (!currentProduct) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    
+
     const relatedProducts = await Product.find({
       category: currentProduct.category,
       _id: { $ne: req.params.id }
     }).limit(4);
-    
+
     res.json(relatedProducts);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch related products' });
@@ -367,7 +367,7 @@ app.get('/api/products/:id', validateObjectId, async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    
+
     const responseProduct = product.toObject();
     if (!responseProduct.specifications) {
       responseProduct.specifications = "";
@@ -401,14 +401,14 @@ app.post('/api/offers', validateObjectId, memoryUpload.single('image'), async (r
     const requiredFields = ['productId', 'name', 'oldPrice', 'price'];
     for (const field of requiredFields) {
       if (!req.body[field]) {
-        return res.status(400).json({ 
-          message: `Missing required field: ${field}` 
+        return res.status(400).json({
+          message: `Missing required field: ${field}`
         });
       }
     }
 
     const { productId, name, oldPrice, price } = req.body;
-    
+
     if (!req.file) {
       return res.status(400).json({ message: 'Image is required' });
     }
@@ -422,7 +422,7 @@ app.post('/api/offers', validateObjectId, memoryUpload.single('image'), async (r
           else resolve(result);
         }
       );
-      
+
       uploadStream.end(req.file.buffer);
     });
 
@@ -435,24 +435,24 @@ app.post('/api/offers', validateObjectId, memoryUpload.single('image'), async (r
     });
 
     await newOffer.save();
-    
+
     // Populate product details in response
     const populatedOffer = await Offer.findById(newOffer._id).populate('productId', 'name description');
-    
+
     res.status(201).json({
       message: 'Offer created successfully',
       offer: populatedOffer
     });
   } catch (error) {
     console.error('❌ Offer creation error:', error.message);
-    
+
     if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Validation failed',
         errors: Object.values(error.errors).map(err => err.message)
       });
     }
-    
+
     res.status(500).json({ message: 'Failed to create offer' });
   }
 });
@@ -463,7 +463,7 @@ app.get('/api/offers', async (req, res) => {
     const offers = await Offer.find({ isActive: true })
       .populate('productId', 'name description category')
       .sort({ createdAt: -1 });
-      
+
     res.json(offers);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch offers' });
@@ -475,11 +475,11 @@ app.get('/api/offers/:id', async (req, res) => {
   try {
     const offer = await Offer.findById(req.params.id)
       .populate('productId');
-      
+
     if (!offer) {
       return res.status(404).json({ message: 'Offer not found' });
     }
-    
+
     res.json(offer);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch offer' });
@@ -491,7 +491,7 @@ app.put('/api/offers/:id', memoryUpload.single('image'), async (req, res) => {
   try {
     const { name, oldPrice, price } = req.body;
     const updateData = { name, oldPrice, price };
-    
+
     if (req.file) {
       const result = await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
@@ -501,29 +501,29 @@ app.put('/api/offers/:id', memoryUpload.single('image'), async (req, res) => {
             else resolve(result);
           }
         );
-        
+
         uploadStream.end(req.file.buffer);
       });
       updateData.image = result.secure_url;
     }
-    
+
     const updatedOffer = await Offer.findByIdAndUpdate(
       req.params.id,
       updateData,
       { new: true, runValidators: true }
     ).populate('productId');
-    
+
     if (!updatedOffer) {
       return res.status(404).json({ message: 'Offer not found' });
     }
-    
+
     res.json({
       message: 'Offer updated successfully',
       offer: updatedOffer
     });
   } catch (error) {
     if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Validation failed',
         errors: Object.values(error.errors).map(err => err.message)
       });
@@ -536,15 +536,15 @@ app.put('/api/offers/:id', memoryUpload.single('image'), async (req, res) => {
 app.delete('/api/offers/:id', async (req, res) => {
   try {
     const deletedOffer = await Offer.findByIdAndDelete(req.params.id);
-    
+
     if (!deletedOffer) {
       return res.status(404).json({ message: 'Offer not found' });
     }
-    
+
     // Optionally: Delete the image from Cloudinary
     // await cloudinary.uploader.destroy(deletedOffer.image);
-    
-   // Send 204 No Content status instead of JSON
+
+    // Send 204 No Content status instead of JSON
     res.status(204).send(); // Changed from res.json(...)
   } catch (error) {
     res.status(500).json({ message: 'Failed to delete offer' });
@@ -569,7 +569,7 @@ app.post('/api/upload', memoryUpload.single('image'), async (req, res) => {
           else resolve(result);
         }
       );
-      
+
       uploadStream.end(req.file.buffer);
     });
 
@@ -653,53 +653,57 @@ app.post('/api/auth/refresh', async (req, res) => {
     res.status(401).json({ message: 'Invalid refresh token' });
   }
 });
-
 // 🔄 Forgot Password Route
 app.post('/api/auth/forgot-password', async (req, res) => {
   const { email } = req.body;
-  
+
   try {
     const User = require('./models/User');
-    // 1. Find user by email
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: 'Email not found' });
-    }
+    if (!user) return res.status(404).json({ message: 'Email not found' });
 
-    // 2. Generate reset token
     const resetToken = jwt.sign(
       { id: user._id },
       process.env.RESET_SECRET,
       { expiresIn: '15m' }
     );
 
-    // 3. Save token to user document
     user.resetToken = resetToken;
-    user.resetTokenExpiry = Date.now() + 900000; // 15 minutes
+    user.resetTokenExpiry = Date.now() + 900000;
     await user.save();
 
-    // 4. Send password reset email (simulated)
-    console.log(`Password reset link: https://yourdomain.com/reset-password?token=${resetToken}`);
-    
-    res.json({ 
-      message: 'Password reset instructions sent to your email' 
+    const transporter = require('./config/mailer');
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password.html?token=${resetToken}`;
+
+    await transporter.sendMail({
+      from: process.env.FROM_EMAIL,
+      to: email,
+      subject: '🔄 Moritech – Reset your password',
+      html: `
+        <h2>Hello ${user.name || ''},</h2>
+        <p>Click the link below to reset your password (valid for 15 min):</p>
+        <p><a href="${resetUrl}">${resetUrl}</a></p>
+        <p>If you did NOT request this, please ignore the email.</p>
+        <p>— Moritech Technologies</p>
+      `
     });
-  } catch (error) {
-    console.error('❌ Forgot password error:', error);
-    res.status(500).json({ message: 'Server error' });
+
+    res.json({ message: 'Reset email sent successfully' });
+
+  } catch (err) {
+    console.error('❌ Forgot password error:', err);
+    res.status(500).json({ message: 'Failed to send reset email' });
   }
 });
 
-// 🔄 Reset Password Route
+// 🔄 Reset Password Route (now correctly placed)
 app.post('/api/auth/reset-password', async (req, res) => {
   const { token, newPassword } = req.body;
 
   try {
     const User = require('./models/User');
-    // Verify token
     const decoded = jwt.verify(token, process.env.RESET_SECRET);
-    
-    // Find user with valid token
+
     const user = await User.findOne({
       _id: decoded.id,
       resetToken: token,
@@ -710,7 +714,6 @@ app.post('/api/auth/reset-password', async (req, res) => {
       return res.status(400).json({ message: 'Invalid or expired token' });
     }
 
-    // Update password (in production, hash the password first!)
     user.password = newPassword;
     user.resetToken = undefined;
     user.resetTokenExpiry = undefined;
@@ -731,15 +734,13 @@ app.post('/api/auth/reset-password', async (req, res) => {
 // 🧯 Global Error Handler
 app.use((err, req, res, next) => {
   console.error('🔥 Server Error:', err.message);
-  
   if (err instanceof multer.MulterError) {
-    return res.status(400).json({ 
-      message: err.message, // Return actual error message
-      error: err.message 
+    return res.status(400).json({
+      message: err.message,
+      error: err.message
     });
   }
-  
-  res.status(err.status || 500).json({ 
+  res.status(err.status || 500).json({
     message: err.message || 'Server error',
     ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
   });
