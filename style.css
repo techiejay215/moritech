@@ -3764,3 +3764,15 @@ footer {
   font-weight: 500;
   font-size: 1.1rem;
 }
+.logo-img,
+.mobile-logo-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.mobile-logo-img {
+  width: 35px;
+  height: 35px;
+}
