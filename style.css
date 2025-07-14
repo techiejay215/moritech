@@ -3764,3 +3764,350 @@ footer {
   font-weight: 500;
   font-size: 1.1rem;
 }
+
+/* =========================================================
+   PRODUCT DETAIL PAGE STYLES
+   ========================================================= */
+
+/* --- 1. Back button --- */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f3f5;
+  color: #495057;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  transition: .25s;
+}
+.back-btn:hover { background: #dee2e6; }
+
+/* --- 2. Layout Container --- */
+.product-details-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  gap: 30px;
+  padding: 0 15px 40px;
+}
+
+@media (min-width: 768px) {
+  .product-details-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* --- 3. Gallery --- */
+.product-gallery {
+  display: grid;
+  gap: 15px;
+}
+
+.main-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #fff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,.08);
+  overflow: hidden;
+}
+
+.main-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.thumbnail-container {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+.thumbnail {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  flex-shrink: 0;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumbnail.active { border-color: var(--primary); }
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* --- 4. Info Card --- */
+.product-info {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.08);
+}
+
+.product-info h2 {
+  font-size: 1.6rem;
+  line-height: 1.3;
+  color: var(--dark);
+  margin-bottom: 8px;
+}
+
+.price-category {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 12px 0 18px;
+}
+
+.price {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.category {
+  background: var(--light-gray);
+  color: var(--gray);
+  font-size: .85rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.description {
+  line-height: 1.7;
+  color: #495057;
+  margin-bottom: 20px;
+}
+
+/* --- 5. Specifications --- */
+.specifications-section {
+  margin: 25px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.specifications-section h3 {
+  margin-bottom: 12px;
+  font-size: 1.2rem;
+  color: var(--dark);
+}
+
+.specs-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.specs-table tr {
+  border-bottom: 1px solid #e9ecef;
+}
+
+.specs-table tr:last-child { border: none; }
+
+.spec-key,
+.spec-value {
+  padding: 8px 0;
+  font-size: .9rem;
+}
+
+.spec-key {
+  font-weight: 600;
+  width: 35%;
+  color: #343a40;
+}
+
+.spec-value {
+  color: #6c757d;
+}
+
+/* --- 6. Action Buttons --- */
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.cart-btn,
+.whatsapp-btn {
+  flex: 1 1 180px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .25s;
+}
+
+.cart-btn {
+  background: var(--primary);
+  color: #fff;
+}
+
+.whatsapp-btn {
+  background: #25D366;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.cart-btn:hover { background: var(--primary-dark); }
+.whatsapp-btn:hover { background: #1ebe56; }
+
+/* --- 7. Reviews --- */
+.reviews-section {
+  margin-top: 40px;
+}
+
+.reviews-section h3 {
+  margin-bottom: 20px;
+  font-size: 1.25rem;
+  color: var(--dark);
+}
+
+.review {
+  background: #fff;
+  padding: 18px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.05);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.review-author {
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.review-rating {
+  color: #ffc107;
+  font-size: 1.1rem;
+}
+
+.review-date {
+  font-size: .8rem;
+  color: #6c757d;
+  margin-bottom: 8px;
+}
+
+.review-content {
+  color: #495057;
+  line-height: 1.55;
+}
+
+/* --- 8. Related Products --- */
+.related-products-section {
+  margin-top: 40px;
+}
+
+.related-products-section h3 {
+  margin-bottom: 20px;
+  font-size: 1.25rem;
+  color: var(--dark);
+}
+
+.related-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 20px;
+}
+
+.related-product-card {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  cursor: pointer;
+  transition: transform .25s;
+}
+
+.related-product-card:hover {
+  transform: translateY(-4px);
+}
+
+.related-product-img {
+  height: 120px;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.related-product-img img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+}
+
+.related-product-info {
+  padding: 12px;
+  text-align: center;
+}
+
+.related-product-info h4 {
+  font-size: .9rem;
+  margin-bottom: 4px;
+  color: var(--dark);
+}
+
+.related-product-price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* --- 9. Loading Overlay --- */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-overlay .loading {
+  font-size: 1.2rem;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loading-overlay .loading::before {
+  content: '';
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e9ecef;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
