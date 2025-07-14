@@ -2258,6 +2258,16 @@ async function testCloudinary() {
     alert('Cloudinary connection failed');
   }
 }
+function showToast(message) {
+  const toast = document.getElementById('custom-toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3000); // Message disappears after 3 seconds
+}
+
 
 document.addEventListener('DOMContentLoaded', async function () {
   try {
