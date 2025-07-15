@@ -3700,6 +3700,7 @@ footer {
   font-weight: bold;
   color: #333;
 }
+
 /* Add to style.css */
 .specs-table {
   width: 100%;
@@ -3728,6 +3729,7 @@ footer {
 .spec-value {
   color: #666;
 }
+
 /* Pagination Styles */
 .pagination {
   display: flex;
@@ -3783,7 +3785,10 @@ footer {
   margin-bottom: 20px;
   transition: .25s;
 }
-.back-btn:hover { background: #dee2e6; }
+
+.back-btn:hover {
+  background: #dee2e6;
+}
 
 /* --- 2. Layout Container --- */
 .product-details-container {
@@ -3814,7 +3819,7 @@ footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 10px rgba(0,0,0,.08);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .08);
   overflow: hidden;
 }
 
@@ -3844,7 +3849,9 @@ footer {
   justify-content: center;
 }
 
-.thumbnail.active { border-color: var(--primary); }
+.thumbnail.active {
+  border-color: var(--primary);
+}
 
 .thumbnail img {
   width: 100%;
@@ -3858,7 +3865,7 @@ footer {
   background: #fff;
   border-radius: 12px;
   padding: 25px;
-  box-shadow: 0 3px 10px rgba(0,0,0,.08);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .08);
 }
 
 .product-info h2 {
@@ -3918,7 +3925,9 @@ footer {
   border-bottom: 1px solid #e9ecef;
 }
 
-.specs-table tr:last-child { border: none; }
+.specs-table tr:last-child {
+  border: none;
+}
 
 .spec-key,
 .spec-value {
@@ -3970,8 +3979,13 @@ footer {
   gap: 6px;
 }
 
-.cart-btn:hover { background: var(--primary-dark); }
-.whatsapp-btn:hover { background: #1ebe56; }
+.cart-btn:hover {
+  background: var(--primary-dark);
+}
+
+.whatsapp-btn:hover {
+  background: #1ebe56;
+}
 
 /* --- 7. Reviews --- */
 .reviews-section {
@@ -3989,7 +4003,7 @@ footer {
   padding: 18px;
   border-radius: 8px;
   margin-bottom: 15px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .05);
 }
 
 .review-header {
@@ -4041,7 +4055,7 @@ footer {
   background: #fff;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
   cursor: pointer;
   transition: transform .25s;
 }
@@ -4085,7 +4099,7 @@ footer {
 .loading-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(255,255,255,.85);
+  background: rgba(255, 255, 255, .85);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4110,7 +4124,12 @@ footer {
   animation: spin .6s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 #custom-toast {
   position: fixed;
   bottom: 30px;
@@ -4130,4 +4149,54 @@ footer {
 #custom-toast.show {
   opacity: 1;
   pointer-events: auto;
+}
+
+/* 1️⃣  Always side-by-side: image left, info right */
+.product-details-container {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* 2️⃣  Image column */
+.product-gallery {
+  flex: 0 0 45%;
+  /* fixed width ~45 % */
+  max-width: 45%;
+}
+
+/* 3️⃣  Info column */
+.product-info {
+  flex: 1 1 55%;
+}
+
+/* 4️⃣  Responsive tweak: still row on tiny screens */
+@media (max-width: 480px) {
+  .product-details-container {
+    flex-direction: row !important;
+    overflow-x: auto;
+    /* scroll if still too wide */
+  }
+
+  .product-gallery {
+    flex: 0 0 160px;
+    /* small but still left */
+  }
+}
+
+/* DESKTOP: image left, specs right */
+@media (min-width: 769px) {
+  .product-details-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+}
+
+/* MOBILE: stacked vertically (your existing behaviour) */
+@media (max-width: 768px) {
+  .product-details-container {
+    display: block;
+  }
 }
