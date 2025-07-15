@@ -2331,3 +2331,17 @@ document.addEventListener('DOMContentLoaded', async function () {
     alert(`Initialization failed: ${error.message}`);
   }
 });
+// Collapsible specifications
+const specBox = document.getElementById('product-specs');
+if (specBox) {
+  const fullText = specBox.innerHTML;
+  if (fullText.length > 300) {
+    const short = fullText.slice(0, 300) + '...';
+    specBox.innerHTML = short + '<br><button class="toggle-spec" style="color:#1468df;border:none;background:none;cursor:pointer;">Show more</button>';
+    specBox.addEventListener('click', e => {
+      if (e.target.classList.contains('toggle-spec')) {
+        specBox.innerHTML = fullText + '<br><button class="toggle-spec" style="color:#1468df;border:none;background:none;cursor:pointer;">Show less</button>';
+      }
+    });
+  }
+}
