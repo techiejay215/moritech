@@ -4226,4 +4226,9 @@ footer {
     grid-column: 1 / -1;   /* full width under the two columns */
     margin-top: 40px;
   }
+}/* Desktop: force reviews & related BELOW the product card */
+@media (min-width: 769px) {
+  .product-details-container {
+    display: block;          /* stack everything on desktop */
+  }
 }
