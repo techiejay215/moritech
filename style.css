@@ -4151,3 +4151,50 @@ footer {
   pointer-events: auto;
 }
 
+/* detail page – image left / info right */
+.detail-flex{
+  display:flex;
+  gap:2rem;
+  margin-bottom:2rem;
+}
+
+.product-gallery{
+  flex:0 0 45%;
+}
+
+.product-info-right{
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+  gap:.6rem;
+}
+
+.product-info-right h2{
+  margin:0;
+  font-size:1.6rem;
+  font-weight:600;
+}
+
+.product-info-right .price{
+  font-size:1.4rem;
+  font-weight:700;
+  color:#111;
+}
+
+.product-info-right .description{
+  font-size:1rem;
+  color:#444;
+  line-height:1.5;
+}
+
+.detail-actions{
+  display:flex;
+  gap:.8rem;
+  margin-top:.5rem;
+}
+
+/* responsive: stack on narrow screens */
+@media (max-width: 768px){
+  .detail-flex{ flex-direction:column; }
+  .product-gallery{ flex:none; }
+}
