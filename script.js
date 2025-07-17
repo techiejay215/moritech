@@ -671,7 +671,7 @@ function initOfferForm() {
 
     const productId = document.getElementById('offer-product-select').value;
     if (!productId || !/^[0-9a-fA-F]{24}$/.test(productId)) {
-      alert('Please select a valid product');
+      showToast('Please select a valid product');
       return;
     }
     const offerData = {
@@ -689,12 +689,12 @@ function initOfferForm() {
       }
 
       await offerService.addOffer(offerData);
-      alert('Offer added successfully!');
+      showToast('Offer added successfully!');
       form.reset();
       imagePreview.innerHTML = '';
       await loadAdminOffers();
     } catch (error) {
-      alert(error.message || 'Failed to add offer');
+      showToast(error.message || 'Failed to add offer');
     }
   });
 }
@@ -733,7 +733,7 @@ async function loadAdminOffers() {
             item.remove();
             initOffersSlider(); // Refresh frontend display
           } catch {
-            alert('Failed to delete offer');
+            showToast('Failed to delete offer');
           }
         }
       });
@@ -772,7 +772,7 @@ function initCategoryFilter() {
 
         renderProducts(products);
       } catch {
-        alert('Failed to load products. Please try again.');
+        showToast('Failed to load products. Please try again.');
       }
     });
   });
@@ -790,7 +790,7 @@ function initCategoryFilter() {
           const products = await productService.getProductsByCategory(category);
           renderProducts(products);
         } catch {
-          alert('Failed to load products. Please try again.');
+          showToast('Failed to load products. Please try again.');
         }
       }
     });
@@ -839,7 +839,7 @@ function initSearch() {
           renderProducts(products);
           scrollToProducts(); // Scroll to products after search
         } catch {
-          alert('Search failed. Please try again.');
+          showToast('Search failed. Please try again.');
         }
       }, 500);
     });
@@ -855,7 +855,7 @@ function initSearch() {
               renderProducts(products);
               scrollToProducts();
             })
-            .catch(() => alert('Search failed'));
+            .catch(() => showToast('Search failed'));
         }
       }
     });
@@ -1026,7 +1026,7 @@ function initAuthModal() {
       await cartInstance.fetchCart();
     } catch (error) {
       console.error('Login error:', error);
-      alert(error.message || 'Login failed. Please try again.');
+      showToast(error.message || 'Login failed. Please try again.');
     }
   });
 
@@ -1040,13 +1040,13 @@ function initAuthModal() {
     const confirmPassword = registerForm.querySelectorAll('input[type="password"]')[1].value;
 
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      showToast('Passwords do not match');
       return;
     }
 
     try {
       const user = await authService.register({ name, email, phone, password });
-      alert('Registration successful! You are now logged in.');
+      showToast('Registration successful! You are now logged in.');
       closeModalHandler();
       const updatedUser = await updateAuthUI();
 
@@ -1056,7 +1056,7 @@ function initAuthModal() {
         initProductForm();
       }
     } catch (error) {
-      alert(error.message || 'Registration failed. Please try again.');
+      showToast(error.message || 'Registration failed. Please try again.');
     }
   });
 }
@@ -1174,7 +1174,7 @@ function initCart() {
       await cartService.updateCartItem(itemId, quantity);
       await fetchCart();
     } catch (error) {
-      alert(error.message || 'Failed to update item quantity');
+      showToast(error.message || 'Failed to update item quantity');
     }
   }
 
@@ -1183,7 +1183,7 @@ function initCart() {
       await cartService.removeCartItem(itemId);
       await fetchCart();
     } catch (error) {
-      alert(error.message || 'Failed to remove item');
+      showToast(error.message || 'Failed to remove item');
     }
   }
 
@@ -1191,14 +1191,14 @@ function initCart() {
     try {
       const cart = await fetchCart();
       if (cart.items.length === 0) {
-        alert('Your cart is empty');
+        showToast('Your cart is empty');
         return;
       }
 
-      alert('Proceeding to checkout');
+      showToast('Proceeding to checkout');
       await fetchCart();
     } catch {
-      alert('Checkout failed. Please try again.');
+      showToast('Checkout failed. Please try again.');
     }
   });
   // Replace the entire addToCart function in initCart
@@ -1214,7 +1214,7 @@ function initCart() {
         } else {
           document.getElementById('login-link')?.click();
         }
-        alert('Please login to add items to your cart');
+       showToast('Please login to add items to your cart');
         return;
       }
 
@@ -1233,6 +1233,7 @@ function initCart() {
 
       await fetchCart();
       openCart();
+      showToast('Item added to cart!');
 
       // Mobile feedback animation
       if (window.innerWidth <= 768) {
@@ -1244,7 +1245,7 @@ function initCart() {
       }
     } catch (error) {
       console.error('Add to cart error:', error);
-      alert(error.message || 'Failed to add to cart');
+      showToast(error.message || 'Failed to add to cart');
     }
   }
 
@@ -1487,10 +1488,10 @@ function inquire(productName) {
 
     try {
       await inquiryService.submitInquiry(formData);
-      alert('Thank you for your inquiry! We will contact you shortly.');
+      showToast('Thank you for your inquiry! We will contact you shortly.');
       document.body.removeChild(modal);
     } catch {
-      alert('Failed to submit inquiry');
+      showToast('Failed to submit inquiry');
     }
   });
 }
@@ -1552,9 +1553,9 @@ function initLogout() {
       if (cartInstance) {
         await cartInstance.fetchCart();
       }
-      alert('You have been logged out');
+      showToast('You have been logged out');
     } catch {
-      alert('Logout failed. Please try again.');
+      showToast('Logout failed. Please try again.');
     }
   });
 }
@@ -1571,9 +1572,9 @@ function initMobileLogout() {
       if (cartInstance) {
         await cartInstance.fetchCart();
       }
-      alert('You have been logged out');
+      showToast('You have been logged out');
     } catch {
-      alert('Logout failed. Please try again.');
+      showToast('Logout failed. Please try again.');
     }
   };
 
@@ -1688,7 +1689,7 @@ async function showProductDetails(productId) {
       addToCartBtn.onclick = null; // Remove previous listeners
       addToCartBtn.addEventListener('click', () => {
         cartInstance.addToCart(product._id);
-        alert(`${product.name} added to cart!`);
+        showToast(`${product.name} added to cart!`);
       });
     }
 
@@ -1885,9 +1886,9 @@ async function renderAdminProducts(products) {
             renderAdminProducts(adminProducts);
             loadProducts();
             await populateProductDropdown();
-            alert('Product deleted');
+            showToast('Product deleted');
           } catch {
-            alert('Failed to delete product');
+            showToast('Failed to delete product');
           }
         }
       });
@@ -1914,14 +1915,14 @@ function initProductForm() {
 
     for (const file of this.files) {
       if (!file.type.startsWith('image/')) {
-        alert(`❌ File "${file.name}" is not an image.`);
+        showToast(`❌ File "${file.name}" is not an image.`);
         this.value = '';
         imagePreview.innerHTML = '';
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        alert(`❌ File "${file.name}" is too large. Max size: 5MB.`);
+        showToast(`❌ File "${file.name}" is too large. Max size: 5MB.`);
         this.value = '';
         imagePreview.innerHTML = '';
         return;
@@ -1987,7 +1988,7 @@ function initProductForm() {
       }
 
       const result = await response.json();
-      alert(`✅ Product added with ${result.images?.length || 0} images`);
+      showToast(`✅ Product added with ${result.images?.length || 0} images`);
 
       newForm.reset();
       imagePreview.innerHTML = '';
@@ -2003,7 +2004,7 @@ function initProductForm() {
 
     } catch (error) {
       console.error('Add product error:', error);
-      alert(`❌ ${error.message}`);
+      showToast(`❌ ${error.message}`);
     } finally {
       submitBtn.disabled = false;
     }
@@ -2201,7 +2202,7 @@ function initSubcategoryButtons() {
         }
       } catch (error) {
         console.error('Error loading products:', error);
-        alert('Failed to load products. Please try again.');
+        showToast('Failed to load products. Please try again.');
       }
     });
   });
@@ -2252,10 +2253,10 @@ async function testCloudinary() {
     const response = await fetch(`${API_BASE_URL}/api/test-upload`);
     const data = await response.json();
     console.log('Cloudinary Test:', data);
-    alert(data.status);
+    showToast(data.status);
   } catch (error) {
     console.error('Cloudinary Test Failed:', error);
-    alert('Cloudinary connection failed');
+    showToast('Cloudinary connection failed');
   }
 }
 function showToast(message) {
@@ -2265,9 +2266,8 @@ function showToast(message) {
 
   setTimeout(() => {
     toast.classList.remove('show');
-  }, 3000); // Message disappears after 3 seconds
+  }, 3000);
 }
-
 
 document.addEventListener('DOMContentLoaded', async function () {
   try {
@@ -2328,7 +2328,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   } catch (error) {
     console.error('Initialization error:', error);
-    alert(`Initialization failed: ${error.message}`);
+    showToast(`Initialization failed: ${error.message}`);
   }
 });
 // Collapsible specifications

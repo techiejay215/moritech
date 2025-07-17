@@ -381,7 +381,7 @@ function initCategoryFilter() {
         
         renderProducts(products);
       } catch {
-        alert('Failed to load products. Please try again.');
+        showToast('Failed to load products. Please try again.');
       }
     });
   });
@@ -407,7 +407,7 @@ function initSearch() {
         const products = await productService.searchProducts(searchTerm);
         renderProducts(products);
       } catch {
-        alert('Search failed. Please try again.');
+        showToast('Search failed. Please try again.');
       }
     }, 500);
   });
@@ -567,9 +567,9 @@ function initAuthModal() {
   } catch (error) {
     console.error('Login error:', error); // Enhanced error log
     if (error.message.includes('Network')) {
-      alert('Network error. Please check your internet connection.');
+      showToast('Network error. Please check your internet connection.');
     } else {
-      alert(error.message || 'Login failed. Please try again.');
+      showToast(error.message || 'Login failed. Please try again.');
     }
   }
 });
@@ -584,16 +584,16 @@ function initAuthModal() {
     const confirmPassword = registerForm.querySelectorAll('input[type="password"]')[1].value;
 
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      showToast('Passwords do not match');
       return;
     }
 
     try {
       await authService.register({ name, email, phone, password });
-      alert('Registration successful! Please login.');
+      showToast('Registration successful! Please login.');
       showTab('login');
     } catch (error) {
-      alert(error.message || 'Registration failed. Please try again.');
+      showToast(error.message || 'Registration failed. Please try again.');
     }
   });
 }
@@ -710,7 +710,7 @@ function initCart() {
       await cartService.updateCartItem(itemId, quantity);
       await fetchCart();
     } catch (error) {
-      alert(error.message || 'Failed to update item quantity');
+      showToast(error.message || 'Failed to update item quantity');
     }
   }
 
@@ -719,7 +719,7 @@ function initCart() {
       await cartService.removeCartItem(itemId);
       await fetchCart();
     } catch (error) {
-      alert(error.message || 'Failed to remove item');
+      showToast(error.message || 'Failed to remove item');
     }
   }
 
@@ -727,14 +727,14 @@ function initCart() {
     try {
       const cart = await fetchCart();
       if (cart.items.length === 0) {
-        alert('Your cart is empty');
+        showToast('Your cart is empty');
         return;
       }
       
-      alert('Proceeding to checkout');
+      showToast('Proceeding to checkout');
       await fetchCart();
     } catch {
-      alert('Checkout failed. Please try again.');
+      showToast('Checkout failed. Please try again.');
     }
   });
 
@@ -746,9 +746,9 @@ function initCart() {
     } catch (error) {
       if (error.message.includes('Authentication')) {
         document.getElementById('login-link')?.click();
-        alert('Please login to add items to your cart');
+        showToast('Please login to add items to your cart');
       } else {
-        alert(error.message || 'Failed to add to cart');
+        showToast(error.message || 'Failed to add to cart');
       }
     }
   }
@@ -924,10 +924,10 @@ function inquire(productName) {
     
     try {
       await inquiryService.submitInquiry(formData);
-      alert('Thank you for your inquiry! We will contact you shortly.');
+      showToast('Thank you for your inquiry! We will contact you shortly.');
       document.body.removeChild(modal);
     } catch {
-      alert('Failed to submit inquiry');
+      showToast('Failed to submit inquiry');
     }
   });
 }
@@ -979,9 +979,9 @@ function initLogout() {
       if (cartInstance) {
         await cartInstance.fetchCart();
       }
-      alert('You have been logged out');
+      showToast('You have been logged out');
     } catch {
-      alert('Logout failed. Please try again.');
+      showToast('Logout failed. Please try again.');
     }
   });
 }
@@ -998,9 +998,9 @@ function initMobileLogout() {
       if (cartInstance) {
         await cartInstance.fetchCart();
       }
-      alert('You have been logged out');
+      showToast('You have been logged out');
     } catch {
-      alert('Logout failed. Please try again.');
+      showToast('Logout failed. Please try again.');
     }
   });
 }
@@ -1057,9 +1057,9 @@ async function renderAdminProducts() {
             await productService.deleteProduct(productId);
             this.closest('.admin-product-item').remove();
             loadProducts();
-            alert('Product deleted');
+            showToast('Product deleted');
           } catch {
-            alert('Failed to delete product');
+            showToast('Failed to delete product');
           }
         }
       });
@@ -1089,7 +1089,7 @@ function initProductForm() {
     if (categoryValue === 'new') {
       const newCategory = formData.get('newCategory').trim().toLowerCase();
       if (!newCategory) {
-        alert('Please enter a new category name');
+        showToast('Please enter a new category name');
         return;
       }
       formData.set('category', newCategory);
@@ -1103,7 +1103,7 @@ function initProductForm() {
         const compressedFile = await compressImage(originalFile);
         formData.set('image', compressedFile);
       } catch (error) {
-        alert('Error processing image: ' + error.message);
+        showToast('Error processing image: ' + error.message);
         return;
       }
     }
@@ -1120,7 +1120,7 @@ function initProductForm() {
         throw new Error('Failed to add product');
       }
       
-      alert('Product added successfully!');
+      showToast('Product added successfully!');
       form.reset();
       
       const imagePreview = document.getElementById('image-preview');
@@ -1130,7 +1130,7 @@ function initProductForm() {
       loadProducts();
       renderAdminProducts();
     } catch (error) {
-      alert(error.message || 'Failed to add product');
+      showToast(error.message || 'Failed to add product');
     }
   });
 
