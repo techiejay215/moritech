@@ -2104,109 +2104,91 @@ async function populateProductDropdown() {
     console.error('Failed to populate products dropdown:', error);
   }
 }
-function initCategoryDropdowns() {
-  console.log('Initializing category dropdowns...');
-  const toggles = document.querySelectorAll('.dropdown-toggle');
-  console.log(`Found ${toggles.length} dropdown toggles`);
+const staticSubcategories = {
+  laptops: ['HP Laptops', 'Lenovo Laptops', 'Dell Laptops', 'Asus Laptops', 'Samsung Laptops'],
+  printers: ['HP Printers', 'Canon Printers', 'Epson Printers', 'Kyocera Printers', 'Ecosys Printers'],
+  desktops: ['HP Desktops', 'Dell Desktops', 'Lenovo Desktops'],
+  monitors: ['HP Monitors', 'Lenovo Monitors', 'Samsung Monitors', 'Fujitsu Monitors'],
+  toners: [],
+  networking: [],
+  software: [],
+  accessories: [],
+  storage: [],
+  ram: []
+};
 
-  // Create subcategories container
-  const subcategoriesContainer = document.createElement('div');
-  subcategoriesContainer.className = 'subcategories-container';
-  document.querySelector('.categories-wrapper').appendChild(subcategoriesContainer);
+function initStaticCategoryFilter() {
+  const categoryButtons = document.querySelectorAll('.category-btn');
+  const subcategoryContainer = document.getElementById('subcategoryContainer');
 
-  // Handle desktop dropdown hover
-  if (window.innerWidth > 768) {
-    document.querySelectorAll('.dropdown').forEach(dropdown => {
-      dropdown.addEventListener('mouseenter', () => {
-        const category = dropdown.querySelector('.dropdown-toggle').dataset.category;
-        showSubcategories(category, subcategoriesContainer);
-      });
+  categoryButtons.forEach(button => {
+    const category = button.dataset.category;
 
-      dropdown.addEventListener('mouseleave', () => {
-        subcategoriesContainer.style.display = 'none';
-      });
-    });
-  }
-  // Handle mobile dropdown click
-  else {
-    toggles.forEach(toggle => {
-      toggle.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const dropdown = this.closest('.dropdown');
-        const category = this.dataset.category;
+    // Only show caret for categories with subcategories (not 'all')
+    const hasSubs = staticSubcategories[category]?.length > 0;
+    if (hasSubs && !button.querySelector('.indicator')) {
+      button.innerHTML += ' <span class="indicator">▼</span>';
+    }
 
-        // Toggle visibility
-        if (dropdown.classList.contains('active')) {
-          subcategoriesContainer.style.display = 'none';
-        } else {
-          showSubcategories(category, subcategoriesContainer);
-        }
-      });
-    });
+    // Click handler
+    button.addEventListener('click', () => {
+      // Highlight selected
+      document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
 
-    // Close when clicking outside
-    document.addEventListener('click', function (e) {
-      if (!e.target.closest('.dropdown')) {
-        subcategoriesContainer.style.display = 'none';
-        document.querySelectorAll('.dropdown').forEach(d => {
-          d.classList.remove('active');
+      // Render subcategories (skip for 'all')
+      const subcategories = staticSubcategories[category] || [];
+      subcategoryContainer.innerHTML = subcategories
+        .map(sub => {
+          const key = sub.toLowerCase().replace(/\s+/g, '-');
+          return `<button class="subcategory-btn" data-category="${key}">${sub}</button>`;
+        })
+        .join('');
+
+      initStaticSubcategoryButtons();
+
+      // If 'all', optionally load all products
+      if (category === 'all') {
+        productService.getAllProducts().then(renderProducts).catch(err => {
+          console.error('Error loading all products:', err);
+          alert('Failed to load products.');
         });
-      }
-    });
-  }
-}
-
-// Replace the existing initSubcategoryButtons function with this updated version
-function initSubcategoryButtons() {
-  const subcategoryButtons = document.querySelectorAll('.subcategory-btn');
-  
-  subcategoryButtons.forEach(btn => {
-    btn.addEventListener('click', async function(e) {
-      // Prevent default anchor behavior
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const category = this.dataset.category;
-      
-      // Update UI
-      document.querySelectorAll('.category-btn, .subcategory-btn').forEach(b => {
-        b.classList.remove('active');
-      });
-      this.classList.add('active');
-
-      // Make sure the parent dropdown toggle also gets active class
-      const dropdown = this.closest('.dropdown');
-      const dropdownToggle = dropdown.querySelector('.dropdown-toggle');
-      dropdownToggle.classList.add('active');
-
-      // Load products IMMEDIATELY
-      try {
-        const products = await productService.getProductsByCategory(category);
-        renderProducts(products);
-
-        // Scroll to products section on mobile
-        if (window.innerWidth <= 768) {
-          const productsSection = document.getElementById('products');
-          if (productsSection) {
-            window.scrollTo({
-              top: productsSection.offsetTop - 100,
-              behavior: 'smooth'
-            });
-          }
-        }
-
-        // Close the dropdown after selection on mobile
-        if (window.innerWidth <= 768) {
-          dropdown.classList.remove('active');
-        }
-      } catch (error) {
-        console.error('Error loading products:', error);
-        showToast('Failed to load products. Please try again.');
       }
     });
   });
 }
+
+function initStaticSubcategoryButtons() {
+  const subcategoryButtons = document.querySelectorAll('.subcategory-btn');
+
+  subcategoryButtons.forEach(btn => {
+    btn.addEventListener('click', async function () {
+      const category = this.dataset.category;
+
+      // Highlight selected subcategory
+      document.querySelectorAll('.subcategory-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+
+      try {
+        const products = await productService.getProductsByCategory(category);
+        renderProducts(products);
+
+        // ✅ Scroll to the products section
+        const productsSection = document.getElementById('products');
+        if (productsSection) {
+          window.scrollTo({
+            top: productsSection.offsetTop - 100, // offset to avoid header overlap
+            behavior: 'smooth'
+          });
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+        alert('Failed to load products. Please try again.');
+      }
+    });
+  });
+}
+
 // Add this function to toggle password visibility
 function initPasswordToggle() {
   document.querySelectorAll('.password-container').forEach(container => {
@@ -2268,40 +2250,6 @@ function showToast(message) {
     toast.classList.remove('show');
   }, 3000);
 }
-function showSubcategories(category, container) {
-  container.innerHTML = '';
-
-  // Find the dropdown content for this category
-  const dropdown = document.querySelector(`.dropdown-toggle[data-category="${category}"]`).closest('.dropdown');
-  const dropdownContent = dropdown.querySelector('.dropdown-content').cloneNode(true);
-
-  // Add active class to parent dropdown
-  document.querySelectorAll('.dropdown').forEach(d => {
-    d.classList.remove('active');
-  });
-  dropdown.classList.add('active');
-
-  // Style the container
-  container.style.display = 'flex';
-  container.style.flexWrap = 'wrap';
-  container.style.justifyContent = 'center';
-  container.style.padding = '10px';
-  container.style.backgroundColor = '#f8f9fa';
-  container.style.borderTop = '1px solid #ddd';
-
-  // Add subcategories to container
-  container.appendChild(dropdownContent);
-  dropdownContent.style.display = 'flex';
-  dropdownContent.style.flexWrap = 'wrap';
-  dropdownContent.style.gap = '10px';
-  dropdownContent.style.width = '100%';
-  dropdownContent.style.maxWidth = '1200px';
-  dropdownContent.style.margin = '0 auto';
-
-  // Position below categories
-  const categoriesRect = document.querySelector('.categories').getBoundingClientRect();
-  container.style.position = 'static';
-}
 
 document.addEventListener('DOMContentLoaded', async function () {
   try {
@@ -2327,9 +2275,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     initCart();
     setupProductEventDelegation();
     await loadOffers();
-    initCategoryDropdowns();
-    initSubcategoryButtons();
+
     initPasswordToggle();
+    initStaticCategoryFilter();
 
 
     if (user?.role === 'admin') {

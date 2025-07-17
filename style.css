@@ -4224,110 +4224,34 @@ footer {
   opacity: 1;
   pointer-events: auto;
 }
-/* Add these styles to your CSS */
-
-.categories-wrapper {
-  position: relative;
-  z-index: 1000; /* Higher than hero section */
-}
-
-.dropdown {
-  position: static; /* Changed from relative */
-}
-
-.dropdown-content {
-  position: absolute;
-  top: 100%; /* Position below the button */
-  left: 0;
-  z-index: 1001; /* Higher than wrapper */
-  display: none;
-  flex-direction: column;
-  background: white;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-  border-radius: 4px;
-  padding: 10px;
-  min-width: 200px;
-}
-
-.dropdown.active .dropdown-content {
-  display: flex;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Ensure hero doesn't overlap */
-.hero {
-  position: relative;
-  z-index: 10; /* Lower than categories */
-}
-
-/* Mobile optimization */
-@media (max-width: 768px) {
-  .dropdown-content {
-    position: fixed;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    min-width: 100%;
-    border-radius: 10px 10px 0 0;
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-}
-/* Add this to your CSS */
-.subcategories-container {
-  display: none;
-  width: 100%;
-  background: #f8f9fa;
-  border-top: 1px solid #ddd;
+.subcategories {
   padding: 10px 0;
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
 }
 
-.subcategories-container .dropdown-content {
+.subcategories-container {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  justify-content: center;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
-/* On mobile, make subcategories full width */
-@media (max-width: 768px) {
-  .subcategories-container {
-    position: static;
-    box-shadow: none;
-  }
-}
-/* Add this to your CSS */
-.subcategories-container {
-  display: none;
-  width: 100%;
-  background: #f8f9fa;
-  border-top: 1px solid #ddd;
-  padding: 10px 0;
+.subcategory-btn {
+  background: #f3f3f3;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.3s ease;
 }
 
-.subcategories-container .dropdown-content {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+.subcategory-btn.active,
+.subcategory-btn:hover {
+  background: var(--primary);
+  color: #fff;
 }
-
-/* On mobile, make subcategories full width */
-@media (max-width: 768px) {
-  .subcategories-container {
-    position: static;
-    box-shadow: none;
-  }
+.category-btn .indicator {
+  margin-left: 6px;
+  font-size: 12px;
+  color: #555;
 }
