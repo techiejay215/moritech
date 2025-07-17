@@ -1214,7 +1214,7 @@ function initCart() {
         } else {
           document.getElementById('login-link')?.click();
         }
-       showToast('Please login to add items to your cart');
+        showToast('Please login to add items to your cart');
         return;
       }
 
@@ -2109,48 +2109,48 @@ function initCategoryDropdowns() {
   const toggles = document.querySelectorAll('.dropdown-toggle');
   console.log(`Found ${toggles.length} dropdown toggles`);
 
+  // Create subcategories container
+  const subcategoriesContainer = document.createElement('div');
+  subcategoriesContainer.className = 'subcategories-container';
+  document.querySelector('.categories-wrapper').appendChild(subcategoriesContainer);
+
   // Handle desktop dropdown hover
   if (window.innerWidth > 768) {
-    console.log('Setting up desktop dropdown hover');
     document.querySelectorAll('.dropdown').forEach(dropdown => {
       dropdown.addEventListener('mouseenter', () => {
-        console.log('Mouse enter on dropdown');
-        dropdown.classList.add('active');
+        const category = dropdown.querySelector('.dropdown-toggle').dataset.category;
+        showSubcategories(category, subcategoriesContainer);
       });
 
       dropdown.addEventListener('mouseleave', () => {
-        console.log('Mouse leave on dropdown');
-        dropdown.classList.remove('active');
+        subcategoriesContainer.style.display = 'none';
       });
     });
   }
   // Handle mobile dropdown click
   else {
-    console.log('Setting up mobile dropdown click');
     toggles.forEach(toggle => {
       toggle.addEventListener('click', function (e) {
-        console.log('Dropdown toggle clicked');
         e.preventDefault();
         e.stopPropagation();
         const dropdown = this.closest('.dropdown');
+        const category = this.dataset.category;
 
-        // Close all other dropdowns
-        document.querySelectorAll('.dropdown').forEach(d => {
-          if (d !== dropdown) d.classList.remove('active');
-        });
-
-        // Toggle this dropdown
-        dropdown.classList.toggle('active');
+        // Toggle visibility
+        if (dropdown.classList.contains('active')) {
+          subcategoriesContainer.style.display = 'none';
+        } else {
+          showSubcategories(category, subcategoriesContainer);
+        }
       });
     });
 
-    // Close dropdowns when clicking outside
+    // Close when clicking outside
     document.addEventListener('click', function (e) {
-      // Only close if click is outside dropdowns
       if (!e.target.closest('.dropdown')) {
-        console.log('Document click - closing dropdowns');
-        document.querySelectorAll('.dropdown').forEach(dropdown => {
-          dropdown.classList.remove('active');
+        subcategoriesContainer.style.display = 'none';
+        document.querySelectorAll('.dropdown').forEach(d => {
+          d.classList.remove('active');
         });
       }
     });
@@ -2267,6 +2267,40 @@ function showToast(message) {
   setTimeout(() => {
     toast.classList.remove('show');
   }, 3000);
+}
+function showSubcategories(category, container) {
+  container.innerHTML = '';
+
+  // Find the dropdown content for this category
+  const dropdown = document.querySelector(`.dropdown-toggle[data-category="${category}"]`).closest('.dropdown');
+  const dropdownContent = dropdown.querySelector('.dropdown-content').cloneNode(true);
+
+  // Add active class to parent dropdown
+  document.querySelectorAll('.dropdown').forEach(d => {
+    d.classList.remove('active');
+  });
+  dropdown.classList.add('active');
+
+  // Style the container
+  container.style.display = 'flex';
+  container.style.flexWrap = 'wrap';
+  container.style.justifyContent = 'center';
+  container.style.padding = '10px';
+  container.style.backgroundColor = '#f8f9fa';
+  container.style.borderTop = '1px solid #ddd';
+
+  // Add subcategories to container
+  container.appendChild(dropdownContent);
+  dropdownContent.style.display = 'flex';
+  dropdownContent.style.flexWrap = 'wrap';
+  dropdownContent.style.gap = '10px';
+  dropdownContent.style.width = '100%';
+  dropdownContent.style.maxWidth = '1200px';
+  dropdownContent.style.margin = '0 auto';
+
+  // Position below categories
+  const categoriesRect = document.querySelector('.categories').getBoundingClientRect();
+  container.style.position = 'static';
 }
 
 document.addEventListener('DOMContentLoaded', async function () {

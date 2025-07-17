@@ -1,0 +1,2151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moritech Technologies Limited</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Global Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f7fa;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+
+    .section {
+      padding: 60px 0;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .section-title h2 {
+      font-size: 2.2rem;
+      color: #1468df;
+      position: relative;
+      display: inline-block;
+      padding-bottom: 10px;
+    }
+
+    .section-title h2::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background: #1468df;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      background: #1468df;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: #0d5bc5;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(20, 104, 223, 0.3);
+    }
+
+    /* Top Bar */
+    .top-bar {
+      background: #1468df;
+      color: white;
+      font-size: 0.85rem;
+      padding: 8px 0;
+    }
+
+    .top-bar-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .top-bar-contact a {
+      color: white;
+      text-decoration: none;
+      margin-left: 15px;
+      font-size: 0.8rem;
+    }
+
+    .top-bar-contact a i {
+      margin-right: 5px;
+    }
+
+    .top-bar-user {
+      display: flex;
+      align-items: center;
+    }
+
+    .auth-links {
+      display: flex;
+      align-items: center;
+    }
+
+    .auth-links a {
+      color: white;
+      text-decoration: none;
+      margin: 0 5px;
+      font-size: 0.8rem;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      color: white;
+    }
+
+    .user-profile span {
+      margin-right: 5px;
+    }
+
+    .user-profile a {
+      color: white;
+      text-decoration: none;
+      margin-left: 5px;
+    }
+
+    /* Header */
+    .desktop-header {
+      background: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 15px 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+    }
+
+    .logo {
+      width: 50px;
+      height: 50px;
+      background: #1468df;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-right: 15px;
+    }
+
+    .company-name h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1468df;
+    }
+
+    .company-name p {
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .cart-icon {
+      position: relative;
+      margin-left: 20px;
+      cursor: pointer;
+    }
+
+    .cart-count {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #e74c3c;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+    }
+
+    .search-container {
+      position: relative;
+      margin-left: 20px;
+    }
+
+    .search-container i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #777;
+    }
+
+    .search-container input {
+      padding: 10px 15px 10px 35px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 250px;
+    }
+
+    nav ul {
+      display: flex;
+      list-style: none;
+    }
+
+    nav ul li {
+      margin-left: 25px;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    nav ul li a:hover,
+    nav ul li a.active {
+      color: #1468df;
+    }
+
+    /* Mobile Header */
+    .mobile-header {
+      background: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 10px 0;
+      display: none;
+    }
+
+    .mobile-header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 15px;
+    }
+
+    .mobile-logo-container {
+      display: flex;
+      align-items: center;
+    }
+
+    .mobile-logo {
+      width: 40px;
+      height: 40px;
+      background: #1468df;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    .mobile-company-name h1 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #1468df;
+    }
+
+    .mobile-cart {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .mobile-cart-count {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #e74c3c;
+      color: white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+    }
+
+    .mobile-header-bottom {
+      display: flex;
+      padding: 10px 15px 0;
+    }
+
+    .mobile-search {
+      flex: 1;
+      position: relative;
+    }
+
+    .mobile-search i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #777;
+    }
+
+    .mobile-search input {
+      padding: 8px 15px 8px 35px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 100%;
+    }
+
+    .mobile-header-icons {
+      display: flex;
+      align-items: center;
+      margin-left: 10px;
+    }
+
+    /* Categories Bar */
+    .categories-wrapper {
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 80px;
+      z-index: 990;
+    }
+
+    .categories {
+      padding: 15px 0;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .categories::-webkit-scrollbar {
+      display: none;
+    }
+
+    .categories-container {
+      display: flex;
+      gap: 10px;
+    }
+
+    .category-btn {
+      padding: 8px 20px;
+      background: #f1f5f9;
+      border: none;
+      border-radius: 30px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+
+    .category-btn:hover,
+    .category-btn.active {
+      background: #1468df;
+      color: white;
+    }
+
+    /* Dropdown Styles - FIXED */
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-content {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      z-index: 1001;
+      display: none;
+      flex-direction: column;
+      background: white;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      border-radius: 4px;
+      padding: 10px;
+      min-width: 200px;
+      margin-top: 5px;
+    }
+
+    .dropdown.active .dropdown-content {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .subcategory-btn {
+      padding: 8px 15px;
+      background: #f8fafc;
+      border: none;
+      border-radius: 4px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-bottom: 5px;
+      white-space: nowrap;
+    }
+
+    .subcategory-btn:hover {
+      background: #e1e8f0;
+    }
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      height: 500px;
+      background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));
+      background-size: cover;
+      background-position: center;
+      color: white;
+      overflow: hidden;
+    }
+
+    .slider-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 1s ease;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .slide.active {
+      opacity: 1;
+    }
+
+    .slide-1 {
+      background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80');
+    }
+
+    .slide-2 {
+      background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1547082299-de196ea013d6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80');
+    }
+
+    .slide-3 {
+      background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1550009158-9ebf69173e03?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80');
+    }
+
+    .slide-4 {
+      background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1593642632823-8f785ba67e45?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80');
+    }
+
+    .slider-nav {
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      transform: translateY(-50%);
+      padding: 0 20px;
+    }
+
+    .slider-btn {
+      background: rgba(0, 0, 0, 0.5);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slider-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+    }
+
+    .slider-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+    }
+
+    .slider-dot.active {
+      background: white;
+    }
+
+    .hero-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .hero-content h2 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .hero-content p {
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Offers Section */
+    .offers-section {
+      background: #f8fafc;
+      padding: 50px 0;
+    }
+
+    .offers-slider {
+      position: relative;
+      overflow: hidden;
+      padding: 0 40px;
+    }
+
+    .offers-container {
+      display: flex;
+      transition: transform 0.5s ease;
+      gap: 20px;
+    }
+
+    .offer-card {
+      flex: 0 0 calc(25% - 15px);
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s;
+      cursor: pointer;
+    }
+
+    .offer-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .offer-image {
+      height: 200px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    .offer-tag {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #1468df;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .offer-content {
+      padding: 20px;
+    }
+
+    .offer-content h3 {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+
+    .offer-prices {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .old-price {
+      text-decoration: line-through;
+      color: #777;
+    }
+
+    .new-price {
+      color: #e74c3c;
+      font-weight: 600;
+    }
+
+    .offer-save {
+      background: #fef2f2;
+      color: #e74c3c;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: inline-block;
+    }
+
+    .offers-controls {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      left: 0;
+      padding: 0 10px;
+    }
+
+    .offers-prev,
+    .offers-next {
+      background: rgba(20, 104, 223, 0.8);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s;
+    }
+
+    .offers-prev:hover,
+    .offers-next:hover {
+      background: #1468df;
+    }
+
+    /* Products Section */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 25px;
+    }
+
+    .product-card {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s;
+      cursor: pointer;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .product-img {
+      height: 200px;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .product-img img {
+      max-width: 100%;
+      max-height: 180px;
+      object-fit: contain;
+    }
+
+    .product-content {
+      padding: 20px;
+    }
+
+    .product-content p {
+      margin-bottom: 15px;
+      color: #555;
+      height: 60px;
+      overflow: hidden;
+    }
+
+    .price {
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: #1468df;
+      margin-bottom: 15px;
+      display: block;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .add-to-cart-btn,
+    .inquire-btn {
+      flex: 1;
+      padding: 8px 0;
+      text-align: center;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .add-to-cart-btn {
+      background: #1468df;
+      color: white;
+      border: none;
+    }
+
+    .add-to-cart-btn:hover {
+      background: #0d5bc5;
+    }
+
+    .inquire-btn {
+      background: #f1f5f9;
+      color: #333;
+      border: 1px solid #ddd;
+    }
+
+    .inquire-btn:hover {
+      background: #e1e8f0;
+    }
+
+    .no-products {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 40px 0;
+      font-size: 1.1rem;
+      color: #777;
+    }
+
+    /* Product Details */
+    .back-btn {
+      margin-bottom: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .product-details-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+
+    .product-gallery {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .main-image {
+      height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .main-image img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .thumbnail-container {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+
+    .thumbnail {
+      flex: 0 0 80px;
+      height: 80px;
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.3s;
+    }
+
+    .thumbnail.active {
+      border-color: #1468df;
+    }
+
+    .thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .product-info h2 {
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+    }
+
+    .price-category {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .price-category .price {
+      font-size: 1.5rem;
+      color: #1468df;
+    }
+
+    .price-category .category {
+      background: #e1f0ff;
+      color: #1468df;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+
+    .description {
+      margin-bottom: 25px;
+      color: #555;
+      line-height: 1.8;
+    }
+
+    .specifications-section {
+      margin-bottom: 25px;
+    }
+
+    .specifications-section h3 {
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+
+    .specifications-content {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 20px;
+      font-size: 0.95rem;
+      line-height: 1.8;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .cart-btn, .whatsapp-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px;
+      font-weight: 500;
+    }
+
+    .whatsapp-btn {
+      background: #25D366;
+    }
+
+    .whatsapp-btn:hover {
+      background: #128C7E;
+    }
+
+    .reviews-section {
+      margin-top: 40px;
+      padding-top: 40px;
+      border-top: 1px solid #eee;
+    }
+
+    .reviews-section h3 {
+      margin-bottom: 20px;
+      font-size: 1.3rem;
+    }
+
+    .review {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 15px;
+    }
+
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .review-author {
+      font-weight: 500;
+    }
+
+    .review-rating {
+      color: #ffc107;
+    }
+
+    .review-date {
+      font-size: 0.85rem;
+      color: #777;
+      margin-bottom: 10px;
+    }
+
+    .review-content {
+      color: #555;
+      line-height: 1.7;
+    }
+
+    .related-products-section {
+      margin-top: 40px;
+      padding-top: 40px;
+      border-top: 1px solid #eee;
+    }
+
+    .related-products-section h3 {
+      margin-bottom: 20px;
+      font-size: 1.3rem;
+    }
+
+    .related-products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .related-product-card {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s;
+      cursor: pointer;
+    }
+
+    .related-product-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .related-product-img {
+      height: 150px;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .related-product-img img {
+      max-width: 100%;
+      max-height: 140px;
+      object-fit: contain;
+    }
+
+    .related-product-info {
+      padding: 15px;
+    }
+
+    .related-product-info h4 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .related-product-price {
+      color: #1468df;
+      font-weight: 500;
+    }
+
+    /* Services Section */
+    .service-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 25px;
+    }
+
+    .service-list li {
+      background: white;
+      border-radius: 8px;
+      padding: 25px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      gap: 20px;
+      transition: transform 0.3s;
+    }
+
+    .service-list li:hover {
+      transform: translateY(-5px);
+    }
+
+    .service-icon {
+      width: 60px;
+      height: 60px;
+      background: #e1f0ff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1468df;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .service-list h3 {
+      margin-bottom: 10px;
+      color: #1468df;
+    }
+
+    /* About Section */
+    .about-content p {
+      margin-bottom: 20px;
+      line-height: 1.8;
+      color: #555;
+    }
+
+    .about-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Contact Section */
+    .contact-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+
+    .contact-info h3 {
+      margin-bottom: 20px;
+      font-size: 1.3rem;
+      color: #1468df;
+    }
+
+    .contact-details {
+      background: white;
+      border-radius: 8px;
+      padding: 25px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .contact-item {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .contact-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .contact-icon {
+      width: 40px;
+      height: 40px;
+      background: #e1f0ff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1468df;
+      flex-shrink: 0;
+    }
+
+    .contact-text {
+      flex: 1;
+    }
+
+    .contact-text a {
+      color: #1468df;
+      text-decoration: none;
+    }
+
+    .contact-text a:hover {
+      text-decoration: underline;
+    }
+
+    .map {
+      background: white;
+      border-radius: 8px;
+      padding: 25px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .map img {
+      max-width: 100%;
+      border-radius: 4px;
+    }
+
+    /* Footer */
+    footer {
+      background: #1468df;
+      color: white;
+      padding: 30px 0;
+      text-align: center;
+    }
+
+    .footer-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .social-links {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .social-links a {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      transition: background 0.3s;
+    }
+
+    .social-links a:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    footer p {
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+
+    footer p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Mobile Navigation */
+    .mobile-nav {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 280px;
+      height: 100vh;
+      background: white;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      z-index: 1100;
+      transition: left 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mobile-nav.active {
+      left: 0;
+    }
+
+    .mobile-nav-header {
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .mobile-nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mobile-nav-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .mobile-nav ul {
+      padding: 20px;
+      list-style: none;
+      flex: 1;
+    }
+
+    .mobile-nav ul li {
+      margin-bottom: 15px;
+    }
+
+    .mobile-nav ul li a {
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      display: block;
+      padding: 10px 0;
+    }
+
+    .mobile-nav-footer {
+      padding: 20px;
+      border-top: 1px solid #eee;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: white;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-around;
+      z-index: 1000;
+      display: none;
+    }
+
+    .nav-item {
+      flex: 1;
+      text-align: center;
+      padding: 12px 0;
+      text-decoration: none;
+      color: #777;
+      font-size: 0.8rem;
+      transition: color 0.3s;
+    }
+
+    .nav-item.active {
+      color: #1468df;
+    }
+
+    .nav-item i {
+      display: block;
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+    }
+
+    .whatsapp-nav {
+      color: #25D366 !important;
+    }
+
+    /* Toast */
+    #custom-toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: white;
+      padding: 12px 25px;
+      border-radius: 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 2000;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    #custom-toast.show {
+      opacity: 1;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 992px) {
+      .product-details-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .contact-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .offer-card {
+        flex: 0 0 calc(33.333% - 13px);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .desktop-header {
+        display: none;
+      }
+      
+      .mobile-header {
+        display: block;
+      }
+      
+      .bottom-nav {
+        display: flex;
+      }
+      
+      .categories {
+        padding: 10px 0;
+      }
+      
+      .offer-card {
+        flex: 0 0 calc(50% - 10px);
+      }
+      
+      .hero {
+        height: 400px;
+      }
+      
+      .hero-content h2 {
+        font-size: 2rem;
+      }
+      
+      .hero-content p {
+        font-size: 1rem;
+      }
+      
+      .section {
+        padding: 40px 0;
+      }
+      
+      .dropdown-content {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        border-radius: 10px 10px 0 0;
+        max-height: 60vh;
+        overflow-y: auto;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .product-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .offer-card {
+        flex: 0 0 100%;
+      }
+      
+      .hero {
+        height: 350px;
+      }
+      
+      .hero-content h2 {
+        font-size: 1.7rem;
+      }
+      
+      .section-title h2 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="custom-toast" class="hidden"></div>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="container top-bar-content">
+      <p>Welcome to Moritech Technologies | www.moritechtechnologies.co.ke</p>
+      <div class="top-bar-contact">
+        <a href="tel:+254719362202"><i class="fas fa-phone"></i> +254719362202</a>
+        <a href="mailto:moriasiondari@yahoo.com"><i class="fas fa-envelope"></i>moriasiondari@yahoo.com</a>
+        <a href="#"><i class="fas fa-map-marker-alt"></i> Kisii Town CBD, Kenya</a>
+        <div class="top-bar-user">
+          <div class="auth-links">
+            <a href="#" id="login-link">Login</a>
+            <span>|</span>
+            <a href="#" id="register-link">Register</a>
+          </div>
+          <div class="user-profile" style="display:none">
+            <span>Welcome, User</span>
+            <span>|</span>
+            <a href="#" id="logout-btn">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop Header -->
+  <header class="desktop-header">
+    <div class="container header-container">
+      <div class="logo-container">
+        <div class="logo">MT</div>
+        <div class="company-name">
+          <h1>Moritech Technologies</h1>
+          <p>Your Trusted IT Partner</p>
+        </div>
+        <div class="cart-icon">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="cart-count">0</span>
+        </div>
+        <div class="search-container header-search">
+          <i class="fas fa-search"></i>
+          <input type="text" id="header-search-input" placeholder="Search products...">
+        </div>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#products">Products</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Mobile Header -->
+  <div class="mobile-header">
+    <div class="mobile-header-top">
+      <button class="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="mobile-logo-container">
+        <div class="mobile-logo">MT</div>
+        <div class="mobile-company-name">
+          <h1>Moritech Technologies</h1>
+        </div>
+        <div class="mobile-cart">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="mobile-cart-count">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-header-bottom">
+      <div class="mobile-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="mobile-search-input" placeholder="Search products...">
+      </div>
+
+      <div class="mobile-header-icons">
+        <div class="mobile-user-profile" style="display:none">
+          <span id="mobile-welcome-header">Welcome, User</span>
+          <a href="#" id="mobile-logout-header">Logout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categories Bar -->
+  <div class="categories-wrapper">
+    <div class="categories">
+      <div class="container categories-container">
+        <button class="category-btn active" data-category="all">All Categories</button>
+
+        <!-- Laptops with Subgroups -->
+        <div class="dropdown">
+          <button class="category-btn dropdown-toggle" data-category="laptops">
+            Laptops <i class="fas fa-caret-down"></i>
+          </button>
+          <div class="dropdown-content">
+            <button class="subcategory-btn" data-category="hp-laptops">HP</button>
+            <button class="subcategory-btn" data-category="lenovo-laptops">Lenovo</button>
+            <button class="subcategory-btn" data-category="dell-laptops">Dell</button>
+            <button class="subcategory-btn" data-category="asus-laptops">Asus</button>
+            <button class="subcategory-btn" data-category="samsung-laptops">Samsung</button>
+          </div>
+        </div>
+
+        <!-- Printers with Subgroups -->
+        <div class="dropdown">
+          <button class="category-btn dropdown-toggle" data-category="printers">
+            Printers <i class="fas fa-caret-down"></i>
+          </button>
+          <div class="dropdown-content">
+            <button class="subcategory-btn" data-category="hp-printers">HP</button>
+            <button class="subcategory-btn" data-category="canon-printers">Canon</button>
+            <button class="subcategory-btn" data-category="epson-printers">Epson</button>
+            <button class="subcategory-btn" data-category="kyocera-printers">Kyocera</button>
+            <button class="subcategory-btn" data-category="ecosys-printers">Ecosys</button>
+          </div>
+        </div>
+
+        <!-- Desktops with Subgroups -->
+        <div class="dropdown">
+          <button class="category-btn dropdown-toggle" data-category="desktops">
+            Desktops <i class="fas fa-caret-down"></i>
+          </button>
+          <div class="dropdown-content">
+            <button class="subcategory-btn" data-category="hp-desktops">HP</button>
+            <button class="subcategory-btn" data-category="dell-desktops">Dell</button>
+            <button class="subcategory-btn" data-category="lenovo-desktops">Lenovo</button>
+          </div>
+        </div>
+
+        <!-- Monitors with Subgroups -->
+        <div class="dropdown">
+          <button class="category-btn dropdown-toggle" data-category="monitors">
+            Monitors <i class="fas fa-caret-down"></i>
+          </button>
+          <div class="dropdown-content">
+            <button class="subcategory-btn" data-category="hp-monitors">HP</button>
+            <button class="subcategory-btn" data-category="lenovo-monitors">Lenovo</button>
+            <button class="subcategory-btn" data-category="samsung-monitors">Samsung</button>
+            <button class="subcategory-btn" data-category="fujitsu-monitors">Fujitsu</button>
+          </div>
+        </div>
+
+        <!-- Other Categories -->
+        <button class="category-btn" data-category="toners">Toners</button>
+        <button class="category-btn" data-category="networking">Networking</button>
+        <button class="category-btn" data-category="software">Software</button>
+        <button class="category-btn" data-category="accessories">Accessories</button>
+        <button class="category-btn" data-category="storage">Storage</button>
+        <button class="category-btn" data-category="ram">RAM</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <section id="home" class="hero">
+    <div class="slider-container">
+      <div class="slider">
+        <div class="slide slide-1 active"></div>
+        <div class="slide slide-2"></div>
+        <div class="slide slide-3"></div>
+        <div class="slide slide-4"></div>
+      </div>
+    </div>
+
+    <div class="slider-nav">
+      <button class="slider-btn prev-btn"><i class="fas fa-chevron-left"></i></button>
+      <button class="slider-btn next-btn"><i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <div class="slider-controls">
+      <div class="slider-dot active" data-slide="0"></div>
+      <div class="slider-dot" data-slide="1"></div>
+      <div class="slider-dot" data-slide="2"></div>
+      <div class="slider-dot" data-slide="3"></div>
+    </div>
+
+    <div class="container hero-content">
+      <h2>Premium IT Solutions and computer shop in Kisii</h2>
+      <p>Your trusted partner for computers, accessories, and professional IT solutions in Kisii and beyond</p>
+      <a href="#products" class="btn">Explore Products</a>
+    </div>
+  </section>
+
+  <!-- Offers Section -->
+  <section class="offers-section">
+    <div class="container">
+      <div class="section-title">
+        <h2>Special Offers</h2>
+      </div>
+
+      <div class="offers-slider">
+        <div class="offers-container">
+          <!-- Offers will be loaded by JavaScript -->
+        </div>
+
+        <div class="offers-controls">
+          <button class="offers-prev"><i class="fas fa-chevron-left"></i></button>
+          <button class="offers-next"><i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products Section -->
+  <section id="products" class="section">
+    <div class="container">
+      <div class="section-title">
+        <h2>Our Products</h2>
+      </div>
+
+      <div class="product-grid">
+        <!-- Products will be loaded by JavaScript -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Product Details Section -->
+  <section id="product-details" class="section" style="display:none;">
+    <div class="container product-details-container">
+      <button id="back-to-products" class="btn back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Products
+      </button>
+      <div class="product-gallery">
+        <div class="main-image">
+          <img id="main-product-image" src="" alt="Main Product Image">
+        </div>
+        <div class="thumbnail-container">
+          <!-- Thumbnails will be inserted here -->
+        </div>
+      </div>
+
+      <div class="product-info">
+        <h2 id="product-detail-name"></h2>
+        <div class="price-category">
+          <span id="product-detail-price" class="price"></span>
+          <span id="product-detail-category" class="category"></span>
+        </div>
+        <p id="product-detail-description" class="description"></p>
+
+        <div class="specifications-section">
+          <h3>Specifications</h3>
+          <div id="product-specs" class="specifications-content"></div>
+        </div>
+
+        <div class="action-buttons">
+          <button id="add-to-cart-detail" class="btn cart-btn">
+            <i class="fas fa-shopping-cart"></i> Add to Cart
+          </button>
+          <a id="whatsapp-order" class="btn whatsapp-btn" target="_blank">
+            <i class="fab fa-whatsapp"></i> Order on WhatsApp
+          </a>
+        </div>
+      </div>
+
+      <div class="reviews-section">
+        <h3>Customer Reviews</h3>
+        <div id="product-reviews" class="reviews-container"></div>
+      </div>
+
+      <div class="related-products-section">
+        <h3>Related Products</h3>
+        <div id="related-products" class="related-products-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section id="services" class="section">
+    <div class="container">
+      <div class="section-title">
+        <h2>Our Services</h2>
+      </div>
+      <ul class="service-list">
+        <li>
+          <div class="service-icon"><i class="fas fa-tools"></i></div>
+          <div>
+            <h3>Laptop & Desktop Repair</h3>
+            <p>Expert repair services for all computer brands</p>
+          </div>
+        </li>
+        <li>
+          <div class="service-icon"><i class="fas fa-laptop"></i></div>
+          <div>
+            <h3>Computer Sales</h3>
+            <p>New and refurbished computers at best prices</p>
+          </div>
+        </li>
+        <li>
+          <div class="service-icon"><i class="fas fa-download"></i></div>
+          <div>
+            <h3>Software Installation</h3>
+            <p>OS installation, updates and troubleshooting</p>
+          </div>
+        </li>
+        <li>
+          <div class="service-icon"><i class="fas fa-print"></i></div>
+          <div>
+            <h3>Printer Services</h3>
+            <p>Repair, maintenance and supplies</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="section">
+    <div class="container">
+      <div class="section-title">
+        <h2>About Us</h2>
+      </div>
+      <div class="about-content">
+        <p>Moritech Technologies Limited is a premier IT solutions provider based in Kisii Town, Kenya. Since our
+          establishment, we've been committed to delivering top-quality computer products and professional IT services
+          to individuals, businesses, and educational institutions throughout the region.</p>
+        <p>Our team of certified technicians brings years of experience in hardware repair, software solutions, and
+          network management. We pride ourselves on offering affordable, reliable, and timely services that meet the
+          evolving technological needs of our clients.</p>
+        <p>At Moritech Technologies, we believe in building lasting relationships with our customers through exceptional
+          service, technical expertise, and genuine care for your technology challenges.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="section">
+    <div class="container">
+      <div class="section-title">
+        <h2>Contact Us</h2>
+      </div>
+
+      <div class="contact-container">
+        <div class="contact-info">
+          <h3>Get In Touch</h3>
+          <div class="contact-details">
+            <div class="contact-item">
+              <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+              <div class="contact-text">
+                <strong>Address:</strong> Kisii Town CBD, Kenya
+              </div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon"><i class="fas fa-phone"></i></div>
+              <div class="contact-text">
+                <strong>Phone:</strong> <a href="tel:+254719362202">+254 719 362202</a>
+              </div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon"><i class="fab fa-whatsapp"></i></div>
+              <div class="contact-text">
+                <strong>WhatsApp:</strong> <a href="https://wa.me/254719362202" target="_blank">Chat with us</a>
+              </div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+              <div class="contact-text">
+                <strong>Email:</strong> <a href="mailto:moriasiondari@yahoo.com">moriasiondari@yahoo.com</a>
+              </div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon"><i class="fas fa-clock"></i></div>
+              <div class="contact-text">
+                <strong>Working Hours:</strong><br>
+                Mon-Fri: 8:30 AM - 5:30 PM<br>
+                Sat: 9:00 AM - 4:00 PM<br>
+                Sun: 9:00 AM - 4:00 PM
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="map">
+          <i class="fas fa-map-marked-alt" style="font-size: 50px;"></i>
+          <p></p>
+          <img src="https://via.placeholder.com/400x300?text=Map+Location" alt="Kisii CBD Map"
+            style="width: 100%; max-width: 400px; margin-top: 10px; border-radius: 10px;" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-content">
+      <div class="social-links">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+        <a href="#"><i class="fab fa-whatsapp"></i></a>
+      </div>
+      <p>&copy; 2025 Moritech Technologies Limited. All rights reserved.</p>
+      <p>Proudly serving Kisii and beyond since 2015</p>
+    </div>
+  </footer>
+
+  <!-- Mobile Bottom Navigation -->
+  <div class="bottom-nav">
+    <a href="#home" class="nav-item active">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </a>
+    <a href="#" class="nav-item" id="mobile-cart-btn">
+      <i class="fas fa-shopping-cart"></i>
+      <span>Cart</span>
+    </a>
+    <a href="#" class="nav-item" id="mobile-account-btn">
+      <i class="fas fa-user"></i>
+      <span>Account</span>
+    </a>
+    <a href="https://wa.me/254719362202" class="nav-item whatsapp-nav" target="_blank">
+      <i class="fab fa-whatsapp"></i>
+      <span>WhatsApp</span>
+    </a>
+  </div>
+
+  <script>
+    // Initialize slider
+    function initSlider() {
+      const slides = document.querySelectorAll('.slide');
+      if (!slides.length) return;
+
+      const dots = document.querySelectorAll('.slider-dot');
+      const prevBtn = document.querySelector('.prev-btn');
+      const nextBtn = document.querySelector('.next-btn');
+
+      let currentSlide = 0;
+      let slideInterval;
+
+      function showSlide(index) {
+        slides.forEach(slide => slide.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+
+        slides[index].classList.add('active');
+        dots[index].classList.add('active');
+        currentSlide = index;
+      }
+
+      function nextSlide() {
+        showSlide((currentSlide + 1) % slides.length);
+      }
+
+      function prevSlide() {
+        showSlide((currentSlide - 1 + slides.length) % slides.length);
+      }
+
+      function startSlideShow() {
+        slideInterval = setInterval(nextSlide, 5000);
+      }
+
+      function stopSlideShow() {
+        clearInterval(slideInterval);
+      }
+
+      prevBtn?.addEventListener('click', () => {
+        stopSlideShow();
+        prevSlide();
+        startSlideShow();
+      });
+
+      nextBtn?.addEventListener('click', () => {
+        stopSlideShow();
+        nextSlide();
+        startSlideShow();
+      });
+
+      dots.forEach(dot => {
+        dot.addEventListener('click', function () {
+          const slideIndex = parseInt(this.dataset.slide);
+          stopSlideShow();
+          showSlide(slideIndex);
+          startSlideShow();
+        });
+      });
+
+      showSlide(0);
+      startSlideShow();
+    }
+
+    // Render offers
+    function renderOffers(offers) {
+      const container = document.querySelector('.offers-container');
+      if (!container) return;
+
+      container.innerHTML = '';
+
+      offers.forEach(offer => {
+        const offerEl = document.createElement('div');
+        offerEl.className = 'offer-card';
+        
+        offerEl.innerHTML = `
+          <div class="offer-image" style="background-image: url(${offer.image || 'https://via.placeholder.com/300?text=Offer+Image'})">
+            <div class="offer-tag">OFFER</div>
+          </div>
+          <div class="offer-content">
+            <h3>${offer.name}</h3>
+            <div class="offer-prices">
+              <span class="old-price">Ksh ${offer.oldPrice.toLocaleString()}</span>
+              <span class="new-price">Ksh ${offer.price.toLocaleString()}</span>
+            </div>
+            <div class="offer-save">Save Ksh ${(offer.oldPrice - offer.price).toLocaleString()}</div>
+          </div>
+        `;
+
+        container.appendChild(offerEl);
+      });
+    }
+
+    // Initialize offers controls
+    function initOffersControls() {
+      const container = document.querySelector('.offers-container');
+      const prevBtn = document.querySelector('.offers-prev');
+      const nextBtn = document.querySelector('.offers-next');
+
+      if (!container || !prevBtn || !nextBtn) return;
+
+      const offerCards = container.querySelectorAll('.offer-card');
+      if (!offerCards.length) return;
+
+      if (offerCards.length <= 1) {
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+        return;
+      }
+
+      let currentIndex = 0;
+      const cardWidth = offerCards[0].offsetWidth + 40;
+
+      function updatePosition() {
+        container.style.transform = `translateX(-${currentIndex * cardWidth}px)`;
+      }
+
+      prevBtn.addEventListener('click', () => {
+        if (currentIndex > 0) {
+          currentIndex--;
+          updatePosition();
+        }
+      });
+
+      nextBtn.addEventListener('click', () => {
+        if (currentIndex < offerCards.length - 1) {
+          currentIndex++;
+          updatePosition();
+        }
+      });
+
+      updatePosition();
+    }
+
+    // Initialize category dropdowns
+    function initCategoryDropdowns() {
+      document.querySelectorAll('.dropdown').forEach(dropdown => {
+        const toggle = dropdown.querySelector('.dropdown-toggle');
+        
+        toggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          dropdown.classList.toggle('active');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!dropdown.contains(e.target)) {
+            dropdown.classList.remove('active');
+          }
+        });
+      });
+    }
+
+    // Initialize subcategory buttons
+    function initSubcategoryButtons() {
+      document.querySelectorAll('.subcategory-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const category = this.dataset.category;
+          document.querySelectorAll('.category-btn, .subcategory-btn').forEach(b => {
+            b.classList.remove('active');
+          });
+          this.classList.add('active');
+          showToast(`Loading ${category} products...`);
+        });
+      });
+    }
+
+    // Render products
+    function renderProducts(products) {
+      const productGrid = document.querySelector('.product-grid');
+      if (!productGrid) return;
+
+      productGrid.innerHTML = '';
+
+      if (!products || !products.length) {
+        productGrid.innerHTML = '<p class="no-products">No products available</p>';
+        return;
+      }
+
+      products.slice(0, 8).forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.dataset.id = product.id;
+        card.dataset.name = product.name;
+
+        card.innerHTML = `
+          <div class="product-img">
+            <img src="${product.image || 'https://via.placeholder.com/250?text=Product+Image'}" alt="${product.name}">
+          </div>
+          <div class="product-content">
+            <p>${product.description || 'High-quality product with great features'}</p>
+            <span class="price">Ksh ${product.price.toLocaleString()}</span>
+            <div class="button-group">
+              <button class="inquire-btn">Inquire</button>
+              <button class="add-to-cart-btn">Add to Cart</button>
+            </div>
+          </div>
+        `;
+
+        productGrid.appendChild(card);
+      });
+    }
+
+    // Show toast message
+    function showToast(message) {
+      const toast = document.getElementById('custom-toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      initSlider();
+      initCategoryDropdowns();
+      initSubcategoryButtons();
+      
+      // Sample data for offers
+      const offers = [
+        {
+          name: "HP EliteBook Laptop",
+          oldPrice: 120000,
+          price: 99999,
+          image: "https://via.placeholder.com/300?text=HP+Laptop"
+        },
+        {
+          name: "Canon Printer",
+          oldPrice: 45000,
+          price: 39999,
+          image: "https://via.placeholder.com/300?text=Canon+Printer"
+        },
+        {
+          name: "Dell Monitor",
+          oldPrice: 35000,
+          price: 28999,
+          image: "https://via.placeholder.com/300?text=Dell+Monitor"
+        },
+        {
+          name: "Networking Bundle",
+          oldPrice: 55000,
+          price: 45999,
+          image: "https://via.placeholder.com/300?text=Networking+Bundle"
+        }
+      ];
+      
+      renderOffers(offers);
+      initOffersControls();
+      
+      // Sample data for products
+      const products = [
+        {
+          id: 1,
+          name: "HP EliteBook",
+          description: "Powerful business laptop with 16GB RAM and 512GB SSD",
+          price: 99999,
+          image: "https://via.placeholder.com/250?text=HP+Laptop"
+        },
+        {
+          id: 2,
+          name: "Dell XPS 13",
+          description: "Ultra-slim laptop with InfinityEdge display",
+          price: 115000,
+          image: "https://via.placeholder.com/250?text=Dell+Laptop"
+        },
+        {
+          id: 3,
+          name: "Canon Pixma Printer",
+          description: "High-quality color printer for home and office",
+          price: 25999,
+          image: "https://via.placeholder.com/250?text=Canon+Printer"
+        },
+        {
+          id: 4,
+          name: "Samsung 27\" Monitor",
+          description: "Crystal-clear display with 75Hz refresh rate",
+          price: 28999,
+          image: "https://via.placeholder.com/250?text=Samsung+Monitor"
+        },
+        {
+          id: 5,
+          name: "HP Toner Cartridge",
+          description: "Original HP toner for laser printers",
+          price: 6999,
+          image: "https://via.placeholder.com/250?text=HP+Toner"
+        },
+        {
+          id: 6,
+          name: "TP-Link Router",
+          description: "High-speed dual-band Wi-Fi router",
+          price: 8999,
+          image: "https://via.placeholder.com/250?text=TP-Link+Router"
+        },
+        {
+          id: 7,
+          name: "Microsoft Office 365",
+          description: "1-year subscription for 5 devices",
+          price: 12999,
+          image: "https://via.placeholder.com/250?text=Office+365"
+        },
+        {
+          id: 8,
+          name: "Logitech Keyboard",
+          description: "Ergonomic wireless keyboard with numeric pad",
+          price: 4999,
+          image: "https://via.placeholder.com/250?text=Logitech+Keyboard"
+        }
+      ];
+      
+      renderProducts(products);
+      
+      // Add event listeners for product actions
+      document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const card = this.closest('.product-card');
+          showToast(`${card.dataset.name} added to cart!`);
+        });
+      });
+      
+      document.querySelectorAll('.inquire-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const card = this.closest('.product-card');
+          showToast(`Inquiry sent for ${card.dataset.name}`);
+        });
+      });
+      
+      // Show product details
+      document.querySelectorAll('.product-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+          if (!e.target.closest('.add-to-cart-btn') && !e.target.closest('.inquire-btn')) {
+            document.getElementById('products').style.display = 'none';
+            document.getElementById('product-details').style.display = 'block';
+            
+            const productId = this.dataset.id;
+            const product = products.find(p => p.id == productId);
+            
+            if (product) {
+              document.getElementById('product-detail-name').textContent = product.name;
+              document.getElementById('product-detail-price').textContent = `Ksh ${product.price.toLocaleString()}`;
+              document.getElementById('product-detail-category').textContent = "Laptops";
+              document.getElementById('product-detail-description').textContent = product.description || 'High-quality product with great features';
+              document.getElementById('main-product-image').src = product.image || 'https://via.placeholder.com/500?text=Product+Image';
+              document.getElementById('product-specs').innerHTML = `
+                <p><strong>Brand:</strong> ${product.name.split(' ')[0]}</p>
+                <p><strong>Model:</strong> ${product.name}</p>
+                <p><strong>Processor:</strong> Intel Core i5</p>
+                <p><strong>RAM:</strong> 16GB</p>
+                <p><strong>Storage:</strong> 512GB SSD</p>
+                <p><strong>Display:</strong> 15.6" Full HD</p>
+              `;
+            }
+          }
+        });
+      });
+      
+      // Back to products button
+      document.getElementById('back-to-products').addEventListener('click', function() {
+        document.getElementById('product-details').style.display = 'none';
+        document.getElementById('products').style.display = 'block';
+      });
+    });
+  </script>
+</body>
+</html>
