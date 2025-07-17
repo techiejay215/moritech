@@ -2157,17 +2157,18 @@ function initCategoryDropdowns() {
   }
 }
 
+// Replace the existing initSubcategoryButtons function with this updated version
 function initSubcategoryButtons() {
   const subcategoryButtons = document.querySelectorAll('.subcategory-btn');
-  console.log(`Initializing ${subcategoryButtons.length} subcategory buttons`);
-
+  
   subcategoryButtons.forEach(btn => {
-    btn.addEventListener('click', async function (e) {
-      console.log('Subcategory button clicked:', this.dataset.category);
+    btn.addEventListener('click', async function(e) {
+      // Prevent default anchor behavior
       e.preventDefault();
       e.stopPropagation();
+      
       const category = this.dataset.category;
-
+      
       // Update UI
       document.querySelectorAll('.category-btn, .subcategory-btn').forEach(b => {
         b.classList.remove('active');
@@ -2179,9 +2180,8 @@ function initSubcategoryButtons() {
       const dropdownToggle = dropdown.querySelector('.dropdown-toggle');
       dropdownToggle.classList.add('active');
 
-      // Load products
+      // Load products IMMEDIATELY
       try {
-        console.log(`Loading products for category: ${category}`);
         const products = await productService.getProductsByCategory(category);
         renderProducts(products);
 
