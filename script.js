@@ -1906,6 +1906,11 @@ function initProductForm() {
   const newForm = form.cloneNode(true);
   form.parentNode.replaceChild(newForm, form);
 
+  const categorySelect = newForm.querySelector('#product-category');
+  if (categorySelect) {
+    categorySelect.addEventListener('change', toggleNewCategoryInput);
+  }
+
   const imageInput = newForm.querySelector('#product-image');
   const imagePreview = newForm.querySelector('#image-preview');
 
