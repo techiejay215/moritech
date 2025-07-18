@@ -227,17 +227,25 @@
       </div>
     </div>
   </section>
-  <!-- Inside product-details section -->
   <section id="product-details" class="section" style="display:none;">
     <div class="container product-details-container">
       <button id="back-to-products" class="btn back-btn">
         <i class="fas fa-arrow-left"></i> Back to Products
       </button>
 
-      <!-- 🔄 Updated layout starts here -->
+      <!-- 🔄 FLEX LAYOUT: Main image left, details right -->
       <div class="product-details-flex">
+        <!-- LEFT: Image + Thumbnails -->
+        <div class="product-gallery">
+          <div class="main-image">
+            <img id="main-product-image" src="" alt="Main Product Image">
+          </div>
+          <div class="thumbnail-container">
+            <!-- Thumbnails will be inserted here -->
+          </div>
+        </div>
 
-        <!-- LEFT: Product Info -->
+        <!-- RIGHT: Info -->
         <div class="product-info">
           <h2 id="product-detail-name"></h2>
           <div class="price-category">
@@ -254,24 +262,14 @@
               <i class="fab fa-whatsapp"></i> Order on WhatsApp
             </a>
           </div>
-
-          <div class="specifications-section">
-            <h3>Specifications</h3>
-            <div id="product-specs" class="specifications-content"></div>
-          </div>
-        </div>
-
-        <!-- RIGHT: Product Gallery -->
-        <div class="product-gallery">
-          <div class="main-image">
-            <img id="main-product-image" src="" alt="Main Product Image">
-          </div>
-          <div class="thumbnail-container">
-            <!-- Thumbnails will be inserted here -->
-          </div>
         </div>
       </div>
-      <!-- 🔄 Updated layout ends here -->
+
+      <!-- ✅ Full-width specs -->
+      <div class="specifications-section">
+        <h3>Specifications</h3>
+        <div id="product-specs" class="specifications-content"></div>
+      </div>
 
       <!-- Reviews -->
       <div class="reviews-section">
