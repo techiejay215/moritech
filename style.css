@@ -4224,6 +4224,7 @@ footer {
   opacity: 1;
   pointer-events: auto;
 }
+
 .subcategories {
   padding: 10px 0;
   background-color: #fff;
@@ -4250,11 +4251,13 @@ footer {
   background: var(--primary);
   color: #fff;
 }
+
 .category-btn .indicator {
   margin-left: 6px;
   font-size: 12px;
   color: #555;
 }
+
 .product-details-flex {
   display: flex;
   flex-wrap: wrap;
@@ -4331,4 +4334,38 @@ footer {
     width: 60px;
     height: 60px;
   }
+}
+
+/* Add to style.css */
+.cancel-edit-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: background-color 0.3s;
+}
+
+.cancel-edit-btn:hover {
+  background-color: #5a6268;
+}
+
+.admin-product-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-product-btn {
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-product-btn:hover {
+  background-color: #138496;
 }
