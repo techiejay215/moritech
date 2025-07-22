@@ -2393,6 +2393,7 @@ function populateEditForm(product) {
   document.querySelector('.admin-form').scrollIntoView({ behavior: 'smooth' });
 }
 // New function to reset form
+// REPLACE the existing resetFormToAddMode function with this:
 function resetFormToAddMode() {
   const formTitle = document.getElementById('form-title');
   const editIdField = document.getElementById('edit-product-id');
@@ -2400,18 +2401,13 @@ function resetFormToAddMode() {
   const imagePreview = document.getElementById('image-preview');
   const cancelBtn = document.querySelector('.cancel-edit-btn');
 
+  // Safe element access with optional chaining
   if (formTitle) formTitle.textContent = 'Add New Product';
   if (editIdField) editIdField.value = '';
   if (form) form.reset();
   if (imagePreview) imagePreview.innerHTML = '';
   if (cancelBtn) cancelBtn.style.display = 'none';
 
-
-  formTitle.textContent = 'Add New Product';
-  document.getElementById('edit-product-id').value = '';
-  form.reset();
-  document.getElementById('image-preview').innerHTML = '';
-  cancelBtn.style.display = 'none';
   toggleNewCategoryInput();
 }
 document.addEventListener('DOMContentLoaded', async function () {
