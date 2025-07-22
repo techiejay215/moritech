@@ -2342,10 +2342,8 @@ function populateEditForm(product) {
   const form = document.getElementById('add-product-form');
   const formTitle = document.getElementById('form-title');
   const editIdField = document.getElementById('edit-product-id');
-
-  // Set form to edit mode
-  formTitle.textContent = 'Edit Product';
-  editIdField.value = product._id;
+ if (formTitle) formTitle.textContent = 'Edit Product';
+  if (editIdField) editIdField.value = product._id;
 
   // Populate form fields
   document.getElementById('product-name').value = product.name;
@@ -2393,7 +2391,11 @@ function populateEditForm(product) {
 function resetFormToAddMode() {
   const form = document.getElementById('add-product-form');
   const formTitle = document.getElementById('form-title');
-  const cancelBtn = document.querySelector('.cancel-edit-btn');
+  const cancelBtn = document.querySelector('.cancel-edit-btn');if (formTitle) formTitle.textContent = 'Add New Product';
+  
+  const editIdField = document.getElementById('edit-product-id');
+  if (editIdField) editIdField.value = '';
+
 
   formTitle.textContent = 'Add New Product';
   document.getElementById('edit-product-id').value = '';
