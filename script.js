@@ -1325,15 +1325,15 @@ function toggleNewCategoryInput() {
   }
 
 
-if (!categorySelect || !newCategoryInput) return;
+  if (!categorySelect || !newCategoryInput) return;
 
-if (categorySelect.value === 'new') {
-  newCategoryInput.style.display = 'block';
-  newCategoryInput.required = true;
-} else {
-  newCategoryInput.style.display = 'none';
-  newCategoryInput.required = false;
-}
+  if (categorySelect.value === 'new') {
+    newCategoryInput.style.display = 'block';
+    newCategoryInput.required = true;
+  } else {
+    newCategoryInput.style.display = 'none';
+    newCategoryInput.required = false;
+  }
 }
 function renderProducts(products) {
   const productGrid = document.querySelector('.product-grid');
@@ -1843,7 +1843,12 @@ async function initAdminPanel() {
 
     if (adminSection && user?.role === 'admin') {
       adminSection.style.display = 'block';
-
+      if (document.getElementById('form-title')) {
+        initProductForm();
+      }
+      if (document.getElementById('offer-product-select')) {
+        await populateProductDropdown();
+      }
       // Load products and store them
       adminProducts = await productService.getProducts();
       await renderAdminProducts(adminProducts);
@@ -2088,7 +2093,7 @@ function initProductForm() {
         adminProducts = await productService.getProducts();
         renderAdminProducts(adminProducts);
       }
-
+      resetFormToAddMode(); // Now safe to call
     } catch (error) {
       console.error('Product operation error:', error);
       showToast(`❌ ${error.message}`);
@@ -2342,7 +2347,7 @@ function populateEditForm(product) {
   const form = document.getElementById('add-product-form');
   const formTitle = document.getElementById('form-title');
   const editIdField = document.getElementById('edit-product-id');
- if (formTitle) formTitle.textContent = 'Edit Product';
+  if (formTitle) formTitle.textContent = 'Edit Product';
   if (editIdField) editIdField.value = product._id;
 
   // Populate form fields
@@ -2391,10 +2396,14 @@ function populateEditForm(product) {
 function resetFormToAddMode() {
   const form = document.getElementById('add-product-form');
   const formTitle = document.getElementById('form-title');
-  const cancelBtn = document.querySelector('.cancel-edit-btn');if (formTitle) formTitle.textContent = 'Add New Product';
-  
+  const cancelBtn = document.querySelector('.cancel-edit-btn'); if (formTitle) formTitle.textContent = 'Add New Product';
+
   const editIdField = document.getElementById('edit-product-id');
   if (editIdField) editIdField.value = '';
+  if (formTitle) formTitle.textContent = 'Add New Product';
+
+  if (form) form.reset();
+
 
 
   formTitle.textContent = 'Add New Product';
