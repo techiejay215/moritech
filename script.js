@@ -2394,16 +2394,17 @@ function populateEditForm(product) {
 }
 // New function to reset form
 function resetFormToAddMode() {
-  const form = document.getElementById('add-product-form');
   const formTitle = document.getElementById('form-title');
-  const cancelBtn = document.querySelector('.cancel-edit-btn'); if (formTitle) formTitle.textContent = 'Add New Product';
-
   const editIdField = document.getElementById('edit-product-id');
-  if (editIdField) editIdField.value = '';
+  const form = document.getElementById('add-product-form');
+  const imagePreview = document.getElementById('image-preview');
+  const cancelBtn = document.querySelector('.cancel-edit-btn');
+
   if (formTitle) formTitle.textContent = 'Add New Product';
-
+  if (editIdField) editIdField.value = '';
   if (form) form.reset();
-
+  if (imagePreview) imagePreview.innerHTML = '';
+  if (cancelBtn) cancelBtn.style.display = 'none';
 
 
   formTitle.textContent = 'Add New Product';
