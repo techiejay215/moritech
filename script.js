@@ -2395,6 +2395,13 @@ function populateEditForm(product) {
 // New function to reset form
 // REPLACE the existing resetFormToAddMode function with this:
 function resetFormToAddMode() {
+  const modalTitle = document.getElementById("modalTitle");
+  if (modalTitle) {
+    modalTitle.textContent = "Add Product";
+  } else {
+    console.warn("modalTitle not found in DOM");
+  }
+
   const formTitle = document.getElementById('form-title');
   const editIdField = document.getElementById('edit-product-id');
   const form = document.getElementById('add-product-form');
@@ -2408,8 +2415,11 @@ function resetFormToAddMode() {
   if (imagePreview) imagePreview.innerHTML = '';
   if (cancelBtn) cancelBtn.style.display = 'none';
 
-  toggleNewCategoryInput();
+  if (typeof toggleNewCategoryInput === 'function') {
+    toggleNewCategoryInput();
+  }
 }
+
 document.addEventListener('DOMContentLoaded', async function () {
   try {
     // First check auth state
