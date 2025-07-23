@@ -2128,35 +2128,50 @@ function initStaticCategoryFilter() {
 
   categoryButtons.forEach(button => {
     const category = button.dataset.category;
-
-    // Only show caret for categories with subcategories (not 'all')
     const hasSubs = staticSubcategories[category]?.length > 0;
+    
+    // Add indicator for categories with subcategories
     if (hasSubs && !button.querySelector('.indicator')) {
       button.innerHTML += ' <span class="indicator">▼</span>';
     }
 
-    // Click handler
     button.addEventListener('click', () => {
-      // Highlight selected
+      // Highlight selected category
       document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
       button.classList.add('active');
 
-      // Render subcategories (skip for 'all')
+      // Render subcategories
       const subcategories = staticSubcategories[category] || [];
       subcategoryContainer.innerHTML = subcategories
-        .map(sub => {
-          const key = sub.toLowerCase().replace(/\s+/g, '-');
-          return `<button class="subcategory-btn" data-category="${key}">${sub}</button>`;
-        })
+        .map(sub => `<button class="subcategory-btn" data-category="${sub.toLowerCase().replace(/\s+/g, '-')}">${sub}</button>`)
         .join('');
 
       initStaticSubcategoryButtons();
 
-      // If 'all', optionally load all products
+      // MOBILE: Scroll to products section immediately after clicking category
+      if (window.innerWidth <= 768) {
+        const productsSection = document.getElementById('products');
+        if (productsSection) {
+          window.scrollTo({
+            top: productsSection.offsetTop - 100,
+            behavior: 'smooth'
+          });
+        }
+      }
+
+      // Load products for 'all' category
       if (category === 'all') {
-        productService.getAllProducts().then(renderProducts).catch(err => {
-          console.error('Error loading all products:', err);
-          alert('Failed to load products.');
+        loadProducts().then(() => {
+          // Desktop: Only scroll for 'all' category after loading
+          if (window.innerWidth > 768) {
+            const productsSection = document.getElementById('products');
+            if (productsSection) {
+              window.scrollTo({
+                top: productsSection.offsetTop - 100,
+                behavior: 'smooth'
+              });
+            }
+          }
         });
       }
     });
