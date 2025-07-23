@@ -2399,7 +2399,8 @@ function resetFormToAddMode() {
   if (modalTitle) {
     modalTitle.textContent = "Add Product";
   } else {
-    console.warn("modalTitle not found in DOM");
+    console.warn("resetFormToAddMode: #modalTitle not found in DOM");
+    return; // 🛑 stop execution — form likely not ready
   }
 
   const formTitle = document.getElementById('form-title');
@@ -2408,7 +2409,6 @@ function resetFormToAddMode() {
   const imagePreview = document.getElementById('image-preview');
   const cancelBtn = document.querySelector('.cancel-edit-btn');
 
-  // Safe element access with optional chaining
   if (formTitle) formTitle.textContent = 'Add New Product';
   if (editIdField) editIdField.value = '';
   if (form) form.reset();
