@@ -2141,6 +2141,7 @@ function initMobileAuth() {
       mobileAuthModal.style.display = 'none';
     }
   });
+  resetFormToAddMode();
 }
 async function loadProducts() {
   try {
@@ -2161,6 +2162,7 @@ async function loadProducts() {
       `;
     }
   }
+
 }
 async function loadOffers() {
   try {
@@ -2395,28 +2397,29 @@ function populateEditForm(product) {
 // New function to reset form
 // REPLACE the existing resetFormToAddMode function with this:
 function resetFormToAddMode() {
-  const modalTitle = document.getElementById("modalTitle");
-  if (modalTitle) {
-    modalTitle.textContent = "Add Product";
-  } else {
-    console.warn("resetFormToAddMode: #modalTitle not found in DOM");
-    return; // 🛑 stop execution — form likely not ready
-  }
+  try {
+    // Safely get elements
+    const modalTitle = document.getElementById("modalTitle");
+    const formTitle = document.getElementById('form-title');
+    const editIdField = document.getElementById('edit-product-id');
+    const form = document.getElementById('add-product-form');
+    const imagePreview = document.getElementById('image-preview');
+    const cancelBtn = document.querySelector('.cancel-edit-btn');
 
-  const formTitle = document.getElementById('form-title');
-  const editIdField = document.getElementById('edit-product-id');
-  const form = document.getElementById('add-product-form');
-  const imagePreview = document.getElementById('image-preview');
-  const cancelBtn = document.querySelector('.cancel-edit-btn');
+    // Only update elements if they exist
+    if (modalTitle) modalTitle.textContent = "Add Product";
+    if (formTitle) formTitle.textContent = 'Add New Product';
+    if (editIdField) editIdField.value = '';
+    if (form) form.reset();
+    if (imagePreview) imagePreview.innerHTML = '';
+    if (cancelBtn) cancelBtn.style.display = 'none';
 
-  if (formTitle) formTitle.textContent = 'Add New Product';
-  if (editIdField) editIdField.value = '';
-  if (form) form.reset();
-  if (imagePreview) imagePreview.innerHTML = '';
-  if (cancelBtn) cancelBtn.style.display = 'none';
-
-  if (typeof toggleNewCategoryInput === 'function') {
-    toggleNewCategoryInput();
+    // Safely toggle category input
+    if (typeof toggleNewCategoryInput === 'function') {
+      toggleNewCategoryInput();
+    }
+  } catch (error) {
+    console.error('Error resetting form:', error);
   }
 }
 
